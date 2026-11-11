@@ -917,7 +917,7 @@ namespace ACE.Server.WorldObjects
                 item = DatManager.PortalDat.ReadFromDat<ClothingTable>((uint)ClothingBase);
             else
             {
-                return objDesc;
+                return ApplyAcxAppearance(objDesc);
             }
 
             if (item.ClothingBaseEffects.ContainsKey(SetupTableId))
@@ -972,7 +972,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            return objDesc;
+            return ApplyAcxAppearance(objDesc);
         }
 
         protected void AddBaseModelData(ACE.Entity.ObjDesc objDesc)
