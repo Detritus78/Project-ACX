@@ -59,3 +59,29 @@ UPDATE weenie_properties_d_i_d p JOIN acx_test t ON p.object_Id = t.wcid SET p.v
 INSERT INTO weenie_properties_float (object_Id, type, value) SELECT wcid, 76, translucency FROM acx_test WHERE translucency IS NOT NULL;
 
 DROP TEMPORARY TABLE acx_test;
+
+-- Texture swaps (weenie_properties_texture_map, part 0). The Long Sword uses SurfaceTextures 05000C53/54/55;
+-- each of H/I/J paints one of them deep purple (0500303D, avg #2F004E) to find the blade, K paints all three
+-- near-black violet (050030C6, avg #0C032B). Copies of C (900003).
+DELETE FROM weenie WHERE class_Id IN (900008, 900009, 900010, 900011);
+DROP TEMPORARY TABLE IF EXISTS acx_tex;
+CREATE TEMPORARY TABLE acx_tex (wcid INT UNSIGNED, class_name VARCHAR(100), name VARCHAR(100));
+INSERT INTO acx_tex VALUES
+    (900008, 'acx-test-nether-sword-h', 'Nether Test Sword H (purple C53)'),
+    (900009, 'acx-test-nether-sword-i', 'Nether Test Sword I (purple C54)'),
+    (900010, 'acx-test-nether-sword-j', 'Nether Test Sword J (purple C55)'),
+    (900011, 'acx-test-nether-sword-k', 'Nether Test Sword K (all violet)');
+INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT t.wcid, t.class_name, w.type, NOW() FROM acx_tex t JOIN weenie w ON w.class_Id = 900003;
+INSERT INTO weenie_properties_int (object_Id, type, value) SELECT t.wcid, p.type, p.value FROM acx_tex t JOIN weenie_properties_int p ON p.object_Id = 900003;
+INSERT INTO weenie_properties_float (object_Id, type, value) SELECT t.wcid, p.type, p.value FROM acx_tex t JOIN weenie_properties_float p ON p.object_Id = 900003;
+INSERT INTO weenie_properties_bool (object_Id, type, value) SELECT t.wcid, p.type, p.value FROM acx_tex t JOIN weenie_properties_bool p ON p.object_Id = 900003;
+INSERT INTO weenie_properties_d_i_d (object_Id, type, value) SELECT t.wcid, p.type, p.value FROM acx_tex t JOIN weenie_properties_d_i_d p ON p.object_Id = 900003;
+INSERT INTO weenie_properties_string (object_Id, type, value) SELECT wcid, 1, name FROM acx_tex;
+INSERT INTO weenie_properties_texture_map (object_Id, `index`, old_Id, new_Id) VALUES
+    (900008, 0, 0x05000C53, 0x0500303D),
+    (900009, 0, 0x05000C54, 0x0500303D),
+    (900010, 0, 0x05000C55, 0x0500303D),
+    (900011, 0, 0x05000C53, 0x050030C6),
+    (900011, 0, 0x05000C54, 0x050030C6),
+    (900011, 0, 0x05000C55, 0x050030C6);
+DROP TEMPORARY TABLE acx_tex;
