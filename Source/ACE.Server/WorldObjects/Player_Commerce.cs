@@ -72,6 +72,8 @@ namespace ACE.Server.WorldObjects
 
                 if (!service)
                 {
+                    SetAcxResaleValue(item); // Project ACX
+
                     // errors shouldn't be possible here, since the items were pre-validated, but just in case...
                     if (!TryCreateInInventoryWithNetworking(item))
                     {

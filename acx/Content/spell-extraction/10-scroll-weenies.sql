@@ -208,7 +208,7 @@ INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,9,0);
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,16,524296);
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,18,1);
-INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,19,1000);
+INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,19,1); -- Project ACX: filled transfer scrolls resell for 1 pyreal (was 1000)
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,33,0);
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,93,3092);
 INSERT INTO `weenie_properties_int` (`object_Id`, `type`, `value`) VALUES (50130,94,35215);
