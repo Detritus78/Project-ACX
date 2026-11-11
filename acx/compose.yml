@@ -1,0 +1,43 @@
+# Project ACX: one ACE instance (database + server).
+# Live and Preview are the same file run with different env files:
+#   docker compose -p acx-live    --env-file acx/live.env    -f acx/compose.yml up -d
+#   docker compose -p acx-preview --env-file acx/preview.env -f acx/compose.yml up -d
+# acx/scripts/acx.sh wraps these.
+
+services:
+  db:
+    image: mysql:8.0
+    env_file: ${ACX_ENV_FILE}
+    volumes:
+      - ${ACX_DATA_DIR}/db:/var/lib/mysql
+    ports:
+      - "127.0.0.1:${ACX_DB_PORT}:3306/tcp"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 30
+
+  server:
+    build:
+      context: ..
+    image: acx-server:${ACX_INSTANCE}
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: ${ACX_ENV_FILE}
+    environment:
+      ACE_SQL_AUTH_DATABASE_HOST: db
+      ACE_SQL_SHARD_DATABASE_HOST: db
+      ACE_SQL_WORLD_DATABASE_HOST: db
+    volumes:
+      - ${ACX_DATA_DIR}/Config:/ace/Config
+      - ./Content:/ace/Content:ro
+      - ${ACX_DAT_DIR}:/ace/Dats:ro
+      - ${ACX_DATA_DIR}/Logs:/ace/Logs
+      - ${ACX_DATA_DIR}/Mods:/ace/Mods
+    ports:
+      - "${ACX_GAME_PORT}-${ACX_GAME_PORT_2}:9000-9001/udp"
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
