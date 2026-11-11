@@ -60,7 +60,7 @@ dump() {
 
 cmd_backup() {
     local name="$1"
-    mkdir -p "$ACX_BACKUP_DIR"
+    mkdir -p "$ACX_BACKUP_DIR" 2>/dev/null || die "can't create $ACX_BACKUP_DIR (is the HDD mounted? udisksctl mount -b /dev/disk/by-label/HDDStorage)"
     local out; out="$ACX_BACKUP_DIR/acx-$name-$(date +%Y%m%d-%H%M%S).sql"
     dump "$name" "$out"
     gzip "$out"
