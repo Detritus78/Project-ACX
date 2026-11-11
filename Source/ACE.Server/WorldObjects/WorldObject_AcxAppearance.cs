@@ -3,6 +3,8 @@ using System.Linq;
 
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
+using ACE.Server.Network;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -62,6 +64,37 @@ namespace ACE.Server.WorldObjects
             Biota.PropertiesTextureMap = null;
             AcxCustomAppearance = false;
             ChangesDetected = true;
+        }
+
+        /// <summary>
+        /// PhysicsScript (0x33xxxxxx) played on this item whenever a client is sent it, e.g. nether smoke
+        /// </summary>
+        public uint? AcxAuraScript
+        {
+            get => GetProperty(PropertyDataId.AcxAuraScript);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AcxAuraScript); else SetProperty(PropertyDataId.AcxAuraScript, value.Value); }
+        }
+
+        /// <summary>
+        /// How many copies of the aura script to stack (denser smoke)
+        /// </summary>
+        public int AcxAuraScriptCount
+        {
+            get => GetProperty(PropertyInt.AcxAuraScriptCount) ?? 1;
+            set { if (value <= 1) RemoveProperty(PropertyInt.AcxAuraScriptCount); else SetProperty(PropertyInt.AcxAuraScriptCount, value); }
+        }
+
+        /// <summary>
+        /// Sends the aura to one client. AC:Unreal queues it until the item's actor exists.
+        /// </summary>
+        public void SendAcxAura(Session session)
+        {
+            var script = AcxAuraScript;
+            if (script == null || session == null)
+                return;
+
+            for (var i = 0; i < AcxAuraScriptCount; i++)
+                session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script.Value));
         }
     }
 }

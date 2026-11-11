@@ -98,6 +98,8 @@ namespace ACE.Server.Factories
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
+
+            ApplyAcxLootLooks(wo); // Project ACX
         }
 
         private static string GetDamageScript(MeleeWeaponSkill weaponSkill, TreasureWeaponType weaponType)

@@ -656,6 +656,7 @@ namespace ACE.Entity.Enum.Properties
         ExtraSpellsMaxOverride                   = 30002,
         BaseItemDifficultyOverride               = 30003,
         BaseSpellcraftOverride                   = 30004,
+        AcxAuraScriptCount                       = 30005,
     }
 
     public static class PropertyIntExtensions

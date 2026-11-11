@@ -60,6 +60,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject, Adminvision, Adminvision));
+            worldObject.SendAcxAura(Session); // Project ACX
 
             //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
 
@@ -126,6 +127,7 @@ namespace ACE.Server.WorldObjects
                 return;
 
             Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+            wieldedItem.SendAcxAura(Session); // Project ACX
         }
 
         public void RemoveTrackedEquippedObject(Creature formerWielder, WorldObject worldObject)

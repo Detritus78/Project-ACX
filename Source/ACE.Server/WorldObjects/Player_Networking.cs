@@ -259,6 +259,7 @@ namespace ACE.Server.WorldObjects
             {
                 item.Wielder = this;
                 Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                item.SendAcxAura(Session); // Project ACX
             }
         }
 

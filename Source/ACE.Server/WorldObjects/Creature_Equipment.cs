@@ -364,6 +364,9 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
+            if (this is Player wielderPlayer && worldObject.ParentLocation != null)
+                worldObject.SendAcxAura(wielderPlayer.Session); // Project ACX
+
             // Notify viewers in the area that we've equipped the item
             EnqueueActionBroadcast(p => p.TrackEquippedObject(this, worldObject));
 

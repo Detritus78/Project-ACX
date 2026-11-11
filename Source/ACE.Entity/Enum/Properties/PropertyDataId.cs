@@ -99,6 +99,9 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordedTimestamp9           = 8029,
         PCAPRecordedMaxVelocityEstimated = 8030,
         PCAPPhysicsDIDDataTemplatedFrom  = 8044,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        AcxAuraScript                    = 30001,
     }
 
     public static class PropertyDataIdExtensions
