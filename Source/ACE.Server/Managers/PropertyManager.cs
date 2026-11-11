@@ -635,6 +635,8 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
 
+                ("acx_nether_resist_default", new Property<double>(0.86, "Project ACX: nether damage multiplier for monsters without a retail nether resistance (retail placeholder 1.0 counts as none)")),
+                ("acx_nether_resist_endgame", new Property<double>(1.25, "Project ACX: nether damage multiplier for Rynthid and Obsidian Plains monsters without a retail nether resistance")),
                 ("cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for cantrips to drop in each tier. Defaults to 1.0, as per end of retail")),
                 ("cloak_cooldown_seconds", new Property<double>(5.0, "The number of seconds between possible cloak procs.")),
                 ("cloak_max_proc_base", new Property<double>(0.25, "The max proc chance of a cloak.")),
