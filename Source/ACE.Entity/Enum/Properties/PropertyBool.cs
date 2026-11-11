@@ -185,5 +185,6 @@ namespace ACE.Entity.Enum.Properties
 
         // Project ACX: 30000+ is reserved for ACX properties
         BlockSpellExtraction             = 30001,
+        AcxCustomAppearance              = 30002,
     }
 }

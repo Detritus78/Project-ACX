@@ -1,6 +1,9 @@
 using System;
 using System.Globalization;
+using System.Linq;
 
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
@@ -53,6 +56,77 @@ namespace ACE.Server.Command.Handlers
 
             player.EnqueueBroadcast(new GameMessagePlayScriptId(target.Guid, scriptId));
             CommandHandlerHelper.WriteOutputInfo(session, $"Playing script {scriptId:X8} on {target.Name}.");
+        }
+
+        [CommandHandler("acxtex", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Lists or swaps the textures of your wielded weapon (or last appraised object), live.",
+            "list | clear | <old texture> <new texture> [part]   e.g. /acxtex 05000C53 0500303D")]
+        public static void HandleAcxTex(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+            var target = player.GetEquippedWeapon() ?? CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (target == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Wield a weapon or appraise an object first.");
+                return;
+            }
+
+            var mode = parameters[0].ToLowerInvariant();
+
+            if (mode == "list")
+            {
+                var objDesc = target.CalculateObjDesc();
+                var setup = DatManager.PortalDat.ReadFromDat<SetupModel>(target.SetupTableId);
+                for (var part = 0; part < setup.Parts.Count; part++)
+                {
+                    var gfx = DatManager.PortalDat.ReadFromDat<GfxObj>(setup.Parts[part]);
+                    foreach (var surfaceId in gfx.Surfaces.Distinct())
+                    {
+                        var surface = DatManager.PortalDat.ReadFromDat<Surface>(surfaceId);
+                        if (surface.OrigTextureId == 0)
+                            continue;
+                        var shown = surface.OrigTextureId;
+                        foreach (var change in objDesc.TextureChanges.Where(t => t.PartIndex == part && t.OldTexture == shown))
+                            shown = change.NewTexture;
+                        CommandHandlerHelper.WriteOutputInfo(session, $"part {part}: texture {surface.OrigTextureId:X8}" + (shown != surface.OrigTextureId ? $" (now shows {shown:X8})" : ""));
+                    }
+                }
+                return;
+            }
+
+            if (mode == "clear")
+            {
+                target.ClearAcxTextureSwaps();
+                player.EnqueueBroadcast(new GameMessageUpdateObject(target));
+                CommandHandlerHelper.WriteOutputInfo(session, $"Cleared texture swaps on {target.Name}.");
+                return;
+            }
+
+            if (parameters.Length < 2 || !TryParseHex(parameters[0], out var oldTexture) || !TryParseHex(parameters[1], out var newTexture)
+                || (oldTexture >> 24) != 0x05 || (newTexture >> 24) != 0x05)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxtex list | clear | <old 05xxxxxx> <new 05xxxxxx> [part]");
+                return;
+            }
+
+            byte partIndex = 0;
+            if (parameters.Length > 2 && !byte.TryParse(parameters[2], out partIndex))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Part must be a number, e.g. 0.");
+                return;
+            }
+
+            target.SetAcxTextureSwap(partIndex, oldTexture, newTexture);
+            player.EnqueueBroadcast(new GameMessageUpdateObject(target));
+            CommandHandlerHelper.WriteOutputInfo(session, $"{target.Name}: part {partIndex} texture {oldTexture:X8} now shows {newTexture:X8}.");
+        }
+
+        private static bool TryParseHex(string text, out uint value)
+        {
+            text = text.Trim();
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+                text = text.Substring(2);
+            return uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out value);
         }
     }
 }

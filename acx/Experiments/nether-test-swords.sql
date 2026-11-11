@@ -84,4 +84,6 @@ INSERT INTO weenie_properties_texture_map (object_Id, `index`, old_Id, new_Id) V
     (900011, 0, 0x05000C53, 0x050030C6),
     (900011, 0, 0x05000C54, 0x050030C6),
     (900011, 0, 0x05000C55, 0x050030C6);
+-- AcxCustomAppearance (bool 30002): ACE only sends an item's own texture map when this is set
+INSERT INTO weenie_properties_bool (object_Id, type, value) SELECT wcid, 30002, 1 FROM acx_tex;
 DROP TEMPORARY TABLE acx_tex;
