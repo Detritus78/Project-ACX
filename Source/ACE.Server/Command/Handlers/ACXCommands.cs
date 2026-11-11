@@ -4,6 +4,7 @@ using System.Globalization;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -13,8 +14,8 @@ namespace ACE.Server.Command.Handlers
     public static class ACXCommands
     {
         [CommandHandler("acxfx", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
-            "Plays a PhysicsScript by id on your wielded weapon (or your last appraised object).",
-            "<script id in hex, e.g. 33000F82>")]
+            "Plays a PhysicsScript by id on your wielded weapon, yourself, or your last appraised object.",
+            "<script id in hex, e.g. 33000F82> [weapon | self | appraised]  (default: weapon)")]
         public static void HandleAcxFx(Session session, params string[] parameters)
         {
             var text = parameters[0].Trim();
@@ -28,10 +29,25 @@ namespace ACE.Server.Command.Handlers
             }
 
             var player = session.Player;
-            var target = player.GetEquippedWeapon() ?? CommandHandlerHelper.GetLastAppraisedObject(session);
+            var mode = parameters.Length > 1 ? parameters[1].ToLowerInvariant() : "weapon";
+
+            WorldObject target;
+            switch (mode)
+            {
+                case "self":
+                    target = player;
+                    break;
+                case "appraised":
+                    target = CommandHandlerHelper.GetLastAppraisedObject(session);
+                    break;
+                default:
+                    target = player.GetEquippedWeapon();
+                    break;
+            }
+
             if (target == null)
             {
-                CommandHandlerHelper.WriteOutputInfo(session, "Wield a weapon or appraise an object first.");
+                CommandHandlerHelper.WriteOutputInfo(session, $"No {mode} target: wield a weapon, or appraise an object first.");
                 return;
             }
 
