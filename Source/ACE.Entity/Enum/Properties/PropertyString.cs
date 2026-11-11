@@ -95,5 +95,9 @@ namespace ACE.Entity.Enum.Properties
         AllegianceCastellanTitle       = 9005,
         GodState                       = 9006,
         TinkerLog                      = 9007,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        ExtraSpellsList                = 30001,
+        ArcaneLoreRollLog              = 30002,
     }
 }

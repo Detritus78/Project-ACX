@@ -650,6 +650,12 @@ namespace ACE.Entity.Enum.Properties
         VisualClothingPriority                   = 9013,
         SquelchGlobal                            = 9014,
         InventoryOrder                           = 9015,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        ExtraSpellsCount                         = 30001,
+        ExtraSpellsMaxOverride                   = 30002,
+        BaseItemDifficultyOverride               = 30003,
+        BaseSpellcraftOverride                   = 30004,
     }
 
     public static class PropertyIntExtensions

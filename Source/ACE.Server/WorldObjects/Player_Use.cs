@@ -56,8 +56,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // handle objects with built-in spells
-            if (sourceItem.SpellDID != null)
+            // handle objects with built-in spells (transfer scrolls carry a SpellDID but handle their own use)
+            if (sourceItem.SpellDID != null && sourceItem.WeenieType != WeenieType.SpellTransferScroll)
             {
                 if (!RecipeManager.VerifyUse(this, sourceItem, target))
                 {
