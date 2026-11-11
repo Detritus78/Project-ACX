@@ -8,11 +8,13 @@ namespace ACE.Server.Network.GameMessages.Messages
     /// </summary>
     public class GameMessagePlayScriptId : GameMessage
     {
-        public GameMessagePlayScriptId(ObjectGuid guid, uint scriptId)
-            : base(GameMessageOpcode.PlayScriptId, GameMessageGroup.SmartboxQueue, 12)
+        public GameMessagePlayScriptId(ObjectGuid guid, uint scriptId, float intensity = 1.0f)
+            : base(GameMessageOpcode.PlayScriptId, GameMessageGroup.SmartboxQueue, 16)
         {
             Writer.WriteGuid(guid);
             Writer.Write(scriptId);
+            // AC:Unreal (FACESession::HandlePlayScriptId) drops the message unless the intensity float is present
+            Writer.Write(intensity);
         }
     }
 }
