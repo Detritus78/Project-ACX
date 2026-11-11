@@ -221,5 +221,8 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordeOmegaX              = 8016,
         PCAPRecordeOmegaY              = 8017,
         PCAPRecordeOmegaZ              = 8018,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        RolledSpellcraftMultiplier     = 30001,
     }
 }

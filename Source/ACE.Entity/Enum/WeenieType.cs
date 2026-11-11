@@ -73,6 +73,9 @@ namespace ACE.Entity.Enum
         SocialManager,
         Pet,
         PetDevice,
-        CombatPet        
+        CombatPet,
+
+        // Project ACX (ported from ClassicACE, same value so its world data imports unchanged)
+        SpellTransferScroll = 74,
     }
 }

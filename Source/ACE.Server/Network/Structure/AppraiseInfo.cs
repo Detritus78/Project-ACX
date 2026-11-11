@@ -331,6 +331,8 @@ namespace ACE.Server.Network.Structure
                     PropertiesInt.Remove(PropertyInt.Structure);
             }
 
+            SpellTransferScroll.AddAppraisalText(wo, PropertiesString);
+
             if (!Success)
             {
                 // todo: what specifically to keep/what to clear

@@ -182,5 +182,8 @@ namespace ACE.Entity.Enum.Properties
         FreeAttributeResetRenewed        = 9008,
         SkillTemplesTimerReset           = 9009,
         FreeMasteryResetRenewed          = 9010,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        BlockSpellExtraction             = 30001,
     }
 }
