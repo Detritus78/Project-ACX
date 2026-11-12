@@ -4,7 +4,9 @@
 --   900200-900259  full salvage bags: copies of the 60 salvage materials that have tinkering recipes, 100 units at
 --           workmanship 10 (ItemWorkmanship 10 / NumItemsInMaterial 1). Recipes match salvage by item number, so each bag
 --           gets a copy of its original's cook_book rows: RE-RUN THIS FILE after any content change to salvage recipes.
--- The vendor stands in the Marketplace room with the target dummies (016C0146), facing east. Restart the server after applying.
+-- NOT PLACED: AC:Unreal's vendor window shows only the first bag (no icon) and stops, although the server sends all 60
+-- (2026-11-12, cause not found yet). The bags are handed out by ACX Foundry's "Get full bag" button (/ci) instead.
+-- To try the vendor again, restore the landblock_instance insert at the end. Restart the server after applying.
 
 DELETE FROM landblock_instance WHERE guid = 0x7016C008;
 DELETE FROM cook_book WHERE source_W_C_I_D BETWEEN 900200 AND 900299;
@@ -109,6 +111,6 @@ UPDATE weenie_properties_string SET value = 'Salvage Vendor' WHERE object_Id = 9
 UPDATE weenie_properties_float SET value = 0 WHERE object_Id = 900020 AND type IN (37, 38);   -- BuyPrice, SellPrice
 UPDATE weenie_properties_int SET value = value | 0x40000000 WHERE object_Id = 900020 AND type = 74;   -- MerchandiseItemTypes += TinkeringMaterial
 
--- in the Marketplace room with the dummies, against the west side, facing east
-INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child) VALUES
-    (0x7016C008, 900020, 0x016C0146, 6.2, -13.0, 0.005, 0.7071068, 0, 0, -0.7071068, 0);
+-- -- in the Marketplace room with the dummies, against the west side, facing east
+-- INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child) VALUES
+--     (0x7016C008, 900020, 0x016C0146, 6.2, -13.0, 0.005, 0.7071068, 0, 0, -0.7071068, 0);
