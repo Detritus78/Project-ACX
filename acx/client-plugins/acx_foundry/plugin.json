@@ -1,0 +1,13 @@
+{
+  "api": 2,
+  "mode": "companion",
+  "id": "acx_foundry",
+  "name": "ACX Foundry",
+  "short_name": "ACX",
+  "version": "1.0.0",
+  "description": "AC:Unreal's Dereth Foundry content workshop plus a Project ACX tab: one-click test targets, weapons, god mode, the 60-second DPS test and server replies.",
+  "permissions": ["state", "ui", "data", "admin_content", "say", "chat"],
+  "snapshot_fields": ["selection", "position"],
+  "update_interval": 1,
+  "presentation": {"controls": "none", "settings": false, "status": false}
+}
