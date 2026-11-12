@@ -1,6 +1,7 @@
 -- Project ACX experiment: a free salvage vendor in the Marketplace for tinkering tests (Preview only; never in acx/Content).
 --   900020  Salvage Vendor: a copy of the Grocer (22724) whose shop is one full bag of every salvage material.
---           SellPrice 0 gives the stock away (Vendor.GetSellCost, Project ACX).
+--           Its SellPrice is 0, but vendors still charge at least 1 pyreal: the free-vendor code was removed so it can
+--           never reach Live (JJ 2026-11-12). Free bags come from ACX Foundry's "Get full bag" instead.
 --   900200-900259  full salvage bags: copies of the 60 salvage materials that have tinkering recipes, 100 units at
 --           workmanship 10 (ItemWorkmanship 10 / NumItemsInMaterial 1). Recipes match salvage by item number, so each bag
 --           gets a copy of its original's cook_book rows: RE-RUN THIS FILE after any content change to salvage recipes.
