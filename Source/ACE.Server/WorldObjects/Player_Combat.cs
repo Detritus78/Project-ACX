@@ -133,6 +133,8 @@ namespace ACE.Server.WorldObjects
 
             var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
 
+            RecordAcxDps(damageEvent.Damage, damageEvent.IsCritical, !damageEvent.HasDamage);   // Project ACX
+
             if (damageEvent.HasDamage)
             {
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);

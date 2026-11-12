@@ -1400,6 +1400,8 @@ namespace ACE.Server.WorldObjects.Managers
 
                 creature.DamageHistory.Add(damager, damageType, (uint)Math.Round(tickAmount));
 
+                (damager as Player)?.RecordAcxDpsTick(tickAmount);   // Project ACX
+
                 tickAmountTotal += tickAmount;
 
                 if (isDead) break;

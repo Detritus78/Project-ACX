@@ -16,6 +16,36 @@ namespace ACE.Server.Command.Handlers
     /// </summary>
     public static class ACXCommands
     {
+        [CommandHandler("dps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Damage-per-second meter for combat testing: counts melee, missile, spell and damage-over-time damage you deal.",
+            "start | stop | (nothing: show the numbers so far)")]
+        public static void HandleDps(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+            var action = parameters.Length > 0 ? parameters[0].ToLowerInvariant() : "";
+
+            switch (action)
+            {
+                case "start":
+                    player.StartAcxDps();
+                    CommandHandlerHelper.WriteOutputInfo(session, "DPS meter started. The clock starts at your first attack; /dps shows the numbers, /dps stop ends it.");
+                    return;
+
+                case "stop":
+                    player.StopAcxDps();
+                    break;
+
+                case "":
+                    break;
+
+                default:
+                    CommandHandlerHelper.WriteOutputInfo(session, "Usage: /dps start | /dps stop | /dps");
+                    return;
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, player.GetAcxDpsReport());
+        }
+
         [CommandHandler("acxfx", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Plays a PhysicsScript by id on your wielded weapon, yourself, or your last appraised object.",
             "<script id in hex, e.g. 33000F82> [weapon | self | appraised]  (default: weapon)")]

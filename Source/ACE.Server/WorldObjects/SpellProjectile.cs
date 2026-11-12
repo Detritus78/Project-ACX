@@ -418,7 +418,10 @@ namespace ACE.Server.WorldObjects
 
             var resisted = source.TryResistSpell(target, Spell, resistSource, true);
             if (resisted && !overpower)
+            {
+                (source as Player)?.RecordAcxDps(0, false, true);   // Project ACX
                 return null;
+            }
 
             CreatureSkill attackSkill = null;
             if (sourceCreature != null)
@@ -778,6 +781,8 @@ namespace ACE.Server.WorldObjects
 
                 amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage));
                 target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
+
+                sourcePlayer?.RecordAcxDps(amount, critical, false);   // Project ACX
 
                 //if (targetPlayer != null && targetPlayer.Fellowship != null)
                     //targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
