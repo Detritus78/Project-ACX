@@ -171,7 +171,7 @@ namespace ACE.Server.Factories
             TryMutate_ItemSkillLimit(wo, roll);
 
             // Arcane Lore / ItemDifficulty
-            wo.ItemDifficulty = CalculateArcaneLore(wo, roll);
+            wo.ItemDifficulty = GetAcxArcaneLore(wo);   // Project ACX: was CalculateArcaneLore(wo, roll)
         }
 
         private static bool TryMutate_ItemSkillLimit(WorldObject wo, TreasureRoll roll)

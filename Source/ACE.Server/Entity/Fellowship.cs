@@ -452,36 +452,38 @@ namespace ACE.Server.Entity
         /// </summary>
         private void CalculateXPSharing()
         {
-            // - If all members of the fellowship are level 50 or above, all members will share XP equally
+            // Project ACX:
+            // - If all members of the fellowship are between level 50 and 126, all members will share XP equally
 
-            // - If all members of the fellowship are within 5 levels of the founder, XP will be shared equally
+            // - Otherwise, if the highest and lowest members are within 10 levels, XP will be shared equally
 
-            // - If members are all within ten levels of the founder, XP will be shared proportionally.
+            // - If they are within 20 levels, XP will be shared proportionally.
 
             var fellows = GetFellowshipMembers();
+            if (fellows.Count == 0)
+                return;
 
-            var allEvenShareLevel = PropertyManager.GetLong("fellowship_even_share_level").Item;
-            var allOverEvenShareLevel = !fellows.Values.Any(f => (f.Level ?? 1) < allEvenShareLevel);
+            var highestLevel = fellows.Values.Max(f => f.Level ?? 1);
+            var lowestLevel = fellows.Values.Min(f => f.Level ?? 1);
 
-            if (allOverEvenShareLevel)
+            var evenShareMinLevel = PropertyManager.GetLong("fellowship_even_share_level").Item;
+            var evenShareMaxLevel = PropertyManager.GetLong("acx_fellowship_even_share_max_level").Item;
+
+            if (lowestLevel >= evenShareMinLevel && highestLevel <= evenShareMaxLevel)
             {
                 ShareXP = DesiredShareXP;
                 EvenShare = true;
                 return;
             }
 
-            var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
-            if (leader == null)
-                return;
+            var maxLevelDiff = highestLevel - lowestLevel;
 
-            var maxLevelDiff = fellows.Values.Max(f => Math.Abs((leader.Level ?? 1) - (f.Level ?? 1)));
-
-            if (maxLevelDiff <= 5)
+            if (maxLevelDiff <= 10)
             {
                 ShareXP = DesiredShareXP;
                 EvenShare = true;
             }
-            else if (maxLevelDiff <= 10)
+            else if (maxLevelDiff <= 20)
             {
                 ShareXP = DesiredShareXP;
                 EvenShare = false;

@@ -249,6 +249,10 @@ namespace ACE.Server.Entity
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
             CriticalChance = WorldObject.GetWeaponCriticalChance(Weapon, attacker, attackSkill, defender);
 
+            // Project ACX: players get extra critical chance with two-handed weapons
+            if (playerAttacker != null && Weapon != null && Weapon.IsTwoHanded)
+                CriticalChance += (float)PropertyManager.GetDouble("acx_twohanded_crit_bonus").Item;
+
             // https://asheron.fandom.com/wiki/Announcements_-_2002/08_-_Atonement
             // It should be noted that any time a character is logging off, PK or not, all physical attacks against them become automatically critical.
             // (Note that spells do not share this behavior.) We hope this will stress the need to log off in a safe place.
@@ -392,6 +396,9 @@ namespace ACE.Server.Entity
             //var attackType = attacker.GetCombatType();
 
             EffectiveDefenseSkill = defender.GetEffectiveDefenseSkill(CombatType);
+
+            if (defender is Player playerDefender)
+                EffectiveDefenseSkill = playerDefender.ApplyAcxSingleWeaponDefense(EffectiveDefenseSkill);   // Project ACX
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance(EffectiveAttackSkill, EffectiveDefenseSkill);
             return (float)evadeChance;

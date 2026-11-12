@@ -615,6 +615,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
             DictOf(
+                ("acx_fellowship_even_share_max_level", new Property<long>(126, "Project ACX: fellowships whose members are all between fellowship_even_share_level and this level share XP evenly, whatever their level gap")),
                 ("acx_nether_weapon_min_tier", new Property<long>(1, "Project ACX: lowest loot tier that can drop nether versions of weapons")),
                 ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),
                 ("chat_requires_account_time_seconds", new Property<long>(0, "the amount of time in seconds an account is required to have existed for for global chat privileges")),
@@ -639,6 +640,9 @@ namespace ACE.Server.Managers
                 ("acx_nether_resist_default", new Property<double>(0.86, "Project ACX: nether damage multiplier for monsters without a retail nether resistance (retail placeholder 1.0 counts as none)")),
                 ("acx_nether_resist_endgame", new Property<double>(1.25, "Project ACX: nether damage multiplier for Rynthid and Obsidian Plains monsters without a retail nether resistance")),
                 ("acx_nether_weapon_chance", new Property<double>(0.0225, "Project ACX: chance a looted weapon that comes in elements is its nether version (0.0225 = 2.25%; other elements get 15% each)")),
+                ("acx_single_weapon_defense_bonus", new Property<double>(0.10, "Project ACX: melee and missile defense bonus for a one-handed melee weapon with an empty off-hand (0.10 = +10%)")),
+                ("acx_single_weapon_speed_bonus", new Property<double>(0.15, "Project ACX: swing and power bar refill speed bonus for a one-handed melee weapon with an empty off-hand (dual wield gets 0.20)")),
+                ("acx_twohanded_crit_bonus", new Property<double>(0.05, "Project ACX: extra critical chance for players attacking with two-handed weapons")),
                 ("cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for cantrips to drop in each tier. Defaults to 1.0, as per end of retail")),
                 ("cloak_cooldown_seconds", new Property<double>(5.0, "The number of seconds between possible cloak procs.")),
                 ("cloak_max_proc_base", new Property<double>(0.25, "The max proc chance of a cloak.")),

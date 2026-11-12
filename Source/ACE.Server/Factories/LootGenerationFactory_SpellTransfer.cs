@@ -119,143 +119,18 @@ namespace ACE.Server.Factories
             }
         }
 
+        /// <summary>
+        /// Project ACX: the requirement comes only from the highest spell or cantrip (GetAcxArcaneLore),
+        /// so the estimate and the result are the same number, and older items move to the new table.
+        /// </summary>
         public static void CalculateArcaneLore(WorldObject wo, List<SpellId> allSpellIds, List<SpellId> lifeCreatureEnchantmentsIds, List<SpellId> cantripIds, int minSpellcraft, int maxSpellcraft, int rolledSpellcraft, bool updateItem, out int minArcaneLore, out int maxArcaneLore, out int rolledArcaneLore)
         {
-            var spellRolls = new List<(SpellId SpellId, float MinRoll, float MaxRoll)>();
+            var arcaneLore = GetAcxArcaneLore(allSpellIds?.Select(i => (int)i)) ?? wo.ItemDifficulty ?? 0;
 
-            if (lifeCreatureEnchantmentsIds != null)
-            {
-                var spells = new List<Server.Entity.Spell>();
-
-                foreach (var spellId in lifeCreatureEnchantmentsIds)
-                {
-                    if (cantripIds != null && cantripIds.Contains(spellId))
-                        continue;
-
-                    spells.Add(new Server.Entity.Spell(spellId));
-                }
-
-                spells = spells.OrderBy(i => i.Formula.Level).ToList();
-
-                // exclude highest spell
-                for (var i = 0; i < spells.Count - 1; i++)
-                {
-                    var spell = spells[i];
-
-                    var spellRoll = GetArcaneLoreLogValue(wo, (SpellId)spell.Id);
-                    if (spellRoll != 0)
-                        spellRolls.Add(((SpellId)spell.Id, spellRoll, spellRoll));
-                    else
-                    {
-                        var spellArcaneRoll = spell.Formula.Level * 5.0f;
-
-                        spellRolls.Add(((SpellId)spell.Id, spellArcaneRoll * 0.5f, spellArcaneRoll * 1.5f));
-                    }
-                }
-            }
-
-            if (cantripIds != null)
-            {
-                foreach (var cantripId in cantripIds)
-                {
-                    var spellRoll = GetArcaneLoreLogValue(wo, cantripId);
-                    if (spellRoll != 0)
-                    {
-                        spellRolls.Add((cantripId, spellRoll, spellRoll));
-                        continue;
-                    }
-
-                    var cantripLevels = SpellLevelProgression.GetSpellLevels(cantripId);
-
-                    if (cantripLevels == null || cantripLevels.Count != 4)
-                    {
-                        log.Error($"CalculateArcaneLore({cantripId}) - unknown cantrip");
-                        continue;
-                    }
-
-                    // minor 5-10, others 10-20
-                    if (cantripLevels.IndexOf(cantripId) == 0)
-                        spellRolls.Add((cantripId, 5, 10));
-                    else
-                        spellRolls.Add((cantripId, 10, 20));
-                }
-            }
-
-            var itemSkillLevelFactor = 0.0f;
-
-            if (wo.ItemSkillLevelLimit.HasValue && wo.ItemSkillLevelLimit > 0)
-                itemSkillLevelFactor = wo.ItemSkillLevelLimit.Value / 2.0f;
-
-            var fArcaneMin = Math.Max(minSpellcraft - itemSkillLevelFactor, 0);
-            var fArcaneMax = Math.Max(maxSpellcraft - itemSkillLevelFactor, 0);
-            var fArcaneRolled = Math.Max(rolledSpellcraft - itemSkillLevelFactor, 0);
-
-            var minArcaneRoll = 0f;
-            var maxArcaneRoll = 0f;
-            var arcaneRoll = 0f;
-            foreach (var spell in spellRolls)
-            {
-                var spellRoll = (float)ThreadSafeRandom.Next(spell.MinRoll, spell.MaxRoll);
-                if (updateItem)
-                    UpdateArcaneLoreLog(wo, spell.SpellId, spellRoll);
-
-                minArcaneRoll += spell.MinRoll;
-                maxArcaneRoll += spell.MaxRoll;
-                arcaneRoll += spellRoll;
-            }
-            minArcaneLore = (int)Math.Floor(fArcaneMin + minArcaneRoll);
-            maxArcaneLore = (int)Math.Floor(fArcaneMax + maxArcaneRoll);
-            rolledArcaneLore = (int)Math.Floor(fArcaneRolled + arcaneRoll);
-
-            // never lower an item's existing arcane lore
-            var currentArcaneLore = Math.Max(wo.BaseItemDifficultyOverride ?? 0, wo.ItemDifficulty ?? 0);
-            minArcaneLore = Math.Max(currentArcaneLore, minArcaneLore);
-            maxArcaneLore = Math.Max(currentArcaneLore, maxArcaneLore);
-            rolledArcaneLore = Math.Max(currentArcaneLore, rolledArcaneLore);
+            minArcaneLore = maxArcaneLore = rolledArcaneLore = arcaneLore;
 
             if (updateItem)
-                wo.ItemDifficulty = rolledArcaneLore;
-        }
-
-        private static void UpdateArcaneLoreLog(WorldObject obj, SpellId spellId, float roll)
-        {
-            if (obj.ArcaneLoreRollLog != null)
-            {
-                var updatedValue = false;
-                var spellsRollSplitString = obj.ArcaneLoreRollLog.Split(",");
-                for (int i = 0; i < spellsRollSplitString.Length; i++)
-                {
-                    if (spellsRollSplitString[i].StartsWith($"{(int)spellId}:"))
-                    {
-                        spellsRollSplitString[i] = $"{(int)spellId}:{roll:0.00}";
-                        updatedValue = true;
-                        break;
-                    }
-                }
-
-                if (!updatedValue)
-                    obj.ArcaneLoreRollLog += $",{(int)spellId}:{roll:0.00}";
-                else
-                    obj.ArcaneLoreRollLog = string.Join(",", spellsRollSplitString);
-            }
-            else
-                obj.ArcaneLoreRollLog = $"{(int)spellId}:{roll:0.00}";
-        }
-
-        private static float GetArcaneLoreLogValue(WorldObject obj, SpellId spellId)
-        {
-            if (obj.ArcaneLoreRollLog != null)
-            {
-                foreach (var spellRollString in obj.ArcaneLoreRollLog.Split(","))
-                {
-                    if (spellRollString.StartsWith($"{(int)spellId}:"))
-                    {
-                        if (float.TryParse(spellRollString.Split(":").Last(), System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var roll))
-                            return roll;
-                    }
-                }
-            }
-            return 0;
+                wo.ItemDifficulty = arcaneLore;
         }
     }
 }
