@@ -1,0 +1,11 @@
+{
+  "api": 2,
+  "mode": "companion",
+  "id": "acx_tools",
+  "name": "ACX Tools",
+  "short_name": "ACX",
+  "version": "1.0.0",
+  "description": "Project ACX test kit: one-click admin commands for spawning test targets and weapons, the 60-second DPS test, and server replies in one place.",
+  "permissions": ["ui", "say", "chat"],
+  "presentation": {"controls": "none", "settings": false, "status": false}
+}
