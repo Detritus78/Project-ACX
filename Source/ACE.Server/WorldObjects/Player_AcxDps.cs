@@ -1,5 +1,9 @@
 using System;
 
+using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameMessages.Messages;
+
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
@@ -7,7 +11,13 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
+        /// <summary>
+        /// Every test runs this long from the first attack, then stops and reports
+        /// </summary>
+        private const double AcxDpsTestSeconds = 60;
+
         private bool acxDpsRunning;
+        private int acxDpsTestId;
         private DateTime? acxDpsFirstEvent;
         private DateTime acxDpsStopTime;
         private double acxDpsDamage;
@@ -20,6 +30,7 @@ namespace ACE.Server.WorldObjects
 
         public void StartAcxDps()
         {
+            acxDpsTestId++;
             acxDpsRunning = true;
             acxDpsFirstEvent = null;
             acxDpsDamage = acxDpsTickDamage = 0;
@@ -33,6 +44,37 @@ namespace ACE.Server.WorldObjects
 
             acxDpsRunning = false;
             acxDpsStopTime = DateTime.UtcNow;
+
+            // a test that ran the full time ends exactly on the buzzer
+            if (acxDpsFirstEvent != null && (acxDpsStopTime - acxDpsFirstEvent.Value).TotalSeconds > AcxDpsTestSeconds)
+                acxDpsStopTime = acxDpsFirstEvent.Value.AddSeconds(AcxDpsTestSeconds);
+        }
+
+        /// <summary>
+        /// Starts the clock at the first attack and ends the test after AcxDpsTestSeconds
+        /// </summary>
+        private bool StartOrCheckAcxDpsClock()
+        {
+            if (acxDpsFirstEvent != null)
+                return (DateTime.UtcNow - acxDpsFirstEvent.Value).TotalSeconds <= AcxDpsTestSeconds;
+
+            acxDpsFirstEvent = DateTime.UtcNow;
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"DPS test: go! {AcxDpsTestSeconds:N0} seconds.", ChatMessageType.Broadcast));
+
+            var testId = acxDpsTestId;
+            var buzzer = new ActionChain();
+            buzzer.AddDelaySeconds(AcxDpsTestSeconds);
+            buzzer.AddAction(this, () =>
+            {
+                if (testId != acxDpsTestId || !acxDpsRunning)
+                    return;
+
+                StopAcxDps();
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"DPS test: time!\n{GetAcxDpsReport()}", ChatMessageType.Broadcast));
+            });
+            buzzer.EnqueueChain();
+
+            return true;
         }
 
         /// <summary>
@@ -40,10 +82,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RecordAcxDps(float damage, bool critical, bool missed)
         {
-            if (!acxDpsRunning)
+            if (!acxDpsRunning || !StartOrCheckAcxDpsClock())
                 return;
-
-            acxDpsFirstEvent ??= DateTime.UtcNow;
 
             if (missed)
             {
@@ -63,7 +103,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RecordAcxDpsTick(float damage)
         {
-            if (!acxDpsRunning || acxDpsFirstEvent == null)
+            if (!acxDpsRunning || acxDpsFirstEvent == null || (DateTime.UtcNow - acxDpsFirstEvent.Value).TotalSeconds > AcxDpsTestSeconds)
                 return;
 
             acxDpsTickDamage += damage;
@@ -75,11 +115,11 @@ namespace ACE.Server.WorldObjects
                 return acxDpsRunning ? "DPS meter running: no attacks yet." : "DPS meter: nothing recorded. Start it with /dps start.";
 
             var end = acxDpsRunning ? DateTime.UtcNow : acxDpsStopTime;
-            var seconds = Math.Max(0.001, (end - acxDpsFirstEvent.Value).TotalSeconds);
+            var seconds = Math.Clamp((end - acxDpsFirstEvent.Value).TotalSeconds, 0.001, AcxDpsTestSeconds);
             var attacks = acxDpsHits + acxDpsMisses;
             var total = acxDpsDamage + acxDpsTickDamage;
 
-            var report = $"DPS meter ({(acxDpsRunning ? "running" : "stopped")}): {seconds:N1} s since the first attack\n";
+            var report = $"DPS meter ({(acxDpsRunning ? "running" : "stopped")}): {seconds:N1} of {AcxDpsTestSeconds:N0} s\n";
             report += $"Damage: {total:N0} ({total / seconds:N1} per second)";
             if (acxDpsTickDamage > 0)
                 report += $", of which {acxDpsTickDamage:N0} from damage over time";

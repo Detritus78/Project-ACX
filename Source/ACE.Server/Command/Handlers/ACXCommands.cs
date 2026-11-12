@@ -17,7 +17,7 @@ namespace ACE.Server.Command.Handlers
     public static class ACXCommands
     {
         [CommandHandler("dps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
-            "Damage-per-second meter for combat testing: counts melee, missile, spell and damage-over-time damage you deal.",
+            "Damage-per-second test: 60 seconds from your first attack, counting melee, missile, spell and damage-over-time damage you deal.",
             "start | stop | (nothing: show the numbers so far)")]
         public static void HandleDps(Session session, params string[] parameters)
         {
@@ -28,7 +28,7 @@ namespace ACE.Server.Command.Handlers
             {
                 case "start":
                     player.StartAcxDps();
-                    CommandHandlerHelper.WriteOutputInfo(session, "DPS meter started. The clock starts at your first attack; /dps shows the numbers, /dps stop ends it.");
+                    CommandHandlerHelper.WriteOutputInfo(session, "DPS test ready: it runs 60 seconds from your first attack, then stops and reports. /dps shows the numbers so far, /dps stop ends it early.");
                     return;
 
                 case "stop":
