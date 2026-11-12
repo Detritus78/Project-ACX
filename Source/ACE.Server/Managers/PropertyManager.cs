@@ -637,7 +637,7 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, Property<double>> DefaultDoubleProperties =
             DictOf(
 
-                ("acx_extra_target_damage", new Property<double>(0.8, "Project ACX: damage multiplier for the extra targets of a cleave or a two-handed spear's pierce (the main target takes the full hit)")),
+                ("acx_extra_target_damage", new Property<double>(0.5, "Project ACX: damage multiplier for the extra targets of a cleave or a two-handed spear's pierce (the main target takes the full hit)")),
                 ("acx_nether_resist_default", new Property<double>(0.86, "Project ACX: nether damage multiplier for monsters without a retail nether resistance (retail placeholder 1.0 counts as none)")),
                 ("acx_nether_resist_endgame", new Property<double>(1.25, "Project ACX: nether damage multiplier for Rynthid and Obsidian Plains monsters without a retail nether resistance")),
                 ("acx_nether_weapon_chance", new Property<double>(0.0225, "Project ACX: chance a looted weapon that comes in elements is its nether version (0.0225 = 2.25%; other elements get 15% each)")),
