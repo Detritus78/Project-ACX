@@ -62,11 +62,18 @@ namespace ACE.Server.WorldObjects
         private const float AcxPierceWidth = 1.0f;
 
         /// <summary>
-        /// One-handed spears also hit the closest monster standing directly behind the target
+        /// Two-handed spears also hit the closest monster standing directly behind the target.
+        /// They are the thrust-only two-handers, which have no cleave; two-handed swords, axes and maces keep cleaving.
         /// </summary>
+        public static bool IsAcxPiercingWeapon(WorldObject weapon)
+        {
+            return weapon != null && weapon.IsTwoHanded && !weapon.IsCleaving
+                && weapon.W_AttackType.HasFlag(AttackType.Thrust) && !weapon.W_AttackType.HasFlag(AttackType.Slash);
+        }
+
         public Creature GetAcxPierceTarget(Creature target, WorldObject weapon)
         {
-            if (target == null || weapon == null || weapon.W_WeaponType != WeaponType.Spear || weapon.IsTwoHanded)
+            if (target == null || !IsAcxPiercingWeapon(weapon))
                 return null;
 
             var targetPos = target.Location.ToGlobal();
