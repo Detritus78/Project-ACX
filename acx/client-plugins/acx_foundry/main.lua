@@ -51,7 +51,7 @@ local acx_commands={
     acx_dummy="/create 900015",acx_dummy2="/create 900016",acx_dummy3="/create 900017",acx_debug="/debugdamage defense",acx_fi="/fi",
     acx_sword="/ci 351",acx_shield="/ci 91",acx_nodachi="/ci 40760",acx_spear="/ci 348",acx_yari="/ci 362",acx_pike="/ci 41046",
     acx_lootsword="/lootgen 351 6",acx_nsword="/lootgen 900003 6",acx_nbow="/lootgen 900012 6",
-    acx_naxe="/lootgen 900103 6",acx_arrows="/ci 43952 200",
+    acx_naxe="/lootgen 900103 6",acx_shirt="/lootgen 130 6",acx_pants="/lootgen 127 6",acx_arrows="/ci 43952 200",
     acx_dps_start="/dps start",acx_dps_show="/dps",acx_dps_stop="/dps stop"}
 local acx_replies={}
 local function say(text)
@@ -161,6 +161,8 @@ return function(s)
             row("acx_plain",{acx("acx_sword","Long Sword"),acx("acx_shield","Kite Shield"),acx("acx_nodachi","Nodachi"),acx("acx_spear","Spear"),acx("acx_yari","Yari"),acx("acx_pike","Pike","Two-handed spear: /ci 41046")}),
             row("acx_loot",{acx("acx_lootsword","Looted sword T6","Tier 6 magic Long Sword, to check Arcane Lore: /lootgen 351 6"),
                 acx("acx_nsword","Nether sword"),acx("acx_nbow","Nether bow"),acx("acx_naxe","Nether axe"),acx("acx_arrows","Prismatic arrows")}),
+            row("acx_clothes",{acx("acx_shirt","Looted shirt","Tier 6 shirt you can tinker (Silk, hides...): /lootgen 130 6"),
+                acx("acx_pants","Looted pants","Tier 6 pants you can tinker: /lootgen 127 6")}),
             text("acx_dps_label","DPS test: 60 seconds from your first attack (Preview)"),
             row("acx_dps",{acx("acx_dps_start","Start"),acx("acx_dps_show","Show"),acx("acx_dps_stop","Stop")}),
             {id="acx_replies",type="section",text="Server replies",expanded=true,children={

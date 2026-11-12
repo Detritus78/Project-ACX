@@ -596,6 +596,10 @@ namespace ACE.Server.WorldObjects
             if (itemType == ItemType.PromissoryNote)
                 sellRate = 1.15;
 
+            // Project ACX: a vendor whose SellPrice is 0 gives its stock away (test vendors; retail never uses 0)
+            if (SellPrice == 0)
+                return 0;
+
             var cost = Math.Max(1, (uint)Math.Ceiling(((float)sellRate * (value ?? 0)) - 0.1));
             return cost;
         }
