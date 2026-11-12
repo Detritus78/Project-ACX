@@ -58,10 +58,10 @@ INSERT INTO weenie_properties_body_part (object_Id, `key`,`d_Type`,`d_Val`,`d_Va
 UPDATE weenie_properties_string SET value = 'Target Dummy 3' WHERE object_Id = 900017 AND type = 1;
 
 -- permanent dummies in the Marketplace room at 016C0146 (x 5-15, y -15 to -5), laid out for JJ standing at
--- [10.57 -13.90] facing north: Dummy 1 and Dummy 2 side by side 2 m apart (cleave test), Dummy 3 2 m behind
+-- [10.57 -13.90] facing north: Dummy 1 and Dummy 2 side by side 1.3 m apart (inside cleave reach), Dummy 3 2 m behind
 -- Dummy 1 (spear pierce test). All face south, toward the attacker. Reload the landblock after applying.
 DELETE FROM landblock_instance WHERE guid BETWEEN 0x7016C005 AND 0x7016C007;
 INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child) VALUES
     (0x7016C005, 900015, 0x016C0146,  9.6, -11.4, 0.005, 0, 0, 0, 1, 0),
-    (0x7016C006, 900016, 0x016C0146, 11.6, -11.4, 0.005, 0, 0, 0, 1, 0),
+    (0x7016C006, 900016, 0x016C0146, 10.9, -11.4, 0.005, 0, 0, 0, 1, 0),
     (0x7016C007, 900017, 0x016C0146,  9.6,  -9.4, 0.005, 0, 0, 0, 1, 0);
