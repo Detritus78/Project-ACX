@@ -54,6 +54,10 @@ local acx_commands={
     acx_naxe="/lootgen 900103 6",acx_shirt="/lootgen 130 6",acx_pants="/lootgen 127 6",acx_arrows="/ci 43952 200",
     acx_dps_start="/dps start",acx_dps_show="/dps",acx_dps_stop="/dps stop"}
 local acx_replies={}
+-- full 100-unit, workmanship-10 salvage bags (Preview experiment acx/Experiments/salvage-test-vendor.sql, wcids 900200-900259)
+local acx_bags={["Agate"]=900206,["Alabaster"]=900251,["Amber"]=900207,["Aquamarine"]=900208,["Armoredillo Hide"]=900240,["Azurite"]=900209,["Black Garnet"]=900210,["Black Opal"]=900211,["Bloodstone"]=900212,["Brass"]=900243,["Bronze"]=900244,["Carnelian"]=900213,["Ceramic"]=900200,["Citrine"]=900214,["Copper"]=900245,["Diamond"]=900215,["Ebony"]=900255,["Emerald"]=900216,["Fire Opal"]=900217,["Gold"]=900246,["Granite"]=900252,["Green Garnet"]=900218,["Gromnie Hide"]=900241,["Hematite"]=900219,["Imperial Topaz"]=900220,["Iron"]=900247,["Ivory"]=900238,["Jet"]=900221,["Lapis Lazuli"]=900222,["Lavender Jade"]=900223,["Leather"]=900239,["Linen"]=900202,["Mahogany"]=900256,["Malachite"]=900224,["Marble"]=900253,["Moonstone"]=900225,["Oak"]=900257,["Opal"]=900226,["Peridot"]=900227,["Pine"]=900258,["Porcelain"]=900201,["Pyreal"]=900248,["Red Garnet"]=900228,["Red Jade"]=900229,["Reed Shark Hide"]=900242,["Rose Quartz"]=900230,["Ruby"]=900231,["Sandstone"]=900254,["Sapphire"]=900232,["Silk"]=900203,["Silver"]=900249,["Smokey Quartz"]=900233,["Steel"]=900250,["Sunstone"]=900234,["Teak"]=900259,["Velvet"]=900204,["White Sapphire"]=900235,["Wool"]=900205,["Yellow Topaz"]=900236,["Zircon"]=900237}
+local acx_bag_names={"Agate","Alabaster","Amber","Aquamarine","Armoredillo Hide","Azurite","Black Garnet","Black Opal","Bloodstone","Brass","Bronze","Carnelian","Ceramic","Citrine","Copper","Diamond","Ebony","Emerald","Fire Opal","Gold","Granite","Green Garnet","Gromnie Hide","Hematite","Imperial Topaz","Iron","Ivory","Jet","Lapis Lazuli","Lavender Jade","Leather","Linen","Mahogany","Malachite","Marble","Moonstone","Oak","Opal","Peridot","Pine","Porcelain","Pyreal","Red Garnet","Red Jade","Reed Shark Hide","Rose Quartz","Ruby","Sandstone","Sapphire","Silk","Silver","Smokey Quartz","Steel","Sunstone","Teak","Velvet","White Sapphire","Wool","Yellow Topaz","Zircon"}
+local acx_bag="Silk"
 local function say(text)
     serial=serial+1
     if #queue<16 then queue[#queue+1]={service="chat",operation="send",text=text,id="acx_"..serial} else note("Finish the pending requests first.") end
@@ -81,6 +85,7 @@ return function(s)
             else note("Opened in your text editor.") end
         elseif e.type=="result" and tostring(e.id):sub(1,4)=="acx_" then -- Project ACX
             if not e.ok then note(e.error or "Command rejected.") end
+        elseif e.type=="change" and e.id=="acx_bag" then acx_bag=e.value -- Project ACX
         elseif e.type=="change" and defaults[e.id]~=nil then
             c[e.id]=e.value;dirty=true
             if e.id=="kind" or e.id=="format" or e.id=="filter" then page=0;c.file="";files={};scan() end
@@ -100,6 +105,7 @@ return function(s)
                 if cmd:sub(1,4)=="/ci " or cmd:sub(1,8)=="/create " then command(cmd) else say("@"..cmd:sub(2)) end
                 note("Sent "..cmd.." — see Server replies.")
             elseif id=="acx_clear" then acx_replies={}
+            elseif id=="acx_getbag" and acx_bags[acx_bag] then command("/ci "..acx_bags[acx_bag]);note("Sent /ci "..acx_bags[acx_bag].." ("..acx_bag.." bag).")
             elseif id=="scan" then scan()
             elseif id=="prev" then page=math.max(0,page-1);scan()
             elseif id=="next" then page=page+1;scan()
@@ -163,6 +169,8 @@ return function(s)
                 acx("acx_nsword","Nether sword"),acx("acx_nbow","Nether bow"),acx("acx_naxe","Nether axe"),acx("acx_arrows","Prismatic arrows")}),
             row("acx_clothes",{acx("acx_shirt","Looted shirt","Tier 6 shirt you can tinker (Silk, hides...): /lootgen 130 6"),
                 acx("acx_pants","Looted pants","Tier 6 pants you can tinker: /lootgen 127 6")}),
+            row("acx_salvage",{{id="acx_bag",type="select",text="Salvage bag (Preview)",value=acx_bag,options=acx_bag_names},
+                {id="acx_getbag",type="button",text="Get full bag",tooltip="A 100-unit bag at workmanship 10, into your pack"}}),
             text("acx_dps_label","DPS test: 60 seconds from your first attack (Preview)"),
             row("acx_dps",{acx("acx_dps_start","Start"),acx("acx_dps_show","Show"),acx("acx_dps_stop","Stop")}),
             {id="acx_replies",type="section",text="Server replies",expanded=true,children={
