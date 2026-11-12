@@ -349,6 +349,11 @@ namespace ACE.Server.WorldObjects
                             DamageTarget(cleaveHit, weapon);
                         }
                     }
+
+                    // Project ACX: one-handed spears also hit the monster directly behind the target (no target procs)
+                    var pierceHit = GetAcxPierceTarget(creature, weapon);
+                    if (pierceHit != null)
+                        DamageTarget(pierceHit, weapon);
                 });
 
                 //if (numStrikes == 1 || TwoHandedCombat)
@@ -364,6 +369,7 @@ namespace ACE.Server.WorldObjects
 
                 // powerbar refill timing
                 var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
+                refillMod *= GetAcxSingleWeaponRefillMod();         // Project ACX
 
                 PowerLevel = AttackQueue.Fetch();
 
@@ -401,6 +407,7 @@ namespace ACE.Server.WorldObjects
             // based on weapon speed and player quickness
             var baseSpeed = GetAnimSpeed();
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
+            animSpeedMod *= GetAcxSingleWeaponAnimSpeedMod();         // Project ACX
             var animSpeed = baseSpeed * animSpeedMod;
 
             var swingAnimation = GetSwingAnimation();

@@ -363,6 +363,8 @@ namespace ACE.Server.Factories
             if (worldObject == null)
                 GuidManager.RecycleDynamicGuid(guid);
 
+            LootGenerationFactory.ApplyAcxArcaneLore(worldObject); // Project ACX
+
             return worldObject;
         }
 
