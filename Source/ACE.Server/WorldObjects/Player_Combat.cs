@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
                 return CombatType.Missile;
         }
 
-        public DamageEvent DamageTarget(Creature target, WorldObject damageSource)
+        public DamageEvent DamageTarget(Creature target, WorldObject damageSource, float acxDamageMod = 1.0f)
         {
             if (target.Health.Current <= 0)
                 return null;
@@ -132,6 +132,8 @@ namespace ACE.Server.WorldObjects
             }
 
             var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
+
+            damageEvent.Damage *= acxDamageMod;   // Project ACX: reduced damage to extra cleave / pierce targets
 
             RecordAcxDps(damageEvent.Damage, damageEvent.IsCritical, !damageEvent.HasDamage);   // Project ACX
 
