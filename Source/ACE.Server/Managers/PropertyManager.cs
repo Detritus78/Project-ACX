@@ -615,6 +615,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<long>> DefaultLongProperties =
             DictOf(
+                ("acx_nether_weapon_min_tier", new Property<long>(1, "Project ACX: lowest loot tier that can drop nether versions of weapons")),
                 ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),
                 ("chat_requires_account_time_seconds", new Property<long>(0, "the amount of time in seconds an account is required to have existed for for global chat privileges")),
                 ("chat_requires_player_age", new Property<long>(0, "the amount of time in seconds a player is required to have played for global chat privileges")),
@@ -637,6 +638,7 @@ namespace ACE.Server.Managers
 
                 ("acx_nether_resist_default", new Property<double>(0.86, "Project ACX: nether damage multiplier for monsters without a retail nether resistance (retail placeholder 1.0 counts as none)")),
                 ("acx_nether_resist_endgame", new Property<double>(1.25, "Project ACX: nether damage multiplier for Rynthid and Obsidian Plains monsters without a retail nether resistance")),
+                ("acx_nether_weapon_chance", new Property<double>(0.015, "Project ACX: chance a looted weapon that comes in elements is its nether version (0.015 = a tenth of one other element's 15%)")),
                 ("cantrip_drop_rate", new Property<double>(1.0, "Scales the chance for cantrips to drop in each tier. Defaults to 1.0, as per end of retail")),
                 ("cloak_cooldown_seconds", new Property<double>(5.0, "The number of seconds between possible cloak procs.")),
                 ("cloak_max_proc_base", new Property<double>(0.25, "The max proc chance of a cloak.")),
