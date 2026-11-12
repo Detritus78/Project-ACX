@@ -85,16 +85,32 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// A second PhysicsScript played once on top of the aura, e.g. the Nether Baton's sparks
+        /// </summary>
+        public uint? AcxAuraScript2
+        {
+            get => GetProperty(PropertyDataId.AcxAuraScript2);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AcxAuraScript2); else SetProperty(PropertyDataId.AcxAuraScript2, value.Value); }
+        }
+
+        /// <summary>
         /// Sends the aura to one client. AC:Unreal queues it until the item's actor exists.
         /// </summary>
         public void SendAcxAura(Session session)
         {
-            var script = AcxAuraScript;
-            if (script == null || session == null)
+            if (session == null)
                 return;
 
-            for (var i = 0; i < AcxAuraScriptCount; i++)
-                session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script.Value));
+            var script = AcxAuraScript;
+            if (script != null)
+            {
+                for (var i = 0; i < AcxAuraScriptCount; i++)
+                    session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script.Value));
+            }
+
+            var script2 = AcxAuraScript2;
+            if (script2 != null)
+                session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script2.Value));
         }
     }
 }
