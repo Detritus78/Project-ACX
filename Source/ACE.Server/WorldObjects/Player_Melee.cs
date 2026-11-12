@@ -350,7 +350,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    // Project ACX: one-handed spears also hit the monster directly behind the target (no target procs)
+                    // Project ACX: two-handed spears also hit the monster directly behind the target (no target procs)
                     var pierceHit = GetAcxPierceTarget(creature, weapon);
                     if (pierceHit != null)
                         DamageTarget(pierceHit, weapon);
