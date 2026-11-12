@@ -54,3 +54,9 @@ WHERE c.recipe_Id IN (3846, 3847, 3849, 3850, 3856, 3859, 3862);
 DELETE n FROM acx_new_cook_book n JOIN cook_book c ON c.recipe_Id = n.recipe_Id AND c.source_W_C_I_D = n.source_W_C_I_D AND c.target_W_C_I_D = n.target_W_C_I_D;
 INSERT INTO cook_book (recipe_Id, source_W_C_I_D, target_W_C_I_D, last_Modified)
 SELECT recipe_Id, source_W_C_I_D, target_W_C_I_D, NOW() FROM acx_new_cook_book;
+
+-- the client only offers a salvage on items whose type is in its TargetType (int 94); Silk's retail value
+-- (weapons, armor, jewelry, casters) left out clothing, so it now targets clothing (ItemType.Clothing = 4) only
+UPDATE weenie_properties_int t JOIN weenie_properties_string n ON n.object_Id = t.object_Id AND n.type = 1
+SET t.value = 4
+WHERE t.type = 94 AND n.value = 'Salvaged Silk';
