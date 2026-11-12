@@ -56,6 +56,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Damage multiplier for the extra targets of a cleave or a two-handed spear's pierce (the main target takes the full hit)
+        /// </summary>
+        public static float GetAcxExtraTargetDamageMod()
+        {
+            return (float)PropertyManager.GetDouble("acx_extra_target_damage").Item;
+        }
+
+        /// <summary>
         /// How far behind the target a spear thrust reaches, and how far to either side of the line it still hits
         /// </summary>
         private const float AcxPierceRange = 3.0f;

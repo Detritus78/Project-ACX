@@ -346,14 +346,14 @@ namespace ACE.Server.WorldObjects
                         foreach (var cleaveHit in cleave)
                         {
                             // target procs don't happen for cleaving
-                            DamageTarget(cleaveHit, weapon);
+                            DamageTarget(cleaveHit, weapon, GetAcxExtraTargetDamageMod());   // Project ACX
                         }
                     }
 
                     // Project ACX: two-handed spears also hit the monster directly behind the target (no target procs)
                     var pierceHit = GetAcxPierceTarget(creature, weapon);
                     if (pierceHit != null)
-                        DamageTarget(pierceHit, weapon);
+                        DamageTarget(pierceHit, weapon, GetAcxExtraTargetDamageMod());
                 });
 
                 //if (numStrikes == 1 || TwoHandedCombat)
