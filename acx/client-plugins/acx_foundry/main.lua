@@ -93,7 +93,12 @@ return function(s)
             local id=e.id
             if id=="confirm" and pending then command(pending.text,pending.target);pending=nil
             elseif id=="cancel" then pending=nil;note("Command cancelled.")
-            elseif acx_commands[id] then say(acx_commands[id]);note("Sent "..acx_commands[id].." — see Server replies.") -- Project ACX
+            elseif acx_commands[id] then -- Project ACX
+                local cmd=acx_commands[id]
+                -- creation goes through Foundry's content service like its own buttons; anything else is spoken as
+                -- an @command, because ACE only reads commands from talk text that starts with @
+                if cmd:sub(1,4)=="/ci " or cmd:sub(1,8)=="/create " then command(cmd) else say("@"..cmd:sub(2)) end
+                note("Sent "..cmd.." — see Server replies.")
             elseif id=="acx_clear" then acx_replies={}
             elseif id=="scan" then scan()
             elseif id=="prev" then page=math.max(0,page-1);scan()
