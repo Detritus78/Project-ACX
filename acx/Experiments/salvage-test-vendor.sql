@@ -13,66 +13,66 @@ DELETE FROM weenie WHERE class_Id = 900020 OR class_Id BETWEEN 900200 AND 900299
 DROP TEMPORARY TABLE IF EXISTS acx_bags;
 CREATE TEMPORARY TABLE acx_bags (bag INT UNSIGNED PRIMARY KEY, original INT UNSIGNED);
 INSERT INTO acx_bags VALUES
-    (900200, 20983)   -- Salvaged Ceramic,
-    (900201, 21067)   -- Salvaged Porcelain,
-    (900202, 20987)   -- Salvaged Linen,
-    (900203, 21076)   -- Salvaged Silk,
-    (900204, 20994)   -- Salvaged Velvet,
-    (900205, 20995)   -- Salvaged Wool,
-    (900206, 21034)   -- Salvaged Agate,
-    (900207, 21035)   -- Salvaged Amber,
-    (900208, 21037)   -- Salvaged Aquamarine,
-    (900209, 21038)   -- Salvaged Azurite,
-    (900210, 21039)   -- Salvaged Black Garnet,
-    (900211, 21040)   -- Salvaged Black Opal,
-    (900212, 21041)   -- Salvaged Bloodstone,
-    (900213, 21043)   -- Salvaged Carnelian,
-    (900214, 21044)   -- Salvaged Citrine,
-    (900215, 21046)   -- Salvaged Diamond,
-    (900216, 21048)   -- Salvaged Emerald,
-    (900217, 21049)   -- Salvaged Fire Opal,
-    (900218, 21050)   -- Salvaged Green Garnet,
-    (900219, 21053)   -- Salvaged Hematite,
-    (900220, 21054)   -- Salvaged Imperial Topaz,
-    (900221, 21056)   -- Salvaged Jet,
-    (900222, 21057)   -- Salvaged Lapis Lazuli,
-    (900223, 21058)   -- Salvaged Lavender Jade,
-    (900224, 21060)   -- Salvaged Malachite,
-    (900225, 21062)   -- Salvaged Moonstone,
-    (900226, 21065)   -- Salvaged Opal,
-    (900227, 21066)   -- Salvaged Peridot,
-    (900228, 21069)   -- Salvaged Red Garnet,
-    (900229, 21070)   -- Salvaged Red Jade,
-    (900230, 21071)   -- Salvaged Rose Quartz,
-    (900231, 21072)   -- Salvaged Ruby,
-    (900232, 21074)   -- Salvaged Sapphire,
-    (900233, 21078)   -- Salvaged Smoky Quartz,
-    (900234, 21079)   -- Salvaged Sunstone,
-    (900235, 21086)   -- Salvaged White Sapphire,
-    (900236, 21088)   -- Salvaged Yellow Topaz,
-    (900237, 21089)   -- Salvaged Zircon,
-    (900238, 21055)   -- Salvaged Ivory,
-    (900239, 21059)   -- Salvaged Leather,
-    (900240, 20981)   -- Salvaged Armoredillo Hide,
-    (900241, 21052)   -- Salvaged Gromnie Hide,
-    (900242, 20991)   -- Salvaged Reedshark Hide,
-    (900243, 21042)   -- Salvaged Brass,
-    (900244, 20982)   -- Salvaged Bronze,
-    (900245, 21045)   -- Salvaged Copper,
-    (900246, 20984)   -- Salvaged Gold,
-    (900247, 20986)   -- Salvaged Iron,
-    (900248, 21068)   -- Salvaged Pyreal,
-    (900249, 21077)   -- Salvaged Silver,
-    (900250, 20993)   -- Salvaged Steel,
-    (900251, 20980)   -- Salvage,
-    (900252, 20985)   -- Salvaged Granite,
-    (900253, 21061)   -- Salvaged Marble,
-    (900254, 21073)   -- Salvaged Sandstone,
-    (900255, 21047)   -- Salvaged Ebony,
-    (900256, 20988)   -- Salvaged Mahogany,
-    (900257, 20989)   -- Salvaged Oak,
-    (900258, 20990)   -- Salvaged Pine,
-    (900259, 21080)   -- Salvaged Teak;
+    (900200, 20983),   -- Salvaged Ceramic
+    (900201, 21067),   -- Salvaged Porcelain
+    (900202, 20987),   -- Salvaged Linen
+    (900203, 21076),   -- Salvaged Silk
+    (900204, 20994),   -- Salvaged Velvet
+    (900205, 20995),   -- Salvaged Wool
+    (900206, 21034),   -- Salvaged Agate
+    (900207, 21035),   -- Salvaged Amber
+    (900208, 21037),   -- Salvaged Aquamarine
+    (900209, 21038),   -- Salvaged Azurite
+    (900210, 21039),   -- Salvaged Black Garnet
+    (900211, 21040),   -- Salvaged Black Opal
+    (900212, 21041),   -- Salvaged Bloodstone
+    (900213, 21043),   -- Salvaged Carnelian
+    (900214, 21044),   -- Salvaged Citrine
+    (900215, 21046),   -- Salvaged Diamond
+    (900216, 21048),   -- Salvaged Emerald
+    (900217, 21049),   -- Salvaged Fire Opal
+    (900218, 21050),   -- Salvaged Green Garnet
+    (900219, 21053),   -- Salvaged Hematite
+    (900220, 21054),   -- Salvaged Imperial Topaz
+    (900221, 21056),   -- Salvaged Jet
+    (900222, 21057),   -- Salvaged Lapis Lazuli
+    (900223, 21058),   -- Salvaged Lavender Jade
+    (900224, 21060),   -- Salvaged Malachite
+    (900225, 21062),   -- Salvaged Moonstone
+    (900226, 21065),   -- Salvaged Opal
+    (900227, 21066),   -- Salvaged Peridot
+    (900228, 21069),   -- Salvaged Red Garnet
+    (900229, 21070),   -- Salvaged Red Jade
+    (900230, 21071),   -- Salvaged Rose Quartz
+    (900231, 21072),   -- Salvaged Ruby
+    (900232, 21074),   -- Salvaged Sapphire
+    (900233, 21078),   -- Salvaged Smoky Quartz
+    (900234, 21079),   -- Salvaged Sunstone
+    (900235, 21086),   -- Salvaged White Sapphire
+    (900236, 21088),   -- Salvaged Yellow Topaz
+    (900237, 21089),   -- Salvaged Zircon
+    (900238, 21055),   -- Salvaged Ivory
+    (900239, 21059),   -- Salvaged Leather
+    (900240, 20981),   -- Salvaged Armoredillo Hide
+    (900241, 21052),   -- Salvaged Gromnie Hide
+    (900242, 20991),   -- Salvaged Reedshark Hide
+    (900243, 21042),   -- Salvaged Brass
+    (900244, 20982),   -- Salvaged Bronze
+    (900245, 21045),   -- Salvaged Copper
+    (900246, 20984),   -- Salvaged Gold
+    (900247, 20986),   -- Salvaged Iron
+    (900248, 21068),   -- Salvaged Pyreal
+    (900249, 21077),   -- Salvaged Silver
+    (900250, 20993),   -- Salvaged Steel
+    (900251, 20980),   -- Salvage
+    (900252, 20985),   -- Salvaged Granite
+    (900253, 21061),   -- Salvaged Marble
+    (900254, 21073),   -- Salvaged Sandstone
+    (900255, 21047),   -- Salvaged Ebony
+    (900256, 20988),   -- Salvaged Mahogany
+    (900257, 20989),   -- Salvaged Oak
+    (900258, 20990),   -- Salvaged Pine
+    (900259, 21080);   -- Salvaged Teak
 
 -- the bags: copies of the originals, full and at the best workmanship
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT b.bag, CONCAT('acx-test-bag-', w.class_Name), w.type, NOW() FROM acx_bags b JOIN weenie w ON w.class_Id = b.original;
