@@ -157,6 +157,7 @@ namespace ACE.Server.Factories
 
                     treasureRoll.WeaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
                     treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, ref treasureRoll.WeaponType);
+                    treasureRoll.Wcid = AcxNetherWeaponWcids.TryRollNether(treasureDeath, treasureRoll.Wcid);   // Project ACX
                     break;
 
                 case TreasureItemType.Armor:
