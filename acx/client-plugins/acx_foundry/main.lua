@@ -48,7 +48,7 @@ end
 -- Project ACX: test-kit buttons send ordinary chat commands (say permission) through the same queue
 local acx_commands={
     acx_god="/god",acx_ungod="/ungod",acx_market="/teleloc 0x016C01BC [49.2 -31.9 0.005]",
-    acx_dummy="/create 900015",acx_debug="/debugdamage defense",acx_fi="/fi",
+    acx_dummy="/create 900015",acx_dummy2="/create 900016",acx_dummy3="/create 900017",acx_debug="/debugdamage defense",acx_fi="/fi",
     acx_sword="/ci 351",acx_shield="/ci 91",acx_nodachi="/ci 40760",acx_spear="/ci 348",acx_yari="/ci 362",acx_pike="/ci 41046",
     acx_lootsword="/lootgen 351 6",acx_nsword="/lootgen 900003 6",acx_nbow="/lootgen 900012 6",
     acx_naxe="/lootgen 900103 6",acx_arrows="/ci 43952 200",
@@ -155,7 +155,7 @@ return function(s)
         tab("acx","ACX",{ -- Project ACX
             text("acx_setup_label","Setup"),
             row("acx_setup",{acx("acx_god","God mode"),acx("acx_ungod","Normal mode"),acx("acx_market","Go to test chests","Marketplace loot chests (Preview)")}),
-            row("acx_targets",{acx("acx_dummy","Spawn target dummy","1,000,000 health, never fights back (Preview): /create 900015"),
+            row("acx_targets",{acx("acx_dummy","Spawn target dummy","1,000,000 health, never fights back (Preview): /create 900015"),acx("acx_dummy2","Dummy 2"),acx("acx_dummy3","Dummy 3"),
                 acx("acx_debug","Debug damage","Appraise a dummy first: /debugdamage defense"),acx("acx_fi","Fix invisible")}),
             text("acx_weapons_label","Weapons (into your pack)"),
             row("acx_plain",{acx("acx_sword","Long Sword"),acx("acx_shield","Kite Shield"),acx("acx_nodachi","Nodachi"),acx("acx_spear","Spear"),acx("acx_yari","Yari"),acx("acx_pike","Pike","Two-handed spear: /ci 41046")}),
