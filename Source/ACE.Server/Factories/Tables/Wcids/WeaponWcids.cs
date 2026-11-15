@@ -52,6 +52,11 @@ namespace ACE.Server.Factories.Tables.Wcids
                 case TreasureWeaponType.Atlatl:
                     return RollAtlatlWcid(treasureDeath);
 
+                case TreasureWeaponType.AcxThrown:
+                    // Project ACX: an Eternal thrown weapon, mutated as an atlatl from here on (AcxThrownWcids)
+                    weaponType = TreasureWeaponType.Atlatl;
+                    return AcxThrownWcids.Roll(System.Math.Clamp(treasureDeath.Tier, 1, 8));
+
                 case TreasureWeaponType.Caster:
                     return RollCaster(treasureDeath);
 

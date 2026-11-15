@@ -203,6 +203,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetCurrentAttacker(Creature currentAttacker)
         {
+            AcxXphFighting(currentAttacker);   // Project ACX: /xph fighting time
             if (currentAttacker == this || CurrentAttacker == currentAttacker.Guid.Full)
                 return;
 
@@ -414,7 +415,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void TakeDamageOverTime(float _amount, DamageType damageType)
         {
-            if (Invincible || IsDead) return;
+            if (Invincible || IsDead || IsAcxGhost) return;   // Project ACX: ghosts can't be hurt
 
             // check lifestone protection
             if (UnderLifestoneProtection)
@@ -475,7 +476,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public int TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false, AttackConditions attackConditions = AttackConditions.None)
         {
-            if (Invincible || IsDead) return 0;
+            if (Invincible || IsDead || IsAcxGhost) return 0;   // Project ACX: ghosts can't be hurt
 
             if (source is Creature creatureAttacker)
                 SetCurrentAttacker(creatureAttacker);
@@ -740,6 +741,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionChangeCombatMode(CombatMode newCombatMode, bool forceHandCombat = false, Action callback = null)
         {
+            if (newCombatMode != CombatMode.NonCombat && AcxGhostBlocks())   // Project ACX: ghosts don't fight
+            {
+                SetCombatMode(CombatMode.NonCombat);
+                return;
+            }
+
             //log.Info($"{Name}.HandleActionChangeCombatMode({newCombatMode})");
 
             // Make sure the player doesn't have an invalid weapon setup (e.g. sword + wand)

@@ -534,6 +534,8 @@ namespace ACE.Server.WorldObjects
 
                         foreach (var sidePack in containers)
                         {
+                            if (!sidePack.AcxAccepts(worldObject)) continue;   // Project ACX: pouches only take their own kind
+
                             if (sidePack.TryAddToInventory(worldObject, out container, placementPosition, true))
                             {
                                 EncumbranceVal += (worldObject.EncumbranceVal ?? 0);

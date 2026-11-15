@@ -538,7 +538,9 @@ namespace ACE.Server.Factories.Tables.Wcids
 
         public static WeenieClassName TryRollNether(TreasureDeath treasureDeath, WeenieClassName wcid)
         {
-            if (treasureDeath.Tier < PropertyManager.GetLong("acx_nether_weapon_min_tier").Item || !netherVersions.TryGetValue(wcid, out var netherWcid))
+            uint netherWcid = 0;
+            if (treasureDeath.Tier < PropertyManager.GetLong("acx_nether_weapon_min_tier").Item
+                || !(netherVersions.TryGetValue(wcid, out netherWcid) || AcxThrownWcids.TryGetNether(wcid, out netherWcid)))   // Eternal thrown weapons: their own table
                 return wcid;
 
             if (ThreadSafeRandom.Next(0.0f, 1.0f) >= PropertyManager.GetDouble("acx_nether_weapon_chance").Item)

@@ -35,6 +35,8 @@ namespace ACE.Server.WorldObjects
 
         public void Player_Tick(double currentUnixTime)
         {
+            AcxDoTHoTTick(currentUnixTime);   // Project ACX: bleeds and heals over time
+
             if (CharacterSaveFailed)
             {
                 // Boot the player as their Character object is not saving properly
@@ -120,6 +122,12 @@ namespace ACE.Server.WorldObjects
             LifestoneProtectionTick();
 
             PK_DeathTick();
+
+            AcxGhostTick();   // Project ACX
+
+            AcxVitaeTick(currentUnixTime);   // Project ACX: vitae wears off over time
+
+            AcxCraftGuaranteeTick();   // Project ACX: crafting guarantee warnings
 
             GagsTick();
 
@@ -416,6 +424,8 @@ namespace ACE.Server.WorldObjects
             // possible bug: while teleporting, client can still send AutoPos packets from old landblock
             if (Teleporting && !forceUpdate) return false;
 
+            if (!forceUpdate && AcxGhostLeashRefuses(newPosition)) return false;   // Project ACX: a ghost stays by its body
+
             // pre-validate movement
             if (!ValidateMovement(newPosition))
             {
@@ -625,9 +635,9 @@ namespace ACE.Server.WorldObjects
         {
             if (!EquippedObjectsLoaded) return;
 
-            foreach (var item in EquippedObjects.Values)
+            foreach (var item in EquippedObjects.Values.ToList())
             {
-                if (!item.IsAffecting)
+                if (AcxRecheckItem(item))   // Project ACX: worn items switch on and off as their requirements are met
                     continue;
 
                 if (item.ItemCurMana == null || item.ItemMaxMana == null || item.ManaRate == null)

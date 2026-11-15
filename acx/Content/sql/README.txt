@@ -1,0 +1,1 @@
+Mount point for the server's writable placement folder (acx/compose.yml: ACX_DATA_DIR/content-sql). Keep this folder empty: ACE's /createinst and nudge write here inside the container, not into the repo.

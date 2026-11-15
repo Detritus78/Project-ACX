@@ -155,8 +155,11 @@ namespace ACE.Server.Factories
 
                 case TreasureItemType.Weapon:
 
-                    treasureRoll.WeaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
-                    treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, ref treasureRoll.WeaponType);
+                    if (!AcxClassChestWcids.TryRoll(treasureDeath, ref treasureRoll.WeaponType, out treasureRoll.Wcid))   // Project ACX: one-class test chests
+                    {
+                        treasureRoll.WeaponType = WeaponTypeChance.Roll(treasureDeath.Tier);
+                        treasureRoll.Wcid = WeaponWcids.Roll(treasureDeath, ref treasureRoll.WeaponType);
+                    }
                     treasureRoll.Wcid = AcxNetherWeaponWcids.TryRollNether(treasureDeath, treasureRoll.Wcid);   // Project ACX
                     break;
 
@@ -996,7 +999,8 @@ namespace ACE.Server.Factories
                 BowWcids_Gharundim.TryGetValue(roll.Wcid, out weaponType) ||
                 BowWcids_Sho.TryGetValue(roll.Wcid, out weaponType) ||
                 CrossbowWcids.TryGetValue(roll.Wcid, out weaponType) ||
-                AtlatlWcids.TryGetValue(roll.Wcid, out weaponType))
+                AtlatlWcids.TryGetValue(roll.Wcid, out weaponType) ||
+                AcxThrownWcids.TryGetValue(roll.Wcid, out weaponType))   // Project ACX: Eternal thrown weapons
             {
                 roll.ItemType = TreasureItemType.Weapon;
                 roll.WeaponType = weaponType;

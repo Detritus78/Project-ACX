@@ -66,6 +66,10 @@ namespace ACE.Server.WorldObjects
 
             vendor.MoneyIncome += (int)cost;
 
+            // Project ACX: reputation counts pyreals spent on goods, not trade notes or other currencies
+            if (currencyWcid == coinStackWcid)
+                AcxVendorReputation.AddTrade(this, vendor, genericItems.Concat(uniqueItems).Where(i => i.ItemType != ItemType.PromissoryNote).Sum(i => (long)vendor.GetSellCost(i)));
+
             foreach (var item in genericItems)
             {
                 var service = item.GetProperty(PropertyBool.VendorService) ?? false;
@@ -162,7 +166,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // calculate pyreals to receive
-            var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList);
+            var payoutCoinAmount = vendor.CalculatePayoutCoinAmount(sellList, this);   // Project ACX: this player's rate
 
             if (payoutCoinAmount < 0)
             {
@@ -196,6 +200,9 @@ namespace ACE.Server.WorldObjects
             var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
 
             vendor.MoneyOutflow += payoutCoinAmount;
+
+            // Project ACX: reputation counts what was sold, not trade notes
+            AcxVendorReputation.AddTrade(this, vendor, vendor.CalculatePayoutCoinAmount(sellList.Where(kv => kv.Value.ItemType != ItemType.PromissoryNote).ToDictionary(kv => kv.Key, kv => kv.Value), this));
 
             // remove sell items from player inventory
             foreach (var item in sellList.Values)

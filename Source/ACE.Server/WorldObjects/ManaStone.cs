@@ -14,7 +14,7 @@ using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
-    public class ManaStone : WorldObject
+    public partial class ManaStone : WorldObject   // Project ACX: partial (ManaStone_AcxPack.cs)
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -189,6 +189,8 @@ namespace ACE.Server.WorldObjects
                             ItemCurMana = ItemMaxMana;
                     }
                 }
+                else if (target.WeenieType == WeenieType.Container && target is Container pack)   // Project ACX: a stone used on a pack charges everything in it
+                    useResult = AcxChargePack(player, pack);
                 else if (target.ItemMaxMana.HasValue && target.ItemMaxMana.Value > 0)
                 {
                     var targetItemCurMana = target.ItemCurMana ?? 0;

@@ -33,6 +33,8 @@ namespace ACE.Server.WorldObjects
 
             NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
+            AcxDoTHoTTick(currentUnixTime);   // Project ACX: bleeds and heals over time
+
             if (!IsAwake)
             {
                 if (MonsterState == State.Return)
@@ -68,7 +70,8 @@ namespace ACE.Server.WorldObjects
 
             var creatureTarget = AttackTarget as Creature;
 
-            if (creatureTarget != null && (creatureTarget.IsDead || (combatPet == null && !IsVisibleTarget(creatureTarget))))
+            if (creatureTarget != null && (creatureTarget.IsDead || (combatPet == null && !IsVisibleTarget(creatureTarget))
+                || creatureTarget is Player { IsAcxGhost: true }))   // Project ACX: monsters let go of a ghost
             {
                 FindNextTarget();
                 return;
@@ -121,6 +124,8 @@ namespace ACE.Server.WorldObjects
             // get distance to target
             var targetDist = GetDistanceToTarget();
             //Console.WriteLine($"{Name} ({Guid}) - Dist: {targetDist}");
+
+            if (AcxPathfindingTick(targetDist)) return;     // Project ACX: indoor pathfinding (does nothing while the 'pathfinding' bool is off)
 
             if (CurrentAttack != CombatType.Missile)
             {

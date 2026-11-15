@@ -82,6 +82,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RecordAcxDps(float damage, bool critical, bool missed)
         {
+            AcxXphAttack(missed);   // the /xph hit rate counts every attack, meter running or not
+
             if (!acxDpsRunning || !StartOrCheckAcxDpsClock())
                 return;
 

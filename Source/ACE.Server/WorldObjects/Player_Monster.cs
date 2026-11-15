@@ -36,6 +36,7 @@ namespace ACE.Server.WorldObjects
         public void OnAttackMonster(Creature monster)
         {
             if (monster == null || !Attackable) return;
+            AcxXphFighting(monster);   // Project ACX: /xph fighting time
 
             /*Console.WriteLine($"{Name}.OnAttackMonster({monster.Name})");
             Console.WriteLine($"Attackable: {monster.Attackable}");

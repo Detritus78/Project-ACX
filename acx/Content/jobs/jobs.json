@@ -1,0 +1,100 @@
+// Project ACX town job boards (read by Managers/AcxJobBoard.cs; /acxjobreload picks up changes).
+// Each job: id (unique, never reuse: characters' progress is stamped by it), name, level (sets the pay),
+// start (who to talk to), where, notes, and flag: the quest flag the retail quest stamps when it's finished.
+// Job numbers on the board follow the order here, so add new jobs at the end of a town's list.
+{
+  "towns": [
+    {
+      "name": "Holtburg",
+      "jobs": [
+        { "id": "holtburg-pathwarden", "name": "The Pathwarden's Trail", "level": 5,
+          "start": "Pathwarden Thorolf", "where": "in Holtburg",
+          "notes": "Thorolf shows newcomers the roads and folk around Holtburg.",
+          "flag": "PathwardenComplete" },
+        { "id": "holtburg-drudge-hideout", "name": "The Drudge Hideout", "level": 10,
+          "start": "Alfrin", "where": "in the Holtburg tavern",
+          "notes": "Alfrin is out of pyreals and down on his luck. The drudges nearby have something to do with it.",
+          "flag": "DrudgeHideoutCompleted_1111" },
+        { "id": "holtburg-redoubt", "name": "The Old Redoubt", "level": 15,
+          "start": "Worcer", "where": "in the Holtburg tavern",
+          "notes": "Worcer wants help recovering some items from the old Redoubt.",
+          "flag": "HoltburgRedoubtCompleted_1111" },
+        { "id": "holtburg-game-hunt-easy", "name": "Rand's Tagged Game", "level": 15,
+          "start": "Rand, Game Hunter", "where": "in Holtburg",
+          "notes": "Rand has tagged creatures to test your skills. Kill them and he'll make it worth your while.",
+          "flag": "MGHEasyCompleted" },
+        { "id": "holtburg-cow-tipping", "name": "Cow Tipping", "level": 1,
+          "start": "Dwennon", "where": "in Holtburg",
+          "notes": "Dwennon dares you to tip a cow. Just don't let the farmers see.",
+          "flag": "CowTipWait" },
+        { "id": "holtburg-chicken", "name": "Why Did the Chicken...", "level": 1,
+          "start": "The Chicken", "where": "just south of Holtburg",
+          "notes": "Find out why it crossed the road.",
+          "flag": "CrossedRoad" }
+      ]
+    },
+    {
+      "name": "Shoushi",
+      "jobs": [
+        { "id": "shoushi-pathwarden", "name": "The Pathwarden's Trail", "level": 5,
+          "start": "Pathwarden Koro Ijida", "where": "in Shoushi",
+          "notes": "Koro Ijida shows newcomers the roads and folk around Shoushi. (One trail per character, whichever town you start it in.)",
+          "flag": "PathwardenComplete" },
+        { "id": "shoushi-rat-catcher", "name": "The Rat Catcher", "level": 5,
+          "start": "Lo Raen", "where": "just west of Shoushi",
+          "notes": "Lo Raen has a rat problem.",
+          "flag": "ratcatcherquestcompleted" },
+        { "id": "shoushi-braid-mansion", "name": "Lou Ka's Yaoji", "level": 10,
+          "start": "Lou Ka", "where": "in Shoushi",
+          "notes": "Those thieving mosswarts have made off with Lou Ka's yaoji again, and more besides.",
+          "flag": "BraidMansionRuinCompleted_1111" },
+        { "id": "shoushi-tanada-earth", "name": "The Tanada House of Earth", "level": 15,
+          "start": "Sayuji Jina", "where": "in Shoushi",
+          "notes": "Sayuji Jina tests those who would join the Tanada clan.",
+          "flag": "TanadaHouseofEarthCompleted" },
+        { "id": "shoushi-tanada-storms", "name": "The Tanada House of Storms", "level": 20,
+          "start": "Sayuji Jina", "where": "in Shoushi",
+          "notes": "The next of the Tanada clan's trials.",
+          "flag": "TanadaHouseofStormsCompleted" }
+      ]
+    },
+    {
+      "name": "Yaraq",
+      "jobs": [
+        { "id": "yaraq-pathwarden", "name": "The Pathwarden's Trail", "level": 5,
+          "start": "Pathwarden Qanara bint Qolosh", "where": "in Yaraq",
+          "notes": "Qanara shows newcomers the roads and folk around Yaraq. (One trail per character, whichever town you start it in.)",
+          "flag": "PathwardenComplete" },
+        { "id": "yaraq-fishing-license", "name": "A Fishing License", "level": 1,
+          "start": "the Tackle Master", "where": "on the shore just southwest of Yaraq",
+          "notes": "Every angler needs a license.",
+          "flag": "HaveFishingLicense" },
+        { "id": "yaraq-sea-temple", "name": "The Sea Temple Catacombs", "level": 15,
+          "start": "Lubziklan al-Luq", "where": "just south of Yaraq",
+          "notes": "Lubziklan could use some help, if you'd hear him out.",
+          "flag": "SeaTempleCatacombsCompleted_1111" }
+      ]
+    },
+    {
+      "name": "Sanamar",
+      "jobs": [
+        { "id": "sanamar-pathwarden", "name": "The Pathwarden's Trail", "level": 5,
+          "start": "Pathwarden Thierra Molanti", "where": "in Sanamar",
+          "notes": "Thierra shows newcomers the roads and folk around Sanamar. (One trail per character, whichever town you start it in.)",
+          "flag": "PathwardenComplete" },
+        { "id": "sanamar-polar-dillos", "name": "Polar Dillos", "level": 10,
+          "start": "Alessandro Mardor", "where": "just west of Sanamar",
+          "notes": "Alessandro has work for anyone who can handle the polar armoredillos.",
+          "flag": "PolarDilloTask" },
+        { "id": "sanamar-beacon", "name": "The Beacon", "level": 15,
+          "start": "Elena Du Furza", "where": "in Sanamar",
+          "notes": "Elena Du Furza needs a beacon lit.",
+          "flag": "BeaconComplete" },
+        { "id": "sanamar-trade-alliance", "name": "The Trade Alliance", "level": 20,
+          "start": "Anton Sillezi", "where": "in Sanamar",
+          "notes": "Anton wants a trade alliance with the merchants of the other starter towns. Expect to travel.",
+          "flag": "TradeAllianceQuestCompleted" }
+      ]
+    }
+  ]
+}

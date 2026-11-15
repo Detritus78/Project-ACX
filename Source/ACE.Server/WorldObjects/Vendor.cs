@@ -132,6 +132,9 @@ namespace ACE.Server.WorldObjects
             foreach (var item in Biota.PropertiesCreateList.Where(x => x.DestinationType == DestinationType.Shop))
                 LoadInventoryItem(itemsForSale, item.WeenieClassId, item.Palette, item.Shade, item.StackSize);
 
+            foreach (var wcid in AcxRevive.ShopItems(this))   // Project ACX: revive scrolls at some Life Magic scriveners
+                LoadInventoryItem(itemsForSale, wcid, null, null, -1);
+
             //if (Biota.PropertiesGenerator != null && !PropertyManager.GetBool("vendor_shop_uses_generator").Item)
             //{
             //    foreach (var item in Biota.PropertiesGenerator.Where(x => x.WhereCreate.HasFlag(RegenLocationType.Shop)))
@@ -604,9 +607,9 @@ namespace ACE.Server.WorldObjects
 
         public int GetBuyCost(Weenie item) => GetBuyCost(item.GetValue(), item.GetItemType());
 
-        private int GetBuyCost(int? value, ItemType? itemType)
+        private int GetBuyCost(int? value, ItemType? itemType, Player player = null)
         {
-            var buyRate = BuyPrice ?? 1;
+            var buyRate = ACE.Server.Managers.AcxVendorReputation.GetBuyRate(player, this);   // Project ACX: vendor reputation (was BuyPrice ?? 1)
             if (itemType == ItemType.PromissoryNote)
                 buyRate = 1.0;
 
@@ -614,12 +617,12 @@ namespace ACE.Server.WorldObjects
             return cost;
         }
 
-        public int CalculatePayoutCoinAmount(Dictionary<uint, WorldObject> items)
+        public int CalculatePayoutCoinAmount(Dictionary<uint, WorldObject> items, Player player = null)   // Project ACX: player, for vendor reputation
         {
             var payout = 0;
 
             foreach (WorldObject item in items.Values)
-                payout += GetBuyCost(item);
+                payout += GetBuyCost(item.Value, item.ItemType, player);
 
             return payout;
         }

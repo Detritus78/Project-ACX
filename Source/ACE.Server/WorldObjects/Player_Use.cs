@@ -28,6 +28,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
+            if (AcxGhostBlocks(true)) return;   // Project ACX: ghosts only move and talk
             if (PKLogout)
             {
                 SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
@@ -175,6 +176,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {
+            if (AcxGhostBlocks(true)) return;   // Project ACX: ghosts only move and talk
             if (PKLogout)
             {
                 SendUseDoneEvent(WeenieError.YouHaveBeenInPKBattleTooRecently);
@@ -194,6 +196,8 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
+                if (AcxOneClickHeal(item)) return;   // Project ACX: a double-clicked kit heals the selected player or yourself
+
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
                 {
                     if (IsBusy)

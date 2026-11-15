@@ -39,6 +39,8 @@ namespace ACE.Server.Factories
 
             mutationFilter.TryMutate(wo, profile.Tier);
 
+            AcxAdjustVariance(wo);   // Project ACX: axes and spears roll a tighter damage range
+
             // mutate WeaponOffense / WeaponDefense
             scriptName = GetOffenseDefenseScript(weaponSkill, roll.WeaponType);
 
@@ -98,6 +100,8 @@ namespace ACE.Server.Factories
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
+
+            RollAcxExtraMutations(wo, profile); // Project ACX: extra weapon mutations
 
             ApplyAcxLootLooks(wo); // Project ACX
         }

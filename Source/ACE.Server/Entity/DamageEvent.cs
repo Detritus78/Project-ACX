@@ -292,6 +292,15 @@ namespace ACE.Server.Entity
                 }
             }
 
+            // Project ACX: Light and Finesse weapons brought up to about 5% under Heavy (settings, JJ 2026-11-13)
+            if (playerAttacker != null && CombatType == CombatType.Melee && Weapon != null)
+            {
+                if (Weapon.WeaponSkill == Skill.LightWeapons)
+                    DamageBeforeMitigation *= (float)PropertyManager.GetDouble("acx_light_weapons_damage_mod").Item;
+                else if (Weapon.WeaponSkill == Skill.FinesseWeapons)
+                    DamageBeforeMitigation *= (float)PropertyManager.GetDouble("acx_finesse_weapons_damage_mod").Item;
+            }
+
             // armor rending and cleaving
             var armorRendingMod = 1.0f;
             if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
@@ -368,6 +377,14 @@ namespace ACE.Server.Entity
             // calculate final output damage
             Damage = DamageBeforeMitigation * ArmorMod * ShieldMod * ResistanceMod * DamageResistanceRatingMod;
 
+            if (defender is Player && attacker is not Player)   // Project ACX: monster melee/missile damage scale (setting)
+                Damage *= (float)PropertyManager.GetDouble("acx_mob_damage_scale").Item;
+
+            if (attacker.IsAcxElite)   // Project ACX: elites hit twice as hard (ClassicACE)
+                Damage *= (float)PropertyManager.GetDouble("acx_elite_damage_mod").Item;
+            if (defender.AcxEliteWardBlocks(CombatType))   // Project ACX: a Warded elite's ward
+                Damage = 0;
+
             DamageMitigated = DamageBeforeMitigation - Damage;
 
             return Damage;
@@ -427,6 +444,11 @@ namespace ACE.Server.Entity
 
             // TODO: combat maneuvers for player?
             BaseDamageMod = attacker.GetBaseDamageMod(DamageSource);
+
+            // Project ACX: Light and Finesse multi-strike loot tables start at 1 damage where Heavy's start at 4; made up per strike (setting)
+            if (DamageSource.ItemType != ItemType.MissileWeapon && Weapon != null && Weapon.W_AttackType.IsMultiStrike()
+                && (Weapon.WeaponSkill == Skill.LightWeapons || Weapon.WeaponSkill == Skill.FinesseWeapons))
+                BaseDamageMod.DamageBonus += (float)PropertyManager.GetDouble("acx_lf_multistrike_damage_bonus").Item;
 
             // some quest bows can have built-in damage bonus
             if (Weapon?.WeenieType == WeenieType.MissileLauncher)

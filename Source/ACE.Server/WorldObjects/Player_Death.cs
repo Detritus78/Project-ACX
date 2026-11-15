@@ -41,6 +41,9 @@ namespace ACE.Server.WorldObjects
 
             var lastDamagerObj = lastDamager?.TryGetAttacker();
 
+            AcxLeaderboards.OnPlayerDeath(this, lastDamager);   // Project ACX: deaths and deadliest monsters
+            AcxXphDeath();   // Project ACX: /xph death count
+
             if (lastDamagerObj != null)
                 lastDamagerObj.EmoteManager.OnKill(this);
 
@@ -150,6 +153,7 @@ namespace ACE.Server.WorldObjects
         protected override void Die(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager)
         {
             IsInDeathProcess = true;
+            AcxClearDoTsAndHoTs();   // Project ACX
 
             if (topDamager?.Guid == Guid && IsPKType)
             {
@@ -202,10 +206,11 @@ namespace ACE.Server.WorldObjects
             }
 
             var hadVitae = HasVitae;
+            var acxVitaeBefore = AcxVitaeValue();   // Project ACX: a revive gives back this death's vitae
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
-            if (!IsPKLiteDeath(topDamager))
+            if (!IsPKLiteDeath(topDamager) && (Level ?? 1) >= AcxDeathMinLevel)   // Project ACX: no vitae below level 10
                 InflictVitaePenalty();
 
             if (IsPKDeath(topDamager) || AugmentationSpellsRemainPastDeath == 0)
@@ -229,8 +234,10 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 CreateCorpse(topDamager, hadVitae);
+                AcxPrepareCorpse(lastDamager, topDamager, acxVitaeBefore);   // Project ACX: corpse vitae, headstone mark
 
-                ThreadSafeTeleportOnDeath(); // enter portal space
+                if (!AcxBeginGhost(topDamager, acxVitaeBefore))   // Project ACX: wait at the corpse as a ghost
+                    ThreadSafeTeleportOnDeath(); // enter portal space
 
                 if (IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
                     SetMinimumTimeSincePK();
@@ -306,6 +313,8 @@ namespace ACE.Server.WorldObjects
 
             if (suicideInProgress)
                 return;
+
+            if (AcxGhostBlocks()) return;   // Project ACX: a ghost can't die again
 
             suicideInProgress = true;
 
@@ -481,7 +490,7 @@ namespace ACE.Server.WorldObjects
             if (corpse.IsOnNoDropLandblock || IsPKLiteDeath(corpse.KillerId))
                 return new List<WorldObject>();
 
-            var numItemsDropped = GetNumItemsDropped(corpse);
+            var numItemsDropped = IsPKDeath(corpse.KillerId) ? GetNumItemsDropped(corpse) : 0;   // Project ACX: no item drops to monsters
 
             var numCoinsDropped = GetNumCoinsDropped();
 
@@ -493,6 +502,9 @@ namespace ACE.Server.WorldObjects
 
             // exclude pyreals from randomized death item calculation
             inventory = inventory.Where(i => i.WeenieClassId != coinStackWcid).ToList();
+
+            // Project ACX: pouches and what's in them are safe on death
+            inventory = inventory.Where(i => !i.AcxIsPouch && !(i.Container?.AcxIsPouch ?? false)).ToList();
 
             // exclude wielded items if < level 35
             if (!canDropWielded)
@@ -679,7 +691,8 @@ namespace ACE.Server.WorldObjects
             var level = Level ?? 1;
             var coins = CoinValue ?? 0;
 
-            var numCoinsDropped = level > 5 ? coins / 2 : 0;
+            // Project ACX: from level 10 every death drops all carried pyreals onto the corpse; none below (JJ 2026-11-11; was half from level 6)
+            var numCoinsDropped = level >= 10 ? coins : 0;
 
             return numCoinsDropped;
         }

@@ -274,7 +274,8 @@ namespace ACE.Server.WorldObjects
                 // bludgeon damage
                 // impact damage
                 //if (damage > 0.0f && (FastTick || StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
-                if (damage > 0.0f)
+                damage *= (float)ACE.Server.Managers.PropertyManager.GetDouble("fall_damage_multiplier").Item;   // Project ACX
+                if (damage > 0.0f && ACE.Server.Managers.PropertyManager.GetBool("fall_damage_enabled").Item)
                     TakeDamage_Falling(damage);
             }
         }

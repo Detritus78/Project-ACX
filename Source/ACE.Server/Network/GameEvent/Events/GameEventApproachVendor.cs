@@ -20,7 +20,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             Writer.Write(Convert.ToUInt32(vendor.DealMagicalItems ?? false));
 
-            Writer.Write((float)vendor.BuyPrice);
+            Writer.Write((float)ACE.Server.Managers.AcxVendorReputation.GetBuyRate(session.Player, vendor));   // Project ACX: this player's rate (was vendor.BuyPrice)
             Writer.Write((float)vendor.SellPrice);
 
             // the wcid of the alternate currency

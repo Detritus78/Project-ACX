@@ -403,6 +403,9 @@ namespace ACE.Server.WorldObjects
                 {
                     var visualAwarenessRange = (float)((VisualAwarenessRange ?? VisualAwarenessRange_Default) * PropertyManager.GetDouble("mob_awareness_range").Item);
 
+                    if (CurrentLandblock?.IsDungeon ?? false)   // Project ACX: separate scale inside dungeons
+                        visualAwarenessRange = (float)((VisualAwarenessRange ?? VisualAwarenessRange_Default) * PropertyManager.GetDouble("mob_awareness_range_indoors").Item);
+
                     _visualAwarenessRangeSq = visualAwarenessRange * visualAwarenessRange;
                 }
 

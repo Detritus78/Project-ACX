@@ -186,5 +186,16 @@ namespace ACE.Entity.Enum.Properties
         // Project ACX: 30000+ is reserved for ACX properties
         BlockSpellExtraction             = 30001,
         AcxCustomAppearance              = 30002,
+        AcxDamageTypeChanged             = 30003,
+        AcxRecordsBoard                  = 30004,
+        AcxProceduralChest               = 30005,
+        AcxExplorationMarker             = 30006,
+        AcxGhost                         = 30007,
+        AcxVitaeCorpse                   = 30008,
+        AcxHeadstoneCorpse               = 30009,
+        AcxSmartSalvage                  = 30010,
+        AcxSalvageAvoidInscribed         = 30011,
+        AcxSalvageWhitelist              = 30012,
+        AcxPracticeTarget                = 30013,
     }
 }

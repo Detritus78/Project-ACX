@@ -103,6 +103,7 @@ namespace ACE.Entity.Enum.Properties
         // Project ACX: 30000+ is reserved for ACX properties
         AcxAuraScript                    = 30001,
         AcxAuraScript2                   = 30002,
+        AcxAuraScript3                   = 30003,
     }
 
     public static class PropertyDataIdExtensions

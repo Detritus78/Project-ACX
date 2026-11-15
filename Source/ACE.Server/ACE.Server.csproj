@@ -235,6 +235,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotRecast.Recast.Toolset" Version="2024.3.1" /><!-- Project ACX: indoor pathfinding (ported from ClassicACE) -->
     <PackageReference Include="Lib.Harmony" Version="2.4.3" />
     <PackageReference Include="log4net" Version="2.0.17" />
     <PackageReference Include="Log4Net.Async.Standard" Version="3.1.0" />

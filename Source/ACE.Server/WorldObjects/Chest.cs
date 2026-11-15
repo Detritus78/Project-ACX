@@ -233,6 +233,8 @@ namespace ACE.Server.WorldObjects
             if (resetTimestamp != ResetTimestamp)
                 return;     // already cleared by previous reset
 
+            if (GetProperty(PropertyBool.AcxProceduralChest) == true) { FadeOutAndDestroy(); return; }   // Project ACX: procedural chests vanish instead of refilling
+
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
             // should only be an edge case with reload-landblock

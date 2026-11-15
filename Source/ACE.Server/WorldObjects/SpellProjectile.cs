@@ -539,6 +539,9 @@ namespace ACE.Server.WorldObjects
                 }
                 baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
+                if (sourcePlayer == null && target is Player)   // Project ACX: monster war magic damage scale (setting)
+                    baseDamage = (int)Math.Round(baseDamage * PropertyManager.GetDouble("acx_mob_war_damage_scale").Item);
+
                 weaponResistanceMod = GetWeaponResistanceModifier(weapon, sourceCreature, attackSkill, Spell.DamageType);
 
                 // if attacker/weapon has IgnoreMagicResist directly, do not transfer to spell projectile
@@ -559,6 +562,9 @@ namespace ACE.Server.WorldObjects
 
                 finalDamage *= elementalDamageMod * slayerMod * resistanceMod * absorbMod;
             }
+
+            if (target.AcxEliteWardBlocks(CombatType.Magic))   // Project ACX: a Warded elite's ward
+                finalDamage = 0;
 
             // show debug info
             if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))

@@ -5,6 +5,7 @@ using System.Linq;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
+using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -149,6 +150,55 @@ namespace ACE.Server.Command.Handlers
             target.SetAcxTextureSwap(partIndex, oldTexture, newTexture);
             player.EnqueueBroadcast(new GameMessageUpdateObject(target));
             CommandHandlerHelper.WriteOutputInfo(session, $"{target.Name}: part {partIndex} texture {oldTexture:X8} now shows {newTexture:X8}.");
+        }
+
+        [CommandHandler("acxlevel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Test kit: raises you to a level; the experience is left unassigned for you to spend.",
+            "<level, 2-275>")]
+        public static void HandleAcxLevel(Session session, params string[] parameters)
+        {
+            if (!int.TryParse(parameters[0], out var level))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxlevel <level>");
+                return;
+            }
+            CommandHandlerHelper.WriteOutputInfo(session, session.Player.AcxLevelTo(level));
+        }
+
+        [CommandHandler("acxbag", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+            "Creates a full bag (100 units) of a salvage in your inventory, at workmanship 10 unless given.",
+            "<salvage wcid> [workmanship 1-10]")]
+        public static void HandleAcxBag(Session session, params string[] parameters)
+        {
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxbag <salvage wcid> [workmanship 1-10]");
+                return;
+            }
+
+            var workmanship = 10;
+            if (parameters.Length > 1 && (!int.TryParse(parameters[1], out workmanship) || workmanship < 1 || workmanship > 10))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Workmanship must be 1 to 10.");
+                return;
+            }
+
+            var bag = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            if (bag == null || bag.ItemType != ItemType.TinkeringMaterial)
+            {
+                bag?.Destroy();
+                CommandHandlerHelper.WriteOutputInfo(session, $"{wcid} is not a salvage bag.");
+                return;
+            }
+
+            bag.Structure = 100;
+            bag.MaxStructure = 100;
+            bag.ItemWorkmanship = workmanship;
+            bag.NumItemsInMaterial = 1;
+
+            session.Player.TryCreateInInventoryWithNetworking(bag);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Created {bag.NameWithMaterial} (100 units, workmanship {workmanship}).");
         }
 
         private static bool TryParseHex(string text, out uint value)

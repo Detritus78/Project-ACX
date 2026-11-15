@@ -32,3 +32,6 @@ Custom properties use IDs 30000+ so they never collide with ACE's.
 ## Features
 
 - Spell extraction / transfer scrolls (ClassicACE): extraction scrolls I-VII sold by 97 mage vendors.
+- Indoor monster pathfinding (ClassicACE, DotRecast navmeshes), off by default: `/modifybool pathfinding true`.
+  Prebuild meshes with `/acxmeshbuild all` (background, throttled; `status` / `stop`), rebuild one dungeon with
+  `/acxmeshbuild here`, stress-test with `/acxpathtest [routes]`. Meshes and logs: `ACX_DATA_DIR/Pathfinding`.

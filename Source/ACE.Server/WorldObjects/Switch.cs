@@ -6,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -41,6 +42,12 @@ namespace ACE.Server.WorldObjects
         public override void OnActivate(WorldObject activator)
         {
             if (!(activator is Creature)) return;
+
+            if (WeenieClassId == AcxFortuneWheel.WheelWcid && activator is Player wheelPlayer)   // Project ACX: the Wheel of Fortune game
+            {
+                AcxFortuneWheel.Spin(this, wheelPlayer);
+                return;
+            }
 
             // move this to base?
             EnqueueBroadcast(new GameMessageSound(activator.Guid, Sound.TriggerActivated));

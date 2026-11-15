@@ -166,7 +166,7 @@ namespace ACE.Server.WorldObjects.Managers
         }
 
 
-        private void ClearCache()
+        public void ClearCache()   // Project ACX: public for the revive's vitae refund
         {
             hasEnchantments = null;
             hasVitae = null;

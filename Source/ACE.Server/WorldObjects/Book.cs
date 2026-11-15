@@ -69,6 +69,9 @@ namespace ACE.Server.WorldObjects
             var player = worldObject as Player;
             if (player == null) return;
 
+            if (ACE.Server.Managers.AcxJobBoard.IsJobObject(this)) { ACE.Server.Managers.AcxJobBoard.ShowBoard(this, player); return; }   // Project ACX: town job board
+            if (GetProperty(PropertyBool.AcxRecordsBoard) == true) { ACE.Server.Managers.AcxLeaderboards.ShowRecords(this, player); return; }   // Project ACX: records board
+
             int maxChars = Biota.PropertiesBook.MaxNumCharsPerPage;
             int maxPages = Biota.PropertiesBook.MaxNumPages;
 

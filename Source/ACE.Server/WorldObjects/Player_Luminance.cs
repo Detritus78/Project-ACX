@@ -36,6 +36,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void GrantLuminance(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            if (xpType == XpType.Fellowship && IsAcxGhost) return;   // Project ACX: no fellowship luminance while a ghost
             if (IsOlthoiPlayer)
                 return;
 

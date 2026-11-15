@@ -199,6 +199,10 @@ namespace ACE.Server.Managers
 
         private static void DoPassXP(AllegianceNode vassalNode, ulong amount, bool direct)
         {
+            if (!PropertyManager.GetBool("allow_allegiance_passup").Item)   // Project ACX: pass-up toggle and multiplier
+                return;
+            amount = (ulong)(amount * PropertyManager.GetDouble("allegiance_passup_multiplier").Item);
+
             // http://asheron.wikia.com/wiki/Allegiance_Experience
 
             // Pre-patch:

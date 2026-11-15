@@ -10,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -61,6 +62,9 @@ namespace ACE.Server.WorldObjects
                 player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);
                 return new ActivationResult(false);
             }
+
+            if (AcxVaults.IsVaultHook(this))
+                return AcxVaults.CheckHookUse(this, player);   // Project ACX: a Haven vault's hook follows its vault
 
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);
@@ -158,6 +162,13 @@ namespace ACE.Server.WorldObjects
             SoundTableId = item.SoundTableId;
             ObjScale = item.ObjScale;
             Name = item.NameWithMaterial;
+            DefaultScriptId = item.DefaultScriptId;                 // Project ACX: the item's own effect script, and ACX's aura
+            DefaultScriptIntensity = item.DefaultScriptIntensity;   // (a nether weapon's smoke and sparks), which is played on
+            AcxAuraScript = item.AcxAuraScript;                     // the item's guid and so went missing once the hook showed
+            AcxAuraScriptCount = item.AcxAuraScriptCount;           // the item (JJ 2026-11-14: "the nether color and animations
+            AcxAuraScript2 = item.AcxAuraScript2;                   // go away after you hang it up")
+            AcxAuraScript2Count = item.AcxAuraScript2Count;
+            AcxAuraScript3 = item.AcxAuraScript3;
 
             if (MotionTableId != 0)
                 CurrentMotionState = new Motion(MotionStance.Invalid);
@@ -166,13 +177,17 @@ namespace ACE.Server.WorldObjects
 
             item.EmoteManager.SetProxy(this);
 
-            House.HouseCurrentHooksUsable--;
+            if (House != null)   // Project ACX: Haven vault hooks have no house
+                House.HouseCurrentHooksUsable--;
 
             // Here we explicitly save the hook to the database to prevent item loss.
             // If the player adds an item to the hook, and the server crashes before the hook has been saved, the item will be lost.
             SaveBiotaToDatabase();
 
             EnqueueBroadcast(new GameMessageUpdateObject(this));
+
+            foreach (var script in AcxAuraPlays())   // Project ACX: players who come by later get it from Player.TrackObject
+                EnqueueBroadcast(new GameMessagePlayScriptId(Guid, script));
         }
 
         private static readonly ConcurrentDictionary<uint, WorldObject> cachedHookReferences = new ConcurrentDictionary<uint, WorldObject>();
@@ -199,6 +214,13 @@ namespace ACE.Server.WorldObjects
             Placement = hook.Placement;
             ObjScale = hook.ObjScale;
             Name = hook.Name;
+            DefaultScriptId = hook.DefaultScriptId;                 // Project ACX
+            DefaultScriptIntensity = hook.DefaultScriptIntensity;
+            AcxAuraScript = null;
+            AcxAuraScriptCount = 1;
+            AcxAuraScript2 = null;
+            AcxAuraScript2Count = 1;
+            AcxAuraScript3 = null;
 
             NoDraw = false;
             UiHidden = false;
@@ -209,7 +231,8 @@ namespace ACE.Server.WorldObjects
 
             removedItem.EmoteManager.ClearProxy();
 
-            House.HouseCurrentHooksUsable++;
+            if (House != null)   // Project ACX: Haven vault hooks have no house
+                House.HouseCurrentHooksUsable++;
 
             EnqueueBroadcast(new GameMessageUpdateObject(this));
 
