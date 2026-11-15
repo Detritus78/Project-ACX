@@ -374,6 +374,8 @@ namespace ACE.Server.WorldObjects
             if (target.ReportCollisions == false)
                 return;
 
+            if (IsAcxGhost) return;   // Project ACX: ghosts don't set off portals, plates, hotspots or missiles
+
             if (target is Portal portal)
                 portal.OnCollideObject(this);
             else if (target is PressurePlate pressurePlate)
@@ -654,6 +656,8 @@ namespace ACE.Server.WorldObjects
             PlayerManager.RemovePlayerFromFinalLogoffQueue(this);
             CurrentLandblock?.RemoveWorldObject(Guid, false);
             SetPropertiesAtLogOut();
+            AcxSaveDoTsAndHoTs();   // Project ACX: bleeds and heals carry over through logout
+            AcxXphWriteLog("logout");   // Project ACX: /xph session line in Logs/acx-xph.csv
             SavePlayerToDatabase();
             PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 

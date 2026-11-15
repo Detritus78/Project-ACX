@@ -102,6 +102,8 @@ namespace ACE.Server.WorldObjects
 
                     if (damageEvent.HasDamage)
                     {
+                        target.AcxApplyWeaponBleed(this, weapon, damageEvent.Damage, damageEvent.DamageType, damageEvent.IsCritical);   // Project ACX: dagger and multi-strike sword bleeds
+
                         if (targetPlayer != null)
                         {
                             // this is a player taking damage

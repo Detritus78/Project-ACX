@@ -99,5 +99,17 @@ namespace ACE.Entity.Enum.Properties
         // Project ACX: 30000+ is reserved for ACX properties
         ExtraSpellsList                = 30001,
         ArcaneLoreRollLog              = 30002,
+        AcxJobTown                     = 30003,
+        AcxExploredLandblocks          = 30004,
+        AcxVendorTrade                 = 30005,
+        AcxContracts                   = 30006,
+        AcxContractId                  = 30007,
+        AcxSalvageFilter               = 30008,
+        AcxCraftGuarantees             = 30009,
+        AcxDoTLog                      = 30010,
+        AcxHoTLog                      = 30011,
+        AcxCampRegistry                = 30012,
+        AcxVaultOwnerName              = 30013,
+        AcxBankedCurrencies            = 30014,
     }
 }

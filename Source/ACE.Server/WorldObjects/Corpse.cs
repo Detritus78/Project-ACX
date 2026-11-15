@@ -133,6 +133,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"You do not yet have the right to loot the {Name}."));
                 return;
             }
+
+            if (player.Guid.Full == VictimId)
+                AcxOnOwnerOpen(player);   // Project ACX: half this death's vitae back
+
             base.Open(player);
         }
 
@@ -157,6 +161,9 @@ namespace ACE.Server.WorldObjects
 
             // players can loot corpses of creatures they killed or corpses that have previously been looted by killer
             if (KillerId != null && player.Guid.Full == KillerId || IsLooted)
+                return true;
+
+            if (AcxOpenToAll)   // Project ACX: an elite invader's corpse is open to whoever reaches it
                 return true;
 
             var victimGuid = new ObjectGuid(VictimId.Value);

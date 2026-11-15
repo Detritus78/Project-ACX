@@ -31,6 +31,11 @@ namespace ACE.Server.Managers
 
         public static Recipe GetRecipe(Player player, WorldObject source, WorldObject target)
         {
+            // Project ACX: remapped salvage, ahead of retail's cookbook rows for the same bags
+            var acxRecipe = GetAcxRecipe(source, target);
+            if (acxRecipe != null)
+                return acxRecipe;
+
             // PY16 recipes
             var cookbook = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
             if (cookbook != null)
@@ -80,6 +85,12 @@ namespace ACE.Server.Managers
                 return;
             }
 
+            if (AcxImbuePairBlocks(player, recipe, target))   // Project ACX: one half of a special-property pair only
+            {
+                player.SendUseDoneEvent();
+                return;
+            }
+
             if (recipe.IsTinkering())
                 log.InfoFormat("[TINKERING] {0}.UseObjectOnTarget({1}, {2}) | Status: {3}confirmed", player.Name, source.NameWithMaterial, target.NameWithMaterial, (confirmed ? "" : "un"));
 
@@ -91,7 +102,12 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var showDialog = HasDifficulty(recipe) && player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog);
+            // Project ACX: Dekaru's craft warning (ClassicACE 7fac9ff4, 409a8b9c): the confirmation also comes up, with a warning,
+            // when the player couldn't wield or activate the item the recipe makes
+            var (wieldError, activateError) = AcxResultRequirementErrors(player, recipe);
+
+            var hasDifficulty = HasDifficulty(recipe);
+            var showDialog = (wieldError || activateError || hasDifficulty) && player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog);
 
             if (!confirmed && player.LumAugSkilledCraft > 0)
                 player.SendMessage($"Your Aura of the Craftman augmentation increased your skill by {player.LumAugSkilledCraft}!");
@@ -127,7 +143,7 @@ namespace ACE.Server.Managers
 
             if (showDialog && !confirmed)
             {
-                actionChain.AddAction(player, () => ShowDialog(player, source, target, recipe, percentSuccess.Value));
+                actionChain.AddAction(player, () => ShowDialog(player, source, target, recipe, hasDifficulty ? percentSuccess.Value : null, wieldError, activateError));
                 actionChain.AddAction(player, () => player.IsBusy = false);
             }
             else
@@ -158,6 +174,9 @@ namespace ACE.Server.Managers
 
         public static double? GetRecipeChance(Player player, WorldObject source, WorldObject target, Recipe recipe)
         {
+            if (player.AcxCraftGuaranteed(recipe))   // Project ACX: a crafting guarantee scroll is active
+                return 1.0;
+
             if (recipe.IsTinkering())
                 return GetTinkerChance(player, source, target, recipe);
 
@@ -319,35 +338,78 @@ namespace ACE.Server.Managers
             4.5f    // 10
         };
 
-        public static void ShowDialog(Player player, WorldObject source, WorldObject target, Recipe recipe, double successChance)
+        /// <summary>
+        /// Project ACX: Dekaru's craft warning. Builds a throwaway copy of the item the recipe makes and checks whether the player
+        /// meets its wield requirements (equippable items) or its activation requirements (equippable or usable items).
+        /// </summary>
+        private static (bool wieldError, bool activateError) AcxResultRequirementErrors(Player player, Recipe recipe)
         {
-            var percent = successChance * 100;
+            if (!PropertyManager.GetBool("acx_craft_requirement_warning").Item || recipe.SuccessWCID == 0)
+                return (false, false);
 
-            // retail messages:
+            var testItem = WorldObjectFactory.CreateNewWorldObject(recipe.SuccessWCID);
+            if (testItem == null)
+                return (false, false);
 
-            // You determine that you have a 100 percent chance to succeed.
-            // You determine that you have a 99 percent chance to succeed.
-            // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+            var wieldError = false;
+            var activateError = false;
 
-            var floorMsg = $"You determine that you have a {percent.Round()} percent chance to succeed.";
+            if (testItem.ValidLocations != EquipMask.None)
+            {
+                wieldError = player.CheckWieldRequirements(testItem) != WeenieError.None;
+                activateError = !testItem.CheckUseRequirements(player, true).Success;
+            }
+            else if (testItem.ItemUseable.HasValue && testItem.ItemUseable != Usable.Undef && testItem.ItemUseable != Usable.No)
+                activateError = !testItem.CheckUseRequirements(player, true).Success;
 
-            var numAugs = recipe.IsImbuing() ? player.AugmentationBonusImbueChance : 0;
+            testItem.Destroy();
 
-            if (numAugs > 0)
-                floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
+            return (wieldError, activateError);
+        }
 
-            if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), floorMsg))
+        // Project ACX: successChance is null when the recipe has no difficulty and the dialog is only there for the craft warning
+        public static void ShowDialog(Player player, WorldObject source, WorldObject target, Recipe recipe, double? successChance, bool wieldError = false, bool activateError = false)
+        {
+            var msg = "";
+
+            if (successChance.HasValue)
+            {
+                var percent = successChance.Value * 100;
+
+                // retail messages:
+
+                // You determine that you have a 100 percent chance to succeed.
+                // You determine that you have a 99 percent chance to succeed.
+                // You determine that you have a 38 percent chance to succeed. 5 percent is due to your augmentation.
+
+                var floorMsg = $"You determine that you have a {percent.Round()} percent chance to succeed.";
+
+                var numAugs = recipe.IsImbuing() ? player.AugmentationBonusImbueChance : 0;
+
+                if (numAugs > 0)
+                    floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
+
+                msg = floorMsg;
+
+                if (PropertyManager.GetBool("craft_exact_msg").Item)
+                {
+                    var exactMsg = $"You have a {(float)percent} percent chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
+
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
+                }
+            }
+
+            if (wieldError)
+                msg += $"{(msg.Length > 0 ? "\n\n" : "")}Warning: You do not currently meet the requirements to wield the resulting item!";
+            else if (activateError)
+                msg += $"{(msg.Length > 0 ? "\n\n" : "")}Warning: You do not currently meet the requirements to activate the resulting item!";
+
+            if (!player.ConfirmationManager.EnqueueSend(new Confirmation_CraftInteration(player.Guid, source.Guid, target.Guid), msg))
             {
                 player.SendUseDoneEvent(WeenieError.ConfirmationInProgress);
                 return;
             }
 
-            if (PropertyManager.GetBool("craft_exact_msg").Item)
-            {
-                var exactMsg = $"You have a {(float)percent} percent chance of using {source.NameWithMaterial} on {target.NameWithMaterial}.";
-
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(exactMsg, ChatMessageType.Craft));
-            }
             player.SendUseDoneEvent();
         }
 
@@ -1059,6 +1121,9 @@ namespace ACE.Server.Managers
             if (createItem > 0)
                 result = CreateItem(player, createItem, createAmount);
 
+            if (AcxAtlans.CarryOver(target, result))   // Project ACX: an Atlan keeps its flavor through stone changes
+                player.Session.Network.EnqueueSend(new GameMessageUpdateObject(result));
+
             var modified = ModifyItem(player, recipe, source, target, result, success);
 
             // broadcast different messages based on recipe type
@@ -1485,6 +1550,19 @@ namespace ACE.Server.Managers
             //    return TryMutateNative(player, source, target, recipe, dataId);
 
             var numTimesTinkered = target.NumTimesTinkered;
+
+            // Project ACX: remapped salvage is applied in code
+            if (IsAcxMutation(dataId))
+            {
+                var acxResult = TryAcxMutate(dataId, target);
+
+                if (numTimesTinkered != target.NumTimesTinkered)
+                    HandleTinkerLog(source, target);
+
+                modified.Add(target.Guid.Full);
+
+                return acxResult;
+            }
 
             var mutationScript = MutationCache.GetMutation(dataId);
 

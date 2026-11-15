@@ -100,6 +100,8 @@ namespace ACE.Server.Factories
             // long description
             wo.LongDesc = GetLongDesc(wo);
 
+            RollAcxExtraMutations(wo, profile); // Project ACX: extra weapon mutations
+
             ApplyAcxLootLooks(wo); // Project ACX
         }
 

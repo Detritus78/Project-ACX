@@ -4,6 +4,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Models;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -43,6 +44,9 @@ namespace ACE.Server.WorldObjects
             // fixes floating storage chests
             //Velocity = new Vector3(0, 0, 0.5f);
             BumpVelocity = true;
+
+            if (AcxVaults.IsVault(this))
+                AcxVaults.OnVaultCreated(this);   // Project ACX: Haven vaults (no house)
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
@@ -53,6 +57,9 @@ namespace ACE.Server.WorldObjects
 
             if (!(activator is Player player))
                 return new ActivationResult(false);
+
+            if (AcxVaults.IsVault(this))
+                return AcxVaults.CheckUse(this, player);   // Project ACX: Haven vaults open for their account and key holders
 
             if (player.IgnoreHouseBarriers)
                 return new ActivationResult(true);

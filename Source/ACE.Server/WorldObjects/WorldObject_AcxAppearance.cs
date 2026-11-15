@@ -85,12 +85,51 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// A second PhysicsScript played once on top of the aura, e.g. the Nether Baton's sparks
+        /// A second PhysicsScript played on top of the aura, e.g. the Nether Baton's sparks
         /// </summary>
         public uint? AcxAuraScript2
         {
             get => GetProperty(PropertyDataId.AcxAuraScript2);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.AcxAuraScript2); else SetProperty(PropertyDataId.AcxAuraScript2, value.Value); }
+        }
+
+        /// <summary>
+        /// How many copies of the second script to stack
+        /// </summary>
+        public int AcxAuraScript2Count
+        {
+            get => GetProperty(PropertyInt.AcxAuraScript2Count) ?? 1;
+            set { if (value <= 1) RemoveProperty(PropertyInt.AcxAuraScript2Count); else SetProperty(PropertyInt.AcxAuraScript2Count, value); }
+        }
+
+        /// <summary>
+        /// A third PhysicsScript played once, e.g. the purple sparks at a nether thrown weapon's grip
+        /// </summary>
+        public uint? AcxAuraScript3
+        {
+            get => GetProperty(PropertyDataId.AcxAuraScript3);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AcxAuraScript3); else SetProperty(PropertyDataId.AcxAuraScript3, value.Value); }
+        }
+
+        /// <summary>
+        /// Every PhysicsScript play the aura takes, in order, copies included
+        /// </summary>
+        public IEnumerable<uint> AcxAuraPlays()
+        {
+            if (AcxAuraScript is uint script)
+            {
+                for (var i = 0; i < AcxAuraScriptCount; i++)
+                    yield return script;
+            }
+
+            if (AcxAuraScript2 is uint script2)
+            {
+                for (var i = 0; i < AcxAuraScript2Count; i++)
+                    yield return script2;
+            }
+
+            if (AcxAuraScript3 is uint script3)
+                yield return script3;
         }
 
         /// <summary>
@@ -101,16 +140,24 @@ namespace ACE.Server.WorldObjects
             if (session == null)
                 return;
 
-            var script = AcxAuraScript;
-            if (script != null)
-            {
-                for (var i = 0; i < AcxAuraScriptCount; i++)
-                    session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script.Value));
-            }
+            foreach (var script in AcxAuraPlays())
+                session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script));
+        }
 
-            var script2 = AcxAuraScript2;
-            if (script2 != null)
-                session.Network.EnqueueSend(new GameMessagePlayScriptId(Guid, script2.Value));
+        /// <summary>
+        /// Plays the item's effects again for everyone who sees its wielder: its model's own (e.g. a Flaming Javelin's
+        /// flames) and the aura. A thrown weapon is hidden at each throw and put back in the hand after the reload, and
+        /// hiding it clears its effects on the client (JJ 2026-11-15: "after you throw it once it looses its colors and
+        /// animations").
+        /// </summary>
+        public void BroadcastAcxEffects(WorldObject wielder)
+        {
+            var defaultScript = CSetup?.DefaultScript ?? 0;
+            if (defaultScript != 0)
+                wielder.EnqueueBroadcast(new GameMessagePlayScriptId(Guid, defaultScript));
+
+            foreach (var script in AcxAuraPlays())
+                wielder.EnqueueBroadcast(new GameMessagePlayScriptId(Guid, script));
         }
     }
 }

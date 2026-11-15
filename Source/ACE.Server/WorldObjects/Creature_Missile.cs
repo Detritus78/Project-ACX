@@ -11,6 +11,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Factories.Tables.Wcids;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
@@ -96,6 +97,8 @@ namespace ACE.Server.WorldObjects
 
             proj.ProjectileLauncher = weapon;
             proj.ProjectileAmmo = ammo;
+
+            AcxThrownWcids.CarryRoll(ammo, proj);   // Project ACX: an Eternal thrown weapon's rolled damage
 
             proj.Location = new Position(Location);
             proj.Location.Pos = origin;

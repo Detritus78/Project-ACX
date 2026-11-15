@@ -861,6 +861,12 @@ namespace ACE.Server.Entity
 
             wo.CurrentLandblock = this;
 
+            if (wo is Player acxPlayer)
+            {
+                AcxLeaderboards.OnEnterLandblock(acxPlayer, this);   // Project ACX: areas explored
+                AcxContracts.OnEnterLandblock(acxPlayer, this);      // Project ACX: entering a contract's dungeon starts it
+            }
+
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
             else
@@ -1154,6 +1160,8 @@ namespace ACE.Server.Entity
             LScape.unload_landblock(landblockID);
 
             PhysicsLandblock.release_shadow_objs();
+
+            Pathfinding.Pathfinder.UnloadMeshes(Id.Landblock);  // Project ACX: drop this landblock's navmeshes from memory
         }
 
         public void DestroyAllNonPlayerObjects()

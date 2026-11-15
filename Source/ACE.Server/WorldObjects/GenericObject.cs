@@ -44,6 +44,12 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return;
 
+            if (GetProperty(ACE.Entity.Enum.Properties.PropertyInt.AcxCraftGuarantee) != null)   // Project ACX: crafting guarantee scroll
+            {
+                player.AcxReadCraftScroll(this);
+                return;
+            }
+
             if (UseSound > 0)
                 player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, UseSound));
         }

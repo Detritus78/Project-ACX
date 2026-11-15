@@ -657,6 +657,21 @@ namespace ACE.Entity.Enum.Properties
         BaseItemDifficultyOverride               = 30003,
         BaseSpellcraftOverride                   = 30004,
         AcxAuraScriptCount                       = 30005,
+        AcxJobsDone                              = 30006,
+        AcxAreasExplored                         = 30007,
+        AcxDungeonsExplored                      = 30008,
+        AcxReviveTier                            = 30009,
+        AcxCorpseVitae                           = 30010,
+        AcxPouchItemTypes                        = 30011,
+        AcxCraftGuarantee                        = 30012,
+        AcxVaultOwnerAccount                     = 30013,
+        AcxVaultLockCode                         = 30014,
+        AcxVaultKeyFor                           = 30015,
+        AcxVaultTool                             = 30016,
+        AcxEliteMods                             = 30017,
+        AcxEliteWard                             = 30018,
+        AcxSalvageSack                           = 30019,
+        AcxAuraScript2Count                      = 30020,
     }
 
     public static class PropertyIntExtensions

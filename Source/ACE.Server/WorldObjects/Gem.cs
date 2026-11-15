@@ -125,6 +125,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (GetProperty(PropertyString.AcxContractId) != null) { ACE.Server.Managers.AcxContracts.UseGem(this, player); return; }   // Project ACX: contract portal gem
+            if (ACE.Server.Managers.AcxSalvageSack.IsSack(this)) { ACE.Server.Managers.AcxSalvageSack.Open(this, player); return; }   // Project ACX: salvage sack
+
             // trying to use a dispel potion while pk timer is active
             // send error message and cancel - do not consume item
             if (SpellDID != null)

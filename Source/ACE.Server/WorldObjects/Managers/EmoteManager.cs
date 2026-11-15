@@ -42,6 +42,9 @@ namespace ACE.Server.WorldObjects.Managers
         public bool IsBusy { get; set; }
         public int Nested { get; set; }
 
+        public PropertiesEmote AcxRootEmoteSet { get; private set; }   // Project ACX: the set that started the running chain, for T.A.R. turn-ins
+        public float AcxCampBonus { get; private set; } = 1.0f;         // Project ACX: that chain's T.A.R. turn-in bonus (1 unless an item turn-in started it)
+
         public bool Debug = false;
 
         public EmoteManager(WorldObject worldObject)
@@ -83,7 +86,7 @@ namespace ACE.Server.WorldObjects.Managers
                     if (WorldObject.ActivationTarget > 0)
                     {
                         // ActOnUse delay?
-                        var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget);
+                        var activationTarget = WorldObject.CurrentLandblock?.GetObject(WorldObject.ActivationTarget) ?? AcxMovedActivationTarget();   // Project ACX: NPCs moved out of their retail home
                         activationTarget?.OnActivate(player ?? WorldObject);
                     }
                     else if (WorldObject.GeneratorId.HasValue && WorldObject.GeneratorId > 0) // Fallback to linked generator
@@ -142,7 +145,7 @@ namespace ACE.Server.WorldObjects.Managers
                 case EmoteType.AwardNoShareXP:
 
                     if (player != null)
-                        player.EarnXP(emote.Amount64 ?? emote.Amount ?? 0, XpType.Quest, ShareType.None);
+                        player.EarnXP(AcxCampManager.ScaleTurnInXp(player, emote.Amount64 ?? emote.Amount ?? 0, AcxRootEmoteSet, AcxCampBonus), XpType.Quest, ShareType.None);   // Project ACX: T.A.R. turn-in camp
 
                     break;
 
@@ -174,7 +177,7 @@ namespace ACE.Server.WorldObjects.Managers
                         var amt = emote.Amount64 ?? emote.Amount ?? 0;
                         if (amt > 0)
                         {
-                            player.EarnXP(amt, XpType.Quest, ShareType.All);
+                            player.EarnXP(AcxCampManager.ScaleTurnInXp(player, amt, AcxRootEmoteSet, AcxCampBonus), XpType.Quest, ShareType.All);   // Project ACX: T.A.R. turn-in camp
                         }
                         else if (amt < 0)
                         {
@@ -377,6 +380,8 @@ namespace ACE.Server.WorldObjects.Managers
                     bool success = false;
 
                     var stackSize = emote.StackSize ?? 1;
+
+                    if (player != null && !AcxCampManager.ScaleGiveReward(player, emoteSet, emote, AcxRootEmoteSet, AcxCampBonus, ref stackSize)) break;   // Project ACX: T.A.R. turn-in camp
 
                     if (player != null && emote.WeenieClassId != null)
                     {
@@ -1274,7 +1279,16 @@ namespace ACE.Server.WorldObjects.Managers
                         if (questName.EndsWith("@#kt", StringComparison.Ordinal))
                             log.Warn($"0x{WorldObject.Guid}:{WorldObject.Name} ({WorldObject.WeenieClassId}).EmoteManager.ExecuteEmote: EmoteType.StampQuest({questName}) is a depreciated kill task method.");
 
+                        if (questName.StartsWith(AcxFishing.MarkQuestPrefix) && questTarget is Player markEarner)   // Project ACX: a daily fishing ACX Mark
+                        {
+                            AcxFishing.TryMark(markEarner, questName);
+                            break;
+                        }
+
                         questTarget.QuestManager.Stamp(emote.Message);
+
+                        if (questName == "FishingDelay" && questTarget is Player fisher)   // Project ACX: a cast at a fishing hole
+                            AcxFishing.OnCast(fisher, WorldObject);
                     }
                     break;
 
@@ -1574,7 +1588,7 @@ namespace ACE.Server.WorldObjects.Managers
         /// <param name="emoteSet">A list of emotes to execute</param>
         /// <param name="targetObject">An optional target, usually player</param>
         /// <param name="actionChain">For adding delays between emotes</param>
-        public bool ExecuteEmoteSet(PropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false)
+        public bool ExecuteEmoteSet(PropertiesEmote emoteSet, WorldObject targetObject = null, bool nested = false, float acxCampBonus = 1.0f)   // Project ACX: acxCampBonus, for T.A.R. turn-ins
         {
             //if (Debug) Console.WriteLine($"{WorldObject.Name}.EmoteManager.ExecuteEmoteSet({emoteSet}, {targetObject}, {nested})");
 
@@ -1582,6 +1596,8 @@ namespace ACE.Server.WorldObjects.Managers
             // TODO: maybe eventually we should consider having categories that can be queued?
             // there are some categories that shouldn't be queued, like heartbeats...
             if (IsBusy && !nested) return false;
+
+            if (!nested) { AcxRootEmoteSet = emoteSet; AcxCampBonus = acxCampBonus; }   // Project ACX: a new chain, for T.A.R. turn-ins
 
             // start action chain
             Nested++;
@@ -2089,6 +2105,27 @@ namespace ACE.Server.WorldObjects.Managers
         public void ClearProxy()
         {
             _proxy = null;
+        }
+
+        /// <summary>
+        /// Project ACX: an NPC placed away from its retail home (Concordia's gambling hub) still names an object in that home
+        /// as its ActivationTarget, e.g. the High-Stakes Gamesmasters' Wheel of Knowledge (JJ 2026-11-14: "wheel a knowledge still
+        /// doesnt turn when you turn in a trinket"); the nearest object of the same kind within 30 m stands in for it
+        /// </summary>
+        private WorldObject AcxMovedActivationTarget()
+        {
+            var guid = WorldObject.ActivationTarget;
+            if (WorldObject.CurrentLandblock == null || WorldObject.Location == null || guid >> 28 != 7)
+                return null;
+
+            var home = DatabaseManager.World.GetCachedInstancesByLandblock((ushort)(guid >> 12)).FirstOrDefault(i => i.Guid == guid);
+            if (home == null)
+                return null;
+
+            return WorldObject.CurrentLandblock.GetAllWorldObjectsForDiagnostics()
+                .Where(wo => wo.WeenieClassId == home.WeenieClassId && wo.Location != null && wo.Location.DistanceTo(WorldObject.Location) < 30)
+                .OrderBy(wo => wo.Location.DistanceTo(WorldObject.Location))
+                .FirstOrDefault();
         }
     }
 }

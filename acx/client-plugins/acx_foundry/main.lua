@@ -1,5 +1,5 @@
 -- ACX Foundry: AC:Unreal's bundled Dereth Foundry (ClientMods/foundry/main.lua, AC:Unreal build of 2026-11-11)
--- copied unchanged into a user plugin, plus a Project ACX tab (marked "Project ACX"). Being a user plugin,
+-- copied unchanged into a user plugin, plus Project ACX tabs (marked "Project ACX": ACX test kit, Concordia building). Being a user plugin,
 -- it survives launcher updates. Install: copy this folder to Saved/ClientPlugins/Installed/acx_foundry.
 -- Dereth Foundry: Lua owns the workshop; the host exposes bounded content
 -- file browsing and ACE's existing administrator commands, never a database.
@@ -48,16 +48,42 @@ end
 -- Project ACX: test-kit buttons send ordinary chat commands (say permission) through the same queue
 local acx_commands={
     acx_god="/god",acx_ungod="/ungod",acx_market="/teleloc 0x016C01BC [49.2 -31.9 0.005]",
+    acx_lv10="/acxlevel 10",acx_lv20="/acxlevel 20",acx_lv50="/acxlevel 50",acx_lv80="/acxlevel 80",acx_lv115="/acxlevel 115",
+    acx_lv150="/acxlevel 150",acx_lv200="/acxlevel 200",acx_lv275="/acxlevel 275",
     acx_dummy="/create 900015",acx_dummy2="/create 900016",acx_dummy3="/create 900017",acx_debug="/debugdamage defense",acx_fi="/fi",
-    acx_sword="/ci 351",acx_shield="/ci 91",acx_nodachi="/ci 40760",acx_spear="/ci 348",acx_yari="/ci 362",acx_pike="/ci 41046",
-    acx_lootsword="/lootgen 351 6",acx_nsword="/lootgen 900003 6",acx_nbow="/lootgen 900012 6",
-    acx_naxe="/lootgen 900103 6",acx_shirt="/lootgen 130 6",acx_pants="/lootgen 127 6",acx_arrows="/ci 43952 200",
-    acx_dps_start="/dps start",acx_dps_show="/dps",acx_dps_stop="/dps stop"}
+    acx_shield="/ci 91",acx_shirt="/lootgen 130 6",acx_pants="/lootgen 127 6",
+    -- plain Heavy Weapons, one per type: the base items loot is built from (no spells, no wield requirements)
+    acx_hw_battleaxe="/ci 301",acx_hw_lugianhammer="/ci 31764",acx_hw_silifi="/ci 344",acx_hw_waraxe="/ci 31769",acx_hw_dirk="/ci 22440",acx_hw_jambiya="/ci 319",acx_hw_stiletto="/ci 30601",acx_hw_flangedmace="/ci 30586",acx_hw_mace="/ci 331",acx_hw_mazule="/ci 30581",acx_hw_morningstar="/ci 332",acx_hw_partizan="/ci 30591",acx_hw_spineglaive="/ci 31779",acx_hw_trident="/ci 7772",acx_hw_nabut="/ci 22163",acx_hw_stick="/ci 31788",acx_hw_flamberge="/ci 30576",acx_hw_ken="/ci 327",acx_hw_longsword="/ci 351",acx_hw_schlager="/ci 45108",acx_hw_tachi="/ci 353",acx_hw_takuba="/ci 354",acx_hw_cestus="/ci 4190",acx_hw_nekode="/ci 4195",
+    acx_dps_start="/dps start",acx_dps_show="/dps",acx_dps_stop="/dps stop",
+    -- Concordia building (2026-11-14): everything is placed where you stand, as a permanent instance (/createinst)
+    acx_cc_vault="/createinst 900700",acx_cc_keeper="/createinst 900707",acx_cc_trader="/createinst 45501",
+    acx_cc_head_up="/createinst 22755",acx_cc_head_down="/createinst 22759",
+    acx_cc_godmode="/god",acx_cc_ungod="/ungod",acx_cc_reload="/reload-landblock",acx_cc_myloc="/myloc",acx_cc_go="/telepoi Concordia",
+    acx_cc_p740="/createinst 900740",acx_cc_p741="/createinst 900741",acx_cc_p742="/createinst 900742",acx_cc_p743="/createinst 900743",
+    acx_cc_p744="/createinst 900744",acx_cc_p745="/createinst 900745",acx_cc_p746="/createinst 900746",acx_cc_p747="/createinst 900747",
+    acx_cc_p748="/createinst 900748",acx_cc_p749="/createinst 900749",acx_cc_p750="/createinst 900750",acx_cc_p751="/createinst 900751",
+    -- Gambling halls (2026-11-14): chests, games, hall furniture and farm animals; the halls' staff on the Gamblers tab
+    acx_gb_reload="/reload-landblock",acx_gb_myloc="/myloc",
+    acx_gb_monty="/createinst 9460",acx_gb_arshid="/createinst 9461",acx_gb_ganzo="/createinst 9462",acx_gb_grand="/createinst 38942",acx_gb_exquisite="/createinst 52032",
+    acx_gb_wheel="/createinst 900788",acx_gb_miniwheel="/createinst 900789",acx_gb_wheelk="/createinst 34282",acx_gb_chess="/createinst 14341",
+    acx_gb_table="/createinst 900777",acx_gb_bench="/createinst 900778",acx_gb_stool="/createinst 900779",acx_gb_keg="/createinst 900780",
+    acx_gb_crate="/createinst 900781",acx_gb_tallcrate="/createinst 900771",acx_gb_plankcrate="/createinst 900772",
+    acx_gb_fixture="/createinst 900774",acx_gb_fixturel="/createinst 900773",
+    acx_gb_lamp="/createinst 900782",acx_gb_brazier="/createinst 900783",acx_gb_lantern="/createinst 900776",acx_gb_lanternt="/createinst 900775",
+    acx_gb_cow="/createinst 900784",acx_gb_cow2="/createinst 900785",acx_gb_chicken="/createinst 900786",acx_gb_chicken2="/createinst 900787",
+    acx_gm_reload="/reload-landblock",
+    acx_gm_monty="/createinst 9492",acx_gm_arshid="/createinst 9493",acx_gm_ganzo="/createinst 9494",
+    acx_gm_boddry="/createinst 9504",acx_gm_ashadi="/createinst 9505",acx_gm_haya="/createinst 9506",
+    acx_gm_al_lo="/createinst 9498",acx_gm_al_mid="/createinst 9501",acx_gm_al_hi="/createinst 9495",
+    acx_gm_gh_lo="/createinst 9499",acx_gm_gh_mid="/createinst 9502",acx_gm_gh_hi="/createinst 9496",
+    acx_gm_sh_lo="/createinst 9500",acx_gm_sh_mid="/createinst 9503",acx_gm_sh_hi="/createinst 9497",
+    acx_gm_rare_al="/createinst 40463",acx_gm_rare_gh="/createinst 40462",acx_gm_rare_sh="/createinst 40464",acx_gm_pawn="/createinst 12308"}
 local acx_replies={}
 -- full 100-unit, workmanship-10 salvage bags (Preview experiment acx/Experiments/salvage-test-vendor.sql, wcids 900200-900259)
-local acx_bags={["Agate"]=900206,["Alabaster"]=900251,["Amber"]=900207,["Aquamarine"]=900208,["Armoredillo Hide"]=900240,["Azurite"]=900209,["Black Garnet"]=900210,["Black Opal"]=900211,["Bloodstone"]=900212,["Brass"]=900243,["Bronze"]=900244,["Carnelian"]=900213,["Ceramic"]=900200,["Citrine"]=900214,["Copper"]=900245,["Diamond"]=900215,["Ebony"]=900255,["Emerald"]=900216,["Fire Opal"]=900217,["Gold"]=900246,["Granite"]=900252,["Green Garnet"]=900218,["Gromnie Hide"]=900241,["Hematite"]=900219,["Imperial Topaz"]=900220,["Iron"]=900247,["Ivory"]=900238,["Jet"]=900221,["Lapis Lazuli"]=900222,["Lavender Jade"]=900223,["Leather"]=900239,["Linen"]=900202,["Mahogany"]=900256,["Malachite"]=900224,["Marble"]=900253,["Moonstone"]=900225,["Oak"]=900257,["Opal"]=900226,["Peridot"]=900227,["Pine"]=900258,["Porcelain"]=900201,["Pyreal"]=900248,["Red Garnet"]=900228,["Red Jade"]=900229,["Reed Shark Hide"]=900242,["Rose Quartz"]=900230,["Ruby"]=900231,["Sandstone"]=900254,["Sapphire"]=900232,["Silk"]=900203,["Silver"]=900249,["Smokey Quartz"]=900233,["Steel"]=900250,["Sunstone"]=900234,["Teak"]=900259,["Velvet"]=900204,["White Sapphire"]=900235,["Wool"]=900205,["Yellow Topaz"]=900236,["Zircon"]=900237}
-local acx_bag_names={"Agate","Alabaster","Amber","Aquamarine","Armoredillo Hide","Azurite","Black Garnet","Black Opal","Bloodstone","Brass","Bronze","Carnelian","Ceramic","Citrine","Copper","Diamond","Ebony","Emerald","Fire Opal","Gold","Granite","Green Garnet","Gromnie Hide","Hematite","Imperial Topaz","Iron","Ivory","Jet","Lapis Lazuli","Lavender Jade","Leather","Linen","Mahogany","Malachite","Marble","Moonstone","Oak","Opal","Peridot","Pine","Porcelain","Pyreal","Red Garnet","Red Jade","Reed Shark Hide","Rose Quartz","Ruby","Sandstone","Sapphire","Silk","Silver","Smokey Quartz","Steel","Sunstone","Teak","Velvet","White Sapphire","Wool","Yellow Topaz","Zircon"}
+local acx_bags={["Agate"]=21034,["Alabaster"]=20980,["Amber"]=21035,["Amethyst"]=21036,["Aquamarine"]=21037,["Armoredillo Hide"]=20981,["Azurite"]=21038,["Black Garnet"]=21039,["Black Opal"]=21040,["Bloodstone"]=21041,["Brass"]=21042,["Bronze"]=20982,["Carnelian"]=21043,["Ceramic"]=20983,["Citrine"]=21044,["Copper"]=21045,["Diamond"]=21046,["Ebony"]=21047,["Emerald"]=21048,["Fire Opal"]=21049,["Gold"]=20984,["Granite"]=20985,["Green Garnet"]=21050,["Green Jade"]=21051,["Gromnie Hide"]=21052,["Hematite"]=21053,["Imperial Topaz"]=21054,["Iron"]=20986,["Ivory"]=21055,["Jet"]=21056,["Lapis Lazuli"]=21057,["Lavender Jade"]=21058,["Leather"]=21059,["Linen"]=20987,["Mahogany"]=20988,["Malachite"]=21060,["Marble"]=21061,["Moonstone"]=21062,["Oak"]=20989,["Onyx"]=21064,["Opal"]=21065,["Peridot"]=21066,["Pine"]=20990,["Porcelain"]=21067,["Pyreal"]=21068,["Red Garnet"]=21069,["Red Jade"]=21070,["Reed Shark Hide"]=20991,["Rose Quartz"]=21071,["Ruby"]=21072,["Sandstone"]=21073,["Sapphire"]=21074,["Serpentine"]=21075,["Silk"]=21076,["Silver"]=21077,["Smokey Quartz"]=21078,["Steel"]=20993,["Sunstone"]=21079,["Teak"]=21080,["Tiger Eye"]=21081,["Tourmaline"]=21082,["Turquoise"]=21083,["Velvet"]=20994,["White Jade"]=21084,["White Quartz"]=21085,["White Sapphire"]=21086,["Wool"]=20995,["Yellow Garnet"]=21087,["Yellow Topaz"]=21088,["Zircon"]=21089}
+local acx_bag_names={"Agate","Alabaster","Amber","Amethyst","Aquamarine","Armoredillo Hide","Azurite","Black Garnet","Black Opal","Bloodstone","Brass","Bronze","Carnelian","Ceramic","Citrine","Copper","Diamond","Ebony","Emerald","Fire Opal","Gold","Granite","Green Garnet","Green Jade","Gromnie Hide","Hematite","Imperial Topaz","Iron","Ivory","Jet","Lapis Lazuli","Lavender Jade","Leather","Linen","Mahogany","Malachite","Marble","Moonstone","Oak","Onyx","Opal","Peridot","Pine","Porcelain","Pyreal","Red Garnet","Red Jade","Reed Shark Hide","Rose Quartz","Ruby","Sandstone","Sapphire","Serpentine","Silk","Silver","Smokey Quartz","Steel","Sunstone","Teak","Tiger Eye","Tourmaline","Turquoise","Velvet","White Jade","White Quartz","White Sapphire","Wool","Yellow Garnet","Yellow Topaz","Zircon"}
 local acx_bag="Silk"
+local acx_build_page="Concordia" -- Project ACX: the Build tab's page
 local function say(text)
     serial=serial+1
     if #queue<16 then queue[#queue+1]={service="chat",operation="send",text=text,id="acx_"..serial} else note("Finish the pending requests first.") end
@@ -86,6 +112,7 @@ return function(s)
         elseif e.type=="result" and tostring(e.id):sub(1,4)=="acx_" then -- Project ACX
             if not e.ok then note(e.error or "Command rejected.") end
         elseif e.type=="change" and e.id=="acx_bag" then acx_bag=e.value -- Project ACX
+        elseif e.type=="change" and e.id=="acx_build_page" then acx_build_page=e.value -- Project ACX
         elseif e.type=="change" and defaults[e.id]~=nil then
             c[e.id]=e.value;dirty=true
             if e.id=="kind" or e.id=="format" or e.id=="filter" then page=0;c.file="";files={};scan() end
@@ -105,7 +132,7 @@ return function(s)
                 if cmd:sub(1,4)=="/ci " or cmd:sub(1,8)=="/create " then command(cmd) else say("@"..cmd:sub(2)) end
                 note("Sent "..cmd.." — see Server replies.")
             elseif id=="acx_clear" then acx_replies={}
-            elseif id=="acx_getbag" and acx_bags[acx_bag] then command("/ci "..acx_bags[acx_bag]);note("Sent /ci "..acx_bags[acx_bag].." ("..acx_bag.." bag).")
+            elseif id=="acx_getbag" and acx_bags[acx_bag] then say("@acxbag "..acx_bags[acx_bag]);note("Sent /acxbag "..acx_bags[acx_bag].." ("..acx_bag.." bag).")
             elseif id=="scan" then scan()
             elseif id=="prev" then page=math.max(0,page-1);scan()
             elseif id=="next" then page=page+1;scan()
@@ -160,22 +187,92 @@ return function(s)
     local tabs={
         tab("acx","ACX",{ -- Project ACX
             text("acx_setup_label","Setup"),
-            row("acx_setup",{acx("acx_god","God mode"),acx("acx_ungod","Normal mode"),acx("acx_market","Go to test chests","Marketplace loot chests (Preview)")}),
+            row("acx_setup",{acx("acx_god","God mode"),acx("acx_ungod","Ungod","Back to your normal character: /ungod"),acx("acx_market","Go to test chests","Marketplace loot chests (Preview)")}),
+            text("acx_levels_label","Level up to a tier (experience left unassigned; levels only go up, and ungod first if you're in god mode)"),
+            row("acx_levels",{acx("acx_lv10","10 (T1)","Starter towns: /acxlevel 10"),acx("acx_lv20","20 (T2)"),acx("acx_lv50","50 (T3)"),
+                acx("acx_lv80","80 (T4)"),acx("acx_lv115","115 (T5)","Direlands towns: /acxlevel 115"),acx("acx_lv150","150"),acx("acx_lv200","200"),acx("acx_lv275","275 (max)")}),
             row("acx_targets",{acx("acx_dummy","Spawn target dummy","1,000,000 health, never fights back (Preview): /create 900015"),acx("acx_dummy2","Dummy 2"),acx("acx_dummy3","Dummy 3"),
                 acx("acx_debug","Debug damage","Appraise a dummy first: /debugdamage defense"),acx("acx_fi","Fix invisible")}),
-            text("acx_weapons_label","Weapons (into your pack)"),
-            row("acx_plain",{acx("acx_sword","Long Sword"),acx("acx_shield","Kite Shield"),acx("acx_nodachi","Nodachi"),acx("acx_spear","Spear"),acx("acx_yari","Yari"),acx("acx_pike","Pike","Two-handed spear: /ci 41046")}),
-            row("acx_loot",{acx("acx_lootsword","Looted sword T6","Tier 6 magic Long Sword, to check Arcane Lore: /lootgen 351 6"),
-                acx("acx_nsword","Nether sword"),acx("acx_nbow","Nether bow"),acx("acx_naxe","Nether axe"),acx("acx_arrows","Prismatic arrows")}),
-            row("acx_clothes",{acx("acx_shirt","Looted shirt","Tier 6 shirt you can tinker (Silk, hides...): /lootgen 130 6"),
+            text("acx_weapons_label","Heavy weapons, plain: no spells, no requirements (into your pack)"),
+            row("acx_hwrow_axe",{text("acx_hwrow_axe_label","Axes"),acx("acx_hw_battleaxe","Battle Axe","Heavy axe: /ci 301"),acx("acx_hw_lugianhammer","Lugian Hammer","Heavy axe: /ci 31764"),acx("acx_hw_silifi","Silifi","Heavy axe: /ci 344"),acx("acx_hw_waraxe","War Axe","Heavy axe: /ci 31769")}),
+            row("acx_hwrow_dagger",{text("acx_hwrow_dagger_label","Daggers (bleed)"),acx("acx_hw_dirk","Dirk","Heavy dagger: /ci 22440"),acx("acx_hw_jambiya","Jambiya","Heavy dagger, multi-strike: /ci 319"),acx("acx_hw_stiletto","Stiletto","Heavy dagger, multi-strike: /ci 30601")}),
+            row("acx_hwrow_mace",{text("acx_hwrow_mace_label","Maces"),acx("acx_hw_flangedmace","Flanged Mace","Heavy mace: /ci 30586"),acx("acx_hw_mace","Mace","Heavy mace: /ci 331"),acx("acx_hw_mazule","Mazule","Heavy mace: /ci 30581"),acx("acx_hw_morningstar","Morning Star","Heavy mace: /ci 332")}),
+            row("acx_hwrow_spear",{text("acx_hwrow_spear_label","Spears and staffs"),acx("acx_hw_partizan","Partizan","Heavy spear: /ci 30591"),acx("acx_hw_spineglaive","Spine Glaive","Heavy spear: /ci 31779"),acx("acx_hw_trident","Trident","Heavy spear: /ci 7772"),acx("acx_hw_nabut","Nabut","Heavy spear, staff: /ci 22163"),acx("acx_hw_stick","Stick","Heavy spear, staff: /ci 31788")}),
+            row("acx_hwrow_sword",{text("acx_hwrow_sword_label","Swords (multi-strike ones bleed)"),acx("acx_hw_flamberge","Flamberge","Heavy sword: /ci 30576"),acx("acx_hw_ken","Ken","Heavy sword: /ci 327"),acx("acx_hw_longsword","Long Sword","Heavy sword: /ci 351"),acx("acx_hw_schlager","Schlager","Heavy sword, multi-strike: /ci 45108"),acx("acx_hw_tachi","Tachi","Heavy sword: /ci 353"),acx("acx_hw_takuba","Takuba","Heavy sword: /ci 354")}),
+            row("acx_hwrow_unarmed",{text("acx_hwrow_unarmed_label","Unarmed"),acx("acx_hw_cestus","Cestus","Heavy unarmed: /ci 4190"),acx("acx_hw_nekode","Nekode","Heavy unarmed: /ci 4195")}),
+            row("acx_clothes",{acx("acx_shield","Kite Shield"),acx("acx_shirt","Looted shirt","Tier 6 shirt you can tinker (Silk, hides...): /lootgen 130 6"),
                 acx("acx_pants","Looted pants","Tier 6 pants you can tinker: /lootgen 127 6")}),
-            row("acx_salvage",{{id="acx_bag",type="select",text="Salvage bag (Preview)",value=acx_bag,options=acx_bag_names},
+            row("acx_salvage",{{id="acx_bag",type="select",text="Salvage bag",value=acx_bag,options=acx_bag_names},
                 {id="acx_getbag",type="button",text="Get full bag",tooltip="A 100-unit bag at workmanship 10, into your pack"}}),
             text("acx_dps_label","DPS test: 60 seconds from your first attack (Preview)"),
             row("acx_dps",{acx("acx_dps_start","Start"),acx("acx_dps_show","Show"),acx("acx_dps_stop","Stop")}),
             {id="acx_replies",type="section",text="Server replies",expanded=true,children={
                 text("acx_reply_lines",#acx_replies>0 and table.concat(acx_replies,"\n") or "(none yet)"),
                 {id="acx_clear",type="button",text="Clear"}}}}),
+        -- Project ACX: Concordia, Gambling and Gamblers share one tab with a page picker, because AC:Unreal refuses a
+        -- plugin window with more than 256 controls and the tab buttons don't tell the plugin which tab is showing; only
+        -- the chosen page is built
+        tab("acx_build","Build",(function()
+            local pages={
+                Concordia=function() return {
+            text("acx_cc_help","Each button places a permanent object where you stand, facing your way (/createinst). Nudge or turn it on the Move tab. Drop a pile first, then the vault chest in it; Claude adds the hooks above the chests. Reload landblock to see data changes."),
+            row("acx_cc_tools",{acx("acx_cc_godmode","God mode"),acx("acx_cc_ungod","Ungod","Back to your normal character: /ungod"),acx("acx_cc_go","Go to Concordia","/telepoi Concordia"),
+                acx("acx_cc_reload","Reload landblock","Respawns everything on this landblock from the database (monsters and dropped items here vanish)"),acx("acx_cc_myloc","My location","/myloc: your position, for telling Claude a spot")}),
+            text("acx_cc_vault_label","Vaults and their keepers"),
+            row("acx_cc_vaults",{acx("acx_cc_vault","Vault chest","A leasable vault (900700): rooms and names come from where you place them"),
+                acx("acx_cc_keeper","Vault Keeper","Sells deeds, rent writs, keys and locks (900707): by the lifestone"),
+                acx("acx_cc_trader","Mark Trader","Trades for ACX Marks (45501): second floor")}),
+            row("acx_cc_heads",{acx("acx_cc_head_up","Temple of Enlightenment","Respec portal head, half size (22755)"),acx("acx_cc_head_down","Temple of Forgetfulness","Respec portal head, half size (22759)")}),
+            text("acx_cc_piles_label","Piles (walk-through scenery; set a chest in one)"),
+            row("acx_cc_piles1",{acx("acx_cc_p740","Gold, small","Pile of Gold (900740)"),acx("acx_cc_p741","Gold heap","Heap of Gold (900741)"),acx("acx_cc_p742","Gold, small 2","Pile of Gold, other heap (900742)"),acx("acx_cc_p743","Gold mound","Mound of Gold (900743)")}),
+            row("acx_cc_piles2",{acx("acx_cc_p744","Hoard","Hoard (900744)"),acx("acx_cc_p745","Rubble","Rubble (900745)"),acx("acx_cc_p746","Rubble 2","Tomb rubble (900746)"),acx("acx_cc_p747","Bones","Pile of Bones (900747)")}),
+            row("acx_cc_piles3",{acx("acx_cc_p748","Bones 2","Pile of Bones (900748)"),acx("acx_cc_p749","Trunk of bones","Trunk of Bones (900749)"),acx("acx_cc_p750","Parts","Pile of Parts (900750)"),acx("acx_cc_p751","Presents","Pile of Presents (900751)")}),
+            {id="acx_cc_replies",type="section",text="Server replies",expanded=false,children={
+                text("acx_cc_reply_lines",#acx_replies>0 and table.concat(acx_replies,"\n") or "(none yet)")}}} end,
+                Gambling=function() return {
+            text("acx_gb_help","Each button places a permanent object where you stand, facing your way. Furniture and animals are fixed scenery (walk-through, can't be picked up). The large wooden fixture sits half in the floor: nudge it up 1.25 m."),
+            row("acx_gb_tools",{acx("acx_gb_reload","Reload landblock","Respawns everything on this landblock from the database"),acx("acx_gb_myloc","My location","/myloc")}),
+            text("acx_gb_chests_label","Gambling chests"),
+            row("acx_gb_chests",{acx("acx_gb_monty","Monty's Golden","Monty's Golden Chest (9460): opened with a Golden Key from the games"),
+                acx("acx_gb_arshid","Arshid's Golden","Arshid's Golden Chest (9461)"),acx("acx_gb_ganzo","Gan-Zo's Golden","Gan-Zo's Golden Chest (9462)")}),
+            row("acx_gb_chests2",{acx("acx_gb_grand","Grand Casino","Grand Casino Chest (38942)"),acx("acx_gb_exquisite","Exquisite Casino","Exquisite Casino Chest (52032)")}),
+            text("acx_gb_games_label","Games"),
+            row("acx_gb_games",{acx("acx_gb_wheel","Wheel of Fortune","The Wheel of Fortune game (900788): one spin per character every 20 hours for gambling tokens"),acx("acx_gb_wheelk","Wheel of Knowledge","Wheel of Knowledge (34282): spins when used, no prize"),acx("acx_gb_miniwheel","Mini wheel","A small Wheel of Fortune just for show (900789)"),
+                acx("acx_gb_chess","Chess board","Chess Board (14341)")}),
+            text("acx_gb_furniture_label","Hall furniture"),
+            row("acx_gb_furn1",{acx("acx_gb_table","Table","The halls' table (900777)"),acx("acx_gb_bench","Bench","Bench (900778)"),
+                acx("acx_gb_stool","Stool","Stool (900779)"),acx("acx_gb_keg","Keg","Keg (900780)")}),
+            row("acx_gb_furn2",{acx("acx_gb_crate","Crate","Crate (900781)"),acx("acx_gb_tallcrate","Tall crate","Iron-bound crate from the Aluvian hall (900771)"),
+                acx("acx_gb_plankcrate","Plank crate","Plank crate from the Aluvian hall (900772)")}),
+            row("acx_gb_furn3",{acx("acx_gb_fixture","Wooden fixture","Wooden fixture from the Gharu'ndim hall, 1.7 x 2 m (900774)"),
+                acx("acx_gb_fixturel","Large fixture","Large wooden fixture from the Gharu'ndim hall, 2 x 2.7 m; nudge it up 1.25 m (900773)")}),
+            row("acx_gb_light",{acx("acx_gb_lamp","Lamp","Lamp (900782)"),acx("acx_gb_brazier","Brazier","Brazier (900783)"),
+                acx("acx_gb_lantern","Paper lantern","Standing paper lantern, 1.6 m (900776)"),acx("acx_gb_lanternt","Tall lantern","Standing paper lantern, 2.1 m (900775)")}),
+            text("acx_gb_farm_label","Farm animals (they stand still)"),
+            row("acx_gb_farm",{acx("acx_gb_cow","Cow","Cow (900784)"),acx("acx_gb_cow2","Cow 2","The other cow model (900785)"),
+                acx("acx_gb_chicken","Chicken","Chicken (900786)"),acx("acx_gb_chicken2","Chicken 2","The other chicken model (900787)")})} end,
+                Gamblers=function() return {
+            text("acx_gm_help","The staff of retail's three gambling halls. Each button places one where you stand, facing your way."),
+            row("acx_gm_tools",{acx("acx_gm_reload","Reload landblock","Respawns everything on this landblock from the database")}),
+            text("acx_gm_sellers_label","Token sellers and shopkeepers"),
+            row("acx_gm_sellers",{acx("acx_gm_monty","Monty","Monty the Munificent, Aluvian token seller (9492)"),acx("acx_gm_arshid","Arshid","Arshid al-Qiyid, Gharu'ndim token seller (9493)"),
+                acx("acx_gm_ganzo","Mi Gan-Zo","Mi Gan-Zo, Sho token seller (9494)")}),
+            row("acx_gm_shops",{acx("acx_gm_boddry","Boddry","Boddry the Chancy, Aluvian shopkeeper (9504)"),acx("acx_gm_ashadi","Ashadi","Ashadi bint Samaq, Gharu'ndim shopkeeper (9505)"),
+                acx("acx_gm_haya","Haya Su Ka","Haya Su Ka, Sho shopkeeper (9506)")}),
+            text("acx_gm_masters_label","Gamesmasters (low, mid, high stakes)"),
+            row("acx_gm_al",{acx("acx_gm_al_lo","Aluvian low","Aluvian Low-Stakes Gamesmaster (9498)"),acx("acx_gm_al_mid","Aluvian mid","Aluvian Mid-Stakes Gamesmaster (9501)"),
+                acx("acx_gm_al_hi","Aluvian high","Aluvian High-Stakes Gamesmaster (9495)")}),
+            row("acx_gm_gh",{acx("acx_gm_gh_lo","Gharu'ndim low","Gharu'ndim Low-Stakes Gamesmaster (9499)"),acx("acx_gm_gh_mid","Gharu'ndim mid","Gharu'ndim Mid-Stakes Gamesmaster (9502)"),
+                acx("acx_gm_gh_hi","Gharu'ndim high","Gharu'ndim High-Stakes Gamesmaster (9496)")}),
+            row("acx_gm_sh",{acx("acx_gm_sh_lo","Sho low","Sho Low-Stakes Gamesmaster (9500)"),acx("acx_gm_sh_mid","Sho mid","Sho Mid-Stakes Gamesmaster (9503)"),
+                acx("acx_gm_sh_hi","Sho high","Sho High-Stakes Gamesmaster (9497)")}),
+            text("acx_gm_others_label","Also in the retail halls"),
+            row("acx_gm_others",{acx("acx_gm_rare_al","Rare Exchanger","Rare Exchanger from the Aluvian hall (40463)"),acx("acx_gm_rare_gh","Rare Exchanger 2","Rare Exchanger from the Gharu'ndim hall (40462)"),
+                acx("acx_gm_rare_sh","Rare Exchanger 3","Rare Exchanger from the Sho hall (40464)"),acx("acx_gm_pawn","Pawn Shopkeep","Pawn Shopkeep (12308)")})} end}
+            local children={{id="acx_build_page",type="select",text="Page",value=acx_build_page,options={"Concordia","Gambling","Gamblers"}}}
+            for _,child in ipairs((pages[acx_build_page] or pages.Concordia)()) do children[#children+1]=child end
+            return children
+        end)()),
         tab("content","Items",{input("wcid","WCID or classname"),button("use_selected","Use selected WCID"),
             row("spawn",{button("create","Create in world"),button("ci","Create in inventory"),button("createinst","Create instance")}),transfers("weenies"),
             row("object",{button("getinfo","Get info"),button("removeinst","Remove instance"),button("delete","Delete selected")}),

@@ -29,6 +29,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionOpenTradeNegotiations(uint tradePartnerGuid, bool initiator = false)
         {
+            if (AcxGhostBlocks()) return;   // Project ACX: ghosts only move and talk
             if (IsOlthoiPlayer)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"As a mindless engine of destruction an Olthoi cannot participate in trade negotiations!", ChatMessageType.Magic));
@@ -115,6 +116,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAddToTrade(uint itemGuid, uint tradeWindowSlotNumber)
         {
+            if (AcxGhostBlocksItem(itemGuid)) return;   // Project ACX: ghosts only move and talk
             if (TradeTransferInProgress)
                 return;
 

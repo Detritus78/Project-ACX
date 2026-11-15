@@ -639,8 +639,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void BroadcastToAll(GameMessage msg)
         {
+            var worldBroadcast = msg is GameMessageSystemChat { ChatType: ChatMessageType.WorldBroadcast };   // Project ACX
+
             foreach (var player in GetAllOnline())
+            {
                 player.Session.Network.EnqueueSend(msg);
+
+                if (worldBroadcast)
+                    player.AcxBroadcastCue();   // Project ACX: a chime and a screen flash for world broadcasts
+            }
         }
 
         public static void BroadcastToAuditChannel(Player issuer, string message)

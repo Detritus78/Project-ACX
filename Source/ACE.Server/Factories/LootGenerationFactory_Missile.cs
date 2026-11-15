@@ -31,12 +31,34 @@ namespace ACE.Server.Factories
             // new method / mutation scripts
             var isElemental = wo.W_DamageType != DamageType.Undef;
 
-            var scriptName = GetMissileScript(roll.WeaponType, isElemental);
+            // Project ACX: an Eternal thrown weapon (AcxThrownWcids) carries its own damage type, which would always pick
+            // the elemental atlatl script; it rolls as a plain atlatl through tier 4 and as an elemental one from tier 5,
+            // like atlatls do, for the wield requirement and the spread from trash to good
+            var isEternalThrown = AcxThrownWcids.IsEternalThrown(wo.WeenieClassId);
+
+            var scriptName = isEternalThrown ? GetMissileScript(TreasureWeaponType.Atlatl, profile.Tier >= 5) : GetMissileScript(roll.WeaponType, isElemental);
 
             // mutate DamageMod / ElementalDamageBonus / WieldRequirements
             var mutationFilter = MutationCache.GetMutation(scriptName);
 
             mutationFilter.TryMutate(wo, profile.Tier);
+
+            // Project ACX: the rolled elemental bonus becomes part of the multiplier (thrown weapons have no launcher to
+            // add it), then the multiplier is scaled to the thrown band, and it all goes into the weapon's own damage with
+            // a damage range of its own, like a melee weapon's (AcxThrownWcids; the projectile carries both: CarryRoll)
+            if (isEternalThrown && wo.DamageMod != null)
+            {
+                if (wo.ElementalDamageBonus != null)
+                {
+                    wo.DamageMod *= AcxThrownWcids.QualityFromBonus(profile.Tier, wo.ElementalDamageBonus.Value);
+                    wo.ElementalDamageBonus = null;
+                }
+                wo.DamageMod *= AcxThrownWcids.GetDamageModScale(profile.Tier) * AcxThrownWcids.RollQuality(profile.Tier);
+
+                wo.Damage = (int)System.Math.Round((wo.Damage ?? 0) * wo.DamageMod.Value);
+                wo.DamageMod = null;
+                wo.DamageVariance = AcxThrownWcids.RollVariance();
+            }
 
             // mutate WeaponDefense
             mutationFilter = MutationCache.GetMutation("MissileWeapons.weapon_defense.txt");
@@ -95,6 +117,8 @@ namespace ACE.Server.Factories
 
             // long description
             wo.LongDesc = GetLongDesc(wo);
+
+            RollAcxExtraMutations(wo, profile); // Project ACX: extra weapon mutations
 
             ApplyAcxLootLooks(wo); // Project ACX
         }

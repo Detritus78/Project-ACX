@@ -45,6 +45,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (target is Player { IsAcxGhost: true } && spell.IsHarmful && target != this) return;   // Project ACX: ghosts can't be hurt
+
             if (spell.IsFellowshipSpell)
             {
                 if (target is not Player targetPlayer || targetPlayer.Fellowship == null)

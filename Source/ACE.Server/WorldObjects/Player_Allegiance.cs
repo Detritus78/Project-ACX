@@ -338,6 +338,9 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            if (AcxPatronTooLow(target))   // Project ACX: patron must be your level or higher (setting)
+                return false;
+
             // patron must currently be greater or equal level
             /*if (target.Level < Level)
             {

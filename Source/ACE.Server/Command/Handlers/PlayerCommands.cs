@@ -29,6 +29,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandlePop(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, $"Current world population: {PlayerManager.GetOnlineCount():N0}", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, ACXQolCommands.UniquePlayersText(), ChatMessageType.Broadcast);   // Project ACX
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)

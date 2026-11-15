@@ -242,6 +242,8 @@ namespace ACE.Server.Network.Structure
 
                 if (wo.HouseOwner.HasValue && wo.HouseOwner.Value > 0)
                     longDesc = $"Owned by {wo.ParentLink.HouseOwnerName}\n";
+                else if (AcxVaults.IsVault(wo))
+                    longDesc = AcxVaults.Describe(wo);   // Project ACX: Haven vault lease
 
                 var discardString = PropertiesString.Where(x => x.Key != PropertyString.Use).Select(x => x.Key).ToList();
                 foreach (var key in discardString)
@@ -255,8 +257,8 @@ namespace ACE.Server.Network.Structure
                 // If the hook has any inventory, we need to send THOSE properties instead.
                 var hook = wo as Container;
 
-                string baseDescString = "";
-                if (wo.ParentLink.HouseOwner != null)
+                string baseDescString = AcxVaults.DescribeHook(wo);   // Project ACX: Haven vault hooks have no house
+                if (wo.ParentLink?.HouseOwner != null)
                 {
                     // This is for backwards compatibility. This value was not set/saved in earlier versions.
                     // It will get the player's name and save that to the HouseOwnerName property of the house. This is now done when a player purchases a house.

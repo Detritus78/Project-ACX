@@ -146,6 +146,7 @@ namespace ACE.Server.WorldObjects
 
             var salvageBags = new List<WorldObject>();
             var salvageResults = new SalvageResults();
+            acxSalvageBands.Clear();   // Project ACX
 
             foreach (var itemGuid in salvageItems)
             {
@@ -169,6 +170,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (item.Workmanship == null || item.Retained) continue;
+
+                if (AcxSalvageSkips(item)) continue;   // Project ACX: Smart Salvage filter
 
                 AddSalvage(salvageBags, item, salvageResults);
 
@@ -206,7 +209,7 @@ namespace ACE.Server.WorldObjects
                 // or all of the salvage bags for this material type are full,
                 // this will create a new salvage bag, and adds it to salvageBags
 
-                var salvageBag = GetSalvageBag(materialType, salvageBags);
+                var salvageBag = AcxSmartSalvageOn ? AcxGetBandedSalvageBag(materialType, salvageBags, item) : GetSalvageBag(materialType, salvageBags);   // Project ACX: workmanship bands
 
                 var added = TryAddSalvage(salvageBag, item, remaining);
                 remaining -= added;

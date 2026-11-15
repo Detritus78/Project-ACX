@@ -65,6 +65,9 @@ namespace ACE.Server.WorldObjects
         /// on a per-object type basis.
         public virtual void HandleActionUseOnTarget(Player player, WorldObject target)
         {
+            if (AcxRevive.IsScroll(this)) { AcxRevive.Use(player, this, target); return; }   // Project ACX: revive scrolls
+            if (AcxVaults.TryUseTool(player, this, target)) return;   // Project ACX: vault deeds, rent writs, blank keys and locks
+
             RecipeManager.UseObjectOnTarget(player, this, target);
         }
 
@@ -188,7 +191,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Verifies the use requirements for activating an item
         /// </summary>
-        public virtual ActivationResult CheckUseRequirements(WorldObject activator)
+        public virtual ActivationResult CheckUseRequirements(WorldObject activator) => CheckUseRequirements(activator, false);   // Project ACX: silent variant below
+
+        /// <summary>
+        /// Project ACX: silent = build and send no error message (as ClassicACE). A GameEvent takes the session's next event
+        /// number when it's built, so an unsent one leaves a gap, and AC:Unreal stops applying game events after a gap
+        /// (paperdoll, vitae, buffs). AcxRecheckItem checks worn items this way every few seconds.
+        /// </summary>
+        public ActivationResult CheckUseRequirements(WorldObject activator, bool silent)
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
@@ -206,7 +216,7 @@ namespace ACE.Server.WorldObjects
             {
                 var arcaneLore = player.GetCreatureSkill(Skill.ArcaneLore);
                 if (arcaneLore.Current < ItemDifficulty.Value)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, arcaneLore.Skill.ToSentence()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, arcaneLore.Skill.ToSentence()));
             }
 
             // verify skill - does this have to be trained, or only in conjunction with UseRequiresSkillLevel?
@@ -225,7 +235,7 @@ namespace ACE.Server.WorldObjects
 
                 // verify skill level
                 if (playerSkill.Current < ItemSkillLevelLimit.Value)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
             }
 
             if (UseRequiresSkill != null)
@@ -244,7 +254,7 @@ namespace ACE.Server.WorldObjects
                 if (UseRequiresSkillLevel != null)
                 {
                     if (playerSkill.Current < UseRequiresSkillLevel.Value)
-                        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
+                        return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
                 }
             }
 
@@ -257,13 +267,13 @@ namespace ACE.Server.WorldObjects
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence()));
 
                 // verify skill level
                 if (UseRequiresSkillLevel != null)
                 {
                     if (playerSkill.Current < UseRequiresSkillLevel.Value)
-                        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
+                        return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
                 }
             }
 
@@ -275,13 +285,13 @@ namespace ACE.Server.WorldObjects
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence()));
 
                 // verify skill level (if this was included)
                 if (ItemSkillLevelLimit != null)
                 {
                     if (playerSkill.Current < ItemSkillLevelLimit.Value)
-                        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
+                        return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence()));
                 }
             }
 
@@ -291,7 +301,7 @@ namespace ACE.Server.WorldObjects
                 var playerLevel = player.Level ?? 1;
                 if (playerLevel < UseRequiresLevel.Value)
                     //return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {UseRequiresLevel.Value}")); // not retail
-                    return new ActivationResult(new GameEventCommunicationTransientString(player.Session, "You are not high enough level to use that!"));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventCommunicationTransientString(player.Session, "You are not high enough level to use that!"));
             }
 
             // verify attribute / vital limits
@@ -300,7 +310,7 @@ namespace ACE.Server.WorldObjects
                 var playerAttr = player.Attributes[ItemAttributeLimit.Value];
 
                 if (playerAttr.Current < ItemAttributeLevelLimit)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerAttr.Attribute.ToString()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerAttr.Attribute.ToString()));
             }
 
             if (ItemAttribute2ndLimit != null)
@@ -308,7 +318,7 @@ namespace ACE.Server.WorldObjects
                 var playerVital = player.Vitals[ItemAttribute2ndLimit.Value];
 
                 if (playerVital.MaxValue < ItemAttribute2ndLevelLimit)
-                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerVital.Vital.ToSentence()));
+                    return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerVital.Vital.ToSentence()));
             }
 
             // verify heritage group
@@ -319,7 +329,7 @@ namespace ACE.Server.WorldObjects
                     var playerHeritageGroup = player.HeritageGroup;
 
                     if (playerHeritageGroup != HeritageGroup)
-                        return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, HeritageGroup.ToSentence()));
+                        return silent ? new ActivationResult(false) : new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, HeritageGroup.ToSentence()));
                 }
             }
 
@@ -332,11 +342,12 @@ namespace ACE.Server.WorldObjects
                 var timer = cooldown.GetFriendlyString();
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
 
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                if (!silent)   // Project ACX
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
                 return new ActivationResult(false);
             }
 
-            if (player.IsOlthoiPlayer)
+            if (player.IsOlthoiPlayer && !silent)   // Project ACX: silent checks are for worn items, which Olthoi players don't have
             {
                 //player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "Olthoi can't interact with that!"));
                 //player.SendWeenieError(WeenieError.OlthoiCannotInteractWithThat);

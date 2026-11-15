@@ -29,5 +29,9 @@ namespace ACE.Entity.Enum.Properties
         AllegianceXPGenerated = 9001,
         AllegianceXPReceived  = 9002,
         VerifyXp              = 9003,
+
+        // Project ACX: 30000+ is reserved for ACX properties
+        AcxBankedPyreals      = 30001,
+        AcxVaultPaidUntil     = 30002,
     }
 }

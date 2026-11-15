@@ -49,7 +49,7 @@ cmd_init() {
         "$ACX_DIR/instance.env.example" > "$env"
     [[ "$name" == preview ]] && sed -i "s|^ACE_WORLD_NAME=.*|ACE_WORLD_NAME=Project ACX Preview|" "$env"
     chmod 600 "$env"
-    mkdir -p "$HOME/acx-data/$name"/{db,Config,Logs,Mods}
+    mkdir -p "$HOME/acx-data/$name"/{db,Config,Logs,Mods,Pathfinding}
     echo "created $env (data in ~/acx-data/$name, game port $port)"
 }
 

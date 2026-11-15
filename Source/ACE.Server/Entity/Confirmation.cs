@@ -246,4 +246,29 @@ namespace ACE.Server.Entity
             Action();
         }
     }
+
+    /// <summary>
+    /// Project ACX: a yes/no popup that acts on No as well (a timed-out popup counts as No)
+    /// </summary>
+    public class Confirmation_AcxChoice : Confirmation
+    {
+        public Action OnYes, OnNo;
+
+        public Confirmation_AcxChoice(ObjectGuid playerGuid, Action onYes, Action onNo)
+            : base(playerGuid, ConfirmationType.Yes_No)
+        {
+            OnYes = onYes;
+            OnNo = onNo;
+        }
+
+        public override void ProcessConfirmation(bool response, bool timeout = false)
+        {
+            if (Player == null) return;
+
+            if (response)
+                OnYes?.Invoke();
+            else
+                OnNo?.Invoke();
+        }
+    }
 }

@@ -24,6 +24,10 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            // Project ACX: coins made before the stack size went up (25,000 to 50,000) take the new size
+            var weenieMaxStackSize = Database.DatabaseManager.World.GetCachedWeenie(WeenieClassId)?.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.MaxStackSize);
+            if (weenieMaxStackSize > (MaxStackSize ?? 0))
+                MaxStackSize = (ushort)weenieMaxStackSize;
         }        
     }
 }

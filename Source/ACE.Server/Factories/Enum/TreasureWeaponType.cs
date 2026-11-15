@@ -38,6 +38,8 @@ namespace ACE.Server.Factories.Enum
         TwoHandedMace,
         TwoHandedSpear,
         TwoHandedSword,
+
+        AcxThrown,   // Project ACX: Eternal thrown weapons; WeaponWcids turns the roll into an atlatl roll once one is picked
     }
 
     public static class TreasureWeaponTypeExtensions
@@ -75,6 +77,7 @@ namespace ACE.Server.Factories.Enum
                 case TreasureWeaponType.Bow:
                 case TreasureWeaponType.Crossbow:
                 case TreasureWeaponType.Atlatl:
+                case TreasureWeaponType.AcxThrown:   // Project ACX
                     return true;
             }
             return false;
@@ -120,6 +123,7 @@ namespace ACE.Server.Factories.Enum
                 case TreasureWeaponType.Crossbow:
                     return "crossbow";
                 case TreasureWeaponType.Atlatl:
+                case TreasureWeaponType.AcxThrown:   // Project ACX: rolls as an atlatl
                     return "atlatl";
                 case TreasureWeaponType.Caster:
                     return "caster";

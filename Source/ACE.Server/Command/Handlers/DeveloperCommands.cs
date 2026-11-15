@@ -1248,12 +1248,13 @@ namespace ACE.Server.Command.Handlers
         // Quests/Contracts
         // ==================================
 
-        [CommandHandler("contract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
+        // Project ACX: renamed from "contract", which is the players' exploration contract command (ACXContractCommands)
+        [CommandHandler("acecontract", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Query, stamp, and erase contracts on the targeted player",
             "[list | bestow | erase]\n"
-            + "contract list - List the contracts for the targeted player\n"
-            + "contract bestow - Stamps the specific contract on the targeted player. If this fails, it's probably because the contract is invalid.\n"
-            + "contract erase - Erase the specific contract from the targeted player. If no quest flag is given, it erases the entire contract table for the targeted player.\n")]
+            + "acecontract list - List the contracts for the targeted player\n"
+            + "acecontract bestow - Stamps the specific contract on the targeted player. If this fails, it's probably because the contract is invalid.\n"
+            + "acecontract erase - Erase the specific contract from the targeted player. If no quest flag is given, it erases the entire contract table for the targeted player.\n")]
         public static void HandleContract(Session session, params string[] parameters)
         {
             if (parameters.Length == 0)
@@ -1365,7 +1366,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         // delete all contracts?
                         // seems unsafe, maybe a confirmation?
-                        session.Player.SendMessage($"You must specify a contract to delete, if you want to delete all contracts use the following command: /contract delete *");
+                        session.Player.SendMessage($"You must specify a contract to delete, if you want to delete all contracts use the following command: /acecontract delete *");
                         return;
                     }
 

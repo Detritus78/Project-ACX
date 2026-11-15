@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects.Managers
         Surpassed,
     };
 
-    public class EnchantmentManager
+    public partial class EnchantmentManager   // Project ACX: partial (EnchantmentManager_Acx.cs)
     {
         public WorldObject WorldObject { get; }
         public Player Player { get; }
@@ -326,6 +326,9 @@ namespace ACE.Server.WorldObjects.Managers
             {
                 var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
                 Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
+
+                if (sound && acxExpiring)
+                    sound = AcxExpiryMessage(entry);   // Project ACX: say whether it ended or a stronger one is still up
 
                 if (sound && entry.SpellCategory != (SpellCategory)SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
@@ -1226,7 +1229,11 @@ namespace ACE.Server.WorldObjects.Managers
             var expired = WorldObject.Biota.PropertiesEnchantmentRegistry.HeartBeatEnchantmentsAndReturnExpired(heartbeatInterval, WorldObject.BiotaDatabaseLock);
 
             foreach (var enchantment in expired)
+            {
+                acxExpiring = true;   // Project ACX: expiry messages only for spells running out, not items taken off
                 Remove(enchantment);
+                acxExpiring = false;
+            }
         }
 
         /// <summary>

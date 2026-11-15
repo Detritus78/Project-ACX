@@ -92,7 +92,7 @@ namespace ACE.Server.Factories
             }
 
             if (profile.Tier > 6 && !roll.ArmorType.IsSocietyArmor())
-                wo.EquipmentSetId = EquipmentSetChance.Roll(wo, profile, roll);
+                RollAcxEquipmentSet(wo, profile, roll);   // Project ACX: armor set settings (was EquipmentSetChance.Roll directly)
 
             if (profile.Tier == 8)
                 TryMutateGearRating(wo, profile, roll);
@@ -100,6 +100,8 @@ namespace ACE.Server.Factories
             // item value
             //if (wo.HasMutateFilter(MutateFilter.Value))   // fixme: data
                 MutateValue(wo, profile.Tier, roll);
+
+            RollAcxShieldMutations(wo, profile); // Project ACX: shields can roll Magic Absorbing
 
             wo.LongDesc = GetLongDesc(wo);
         }

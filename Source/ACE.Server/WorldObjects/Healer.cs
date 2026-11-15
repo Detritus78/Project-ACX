@@ -15,7 +15,7 @@ using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Healer : WorldObject
+    public partial class Healer : WorldObject   // Project ACX: partial (Healer_AcxAlchemy.cs)
     {
         // TODO: change structure / maxstructure to int,
         // cast to ushort at network level
@@ -44,6 +44,8 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
             ObjectDescriptionFlags |= ObjectDescriptionFlag.Healer;
+
+            AcxOneClickUseable();   // Project ACX: a double-click uses the kit (Healer_AcxOneClick.cs)
         }
 
         public override void HandleActionUseOnTarget(Player healer, WorldObject target)
@@ -229,6 +231,8 @@ namespace ACE.Server.WorldObjects
 
             if (healer != target)
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} {BoosterEnum.ToString()} points.", ChatMessageType.Broadcast));
+
+            AcxTryAlchemyHoT(healer, target, difficulty, (int)healAmount, vital.Vital);   // Project ACX: alchemists' kits can heal over time
 
             if (UsesLeft <= 0 && !UnlimitedUse)
                 healer.TryConsumeFromInventoryWithNetworking(this, 1);

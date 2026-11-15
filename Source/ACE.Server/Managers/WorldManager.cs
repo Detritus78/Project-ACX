@@ -75,6 +75,11 @@ namespace ACE.Server.Managers
         {
             WorldStatus = WorldStatusState.Open;
             PlayerManager.BroadcastToAuditChannel(player, "World is now open");
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat("The world is now open.", ChatMessageType.WorldBroadcast));   // Project ACX: tell everyone
+
+            AcxWealth.Start();   // Project ACX: hourly wealth ranks
+            AcxLeaderboards.Start();   // Project ACX: leaderboards
+            AcxInvasions.Start();   // Project ACX: elite town invasions
         }
 
         internal static void Close(Player player, bool bootPlayers = false)
@@ -85,6 +90,7 @@ namespace ACE.Server.Managers
                 msg += ", and booting all online players.";
 
             PlayerManager.BroadcastToAuditChannel(player, msg);
+            PlayerManager.BroadcastToAll(new GameMessageSystemChat(bootPlayers ? "The world is closing now." : "The world is now closed to new logins.", ChatMessageType.WorldBroadcast));   // Project ACX: tell everyone
 
             if (bootPlayers)
                 PlayerManager.BootAllPlayers();
@@ -270,6 +276,13 @@ namespace ACE.Server.Managers
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+
+            foreach (var line in new[] { "server_motd2", "server_motd3", "server_motd4" })   // Project ACX: more MOTD lines
+            {
+                var text = PropertyManager.GetString(line).Item;
+                if (!string.IsNullOrEmpty(text))
+                    session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+            }
 
             if (olthoiPlayerReturnedToLifestone)
                 session.Network.EnqueueSend(new GameMessageSystemChat("You have returned to the Olthoi Queen to serve the hive.", ChatMessageType.Broadcast));

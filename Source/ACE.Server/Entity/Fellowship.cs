@@ -452,48 +452,47 @@ namespace ACE.Server.Entity
         /// </summary>
         private void CalculateXPSharing()
         {
-            // Project ACX:
-            // - If all members of the fellowship are between level 50 and 126, all members will share XP equally
-
-            // - Otherwise, if the highest and lowest members are within 10 levels, XP will be shared equally
-
-            // - If they are within 20 levels, XP will be shared proportionally.
-
             var fellows = GetFellowshipMembers();
             if (fellows.Count == 0)
                 return;
 
-            var highestLevel = fellows.Values.Max(f => f.Level ?? 1);
-            var lowestLevel = fellows.Values.Min(f => f.Level ?? 1);
-
-            var evenShareMinLevel = PropertyManager.GetLong("fellowship_even_share_level").Item;
-            var evenShareMaxLevel = PropertyManager.GetLong("acx_fellowship_even_share_max_level").Item;
-
-            if (lowestLevel >= evenShareMinLevel && highestLevel <= evenShareMaxLevel)
-            {
-                ShareXP = DesiredShareXP;
-                EvenShare = true;
-                return;
-            }
-
-            var maxLevelDiff = highestLevel - lowestLevel;
-
-            if (maxLevelDiff <= 10)
-            {
-                ShareXP = DesiredShareXP;
-                EvenShare = true;
-            }
-            else if (maxLevelDiff <= 20)
-            {
-                ShareXP = DesiredShareXP;
-                EvenShare = false;
-            }
-            else
-            {
-                ShareXP = false;
-                EvenShare = false;
-            }
+            var (share, even) = AcxShareRule(fellows.Values.Select(f => f.Level ?? 1));
+            ShareXP = share && DesiredShareXP;
+            EvenShare = share && even;
         }
+
+        /// <summary>
+        /// Project ACX: the fellowship level rules (JJ 2026-11-11, bands approved 2026-11-14). Whether characters of these
+        /// levels share XP, and whether evenly or by level (each by the XP to their next level, so the lower one's cut
+        /// shrinks as the gap grows):
+        /// - anyone above acx_fellowship_level_cap (180) counts as 180
+        /// - everyone between fellowship_even_share_level (50) and acx_fellowship_even_share_max_level (126): even, any gap
+        /// - anyone below acx_fellowship_low_level (25): by level only, within 10 levels
+        /// - otherwise highest to lowest within 10 levels: even; within 20: by level; further apart: no sharing
+        /// Also decides who may take a shared contract (AcxContracts).
+        /// </summary>
+        public static (bool share, bool even) AcxShareRule(IEnumerable<int> levels)
+        {
+            var effective = levels.Select(AcxEffectiveLevel).ToList();
+            if (effective.Count == 0)
+                return (false, false);
+
+            var highest = effective.Max();
+            var lowest = effective.Min();
+            var gap = highest - lowest;
+
+            if (lowest >= PropertyManager.GetLong("fellowship_even_share_level").Item && highest <= PropertyManager.GetLong("acx_fellowship_even_share_max_level").Item)
+                return (true, true);
+
+            if (lowest < PropertyManager.GetLong("acx_fellowship_low_level").Item)
+                return (gap <= 10, false);
+
+            if (gap <= 10)
+                return (true, true);
+            return (gap <= 20, false);
+        }
+
+        public static int AcxEffectiveLevel(int level) => (int)Math.Min(level, PropertyManager.GetLong("acx_fellowship_level_cap").Item);
 
         /// <summary>
         /// Splits XP amongst fellowship members, depending on XP type and fellow settings
@@ -544,11 +543,12 @@ namespace ACE.Server.Entity
             // based on each fellowship member's level
             else
             {
-                var levelXPSum = fellowshipMembers.Values.Select(p => p.GetXPToNextLevel(p.Level.Value)).Sum();
+                // Project ACX: weighed at each member's fellowship level (over 180 counts as 180)
+                var levelXPSum = fellowshipMembers.Values.Select(p => p.GetXPToNextLevel(AcxEffectiveLevel(p.Level.Value))).Sum();
 
                 foreach (var member in fellowshipMembers.Values)
                 {
-                    var levelXPScale = (double)member.GetXPToNextLevel(member.Level.Value) / levelXPSum;
+                    var levelXPScale = (double)member.GetXPToNextLevel(AcxEffectiveLevel(member.Level.Value)) / levelXPSum;
 
                     var playerTotal = (ulong)Math.Round(amount * levelXPScale * GetDistanceScalar(player, member, xpType));
 

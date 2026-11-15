@@ -131,6 +131,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTeleToLifestone()
         {
+            if (IsAcxGhost) { AcxReleaseGhost("You leave your body and return to your lifestone."); return; }   // Project ACX: /ls as a ghost goes at once
             if (PKTimerActive)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveBeenInPKBattleTooRecently));
@@ -198,6 +199,10 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTeleToMarketPlace()
         {
+            // Project ACX: the /marketplace recall is gone, silently (JJ 2026-11-14: "just remove it from existence")
+            return;
+#pragma warning disable CS0162 // retail's recall, unreachable
+
             if (IsOlthoiPlayer)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OlthoiCanOnlyRecallToLifestone));
@@ -259,6 +264,7 @@ namespace ACE.Server.WorldObjects
 
             // Set the chain to run
             mpChain.EnqueueChain();
+#pragma warning restore CS0162
         }
 
         private static readonly Motion motionAllegianceHometownRecall = new Motion(MotionStance.NonCombat, MotionCommand.AllegianceHometownRecall);
@@ -653,6 +659,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Teleport(Position _newPosition, bool fromPortal = false)
         {
+            AcxGhostOnTeleport();   // Project ACX: a recall (or anything else) moving a ghost ends the wait
+
             var newPosition = new Position(_newPosition);
             //newPosition.PositionZ += 0.005f;
             newPosition.PositionZ += 0.005f * (ObjScale ?? 1.0f);

@@ -102,6 +102,12 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideObject(Player player)
         {
+            // Project ACX: a portal with a trigger radius only takes you once you're that close to its middle, so brushing its
+            // edge doesn't (Concordia's hub portal by a doorway, JJ 2026-11-14); using it works as usual
+            var triggerRadius = GetProperty(PropertyFloat.AcxPortalTriggerRadius);
+            if (triggerRadius != null && player.Location.Distance2D(Location) > triggerRadius)
+                return;
+
             OnActivate(player);
         }
 

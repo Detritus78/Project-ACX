@@ -39,6 +39,9 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
+            if (AcxPracticeTarget)   // Project ACX: a target range dummy pays and counts for nothing
+                return GetDeathMessage(lastDamager, damageType, criticalHit);
+
             //QuestManager.OnDeath(lastDamager?.TryGetAttacker());
 
             if (KillQuest != null)
@@ -47,6 +50,9 @@ namespace ACE.Server.WorldObjects
                 OnDeath_HandleKillTask(KillQuest2);
             if (KillQuest3 != null)
                 OnDeath_HandleKillTask(KillQuest3);
+
+            AcxContracts.OnCreatureDeath(this, lastDamager);   // Project ACX: kill contracts
+            AcxInvasions.OnCreatureDeath(this);   // Project ACX: town invader slain
 
             if (!IsOnNoDeathXPLandblock)
                 OnDeath_GrantXP();
@@ -162,6 +168,13 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Project ACX: a practice target in Concordia's target range (acx/Content/concordia/91-target-range.sql), a copy of
+        /// a real monster that never fights back: its death gives no experience or luminance and counts for no kill task,
+        /// contract, invasion, T.A.R. camp or /xph
+        /// </summary>
+        public bool AcxPracticeTarget => GetProperty(PropertyBool.AcxPracticeTarget) ?? false;
+
+        /// <summary>
         /// Grants XP to players in damage history
         /// </summary>
         public void OnDeath_GrantXP()
@@ -192,7 +205,8 @@ namespace ACE.Server.WorldObjects
 
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
-                playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
+                playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill, ShareType.All, this);   // Project ACX: this, for T.A.R.
+                playerDamager.AcxXphKill(this);   // Project ACX: /xph kill count
 
                 // handle luminance
                 if (LuminanceAward != null)
@@ -588,6 +602,11 @@ namespace ACE.Server.WorldObjects
                 else
                     GenerateTreasure_Olthoi(killer, corpse);
 
+                if (IsAcxElite)
+                    corpse.AcxMakeEliteCorpse();   // Project ACX: open to all, lasts longer, carries ACX Marks
+                if (AcxFisherGuid != 0)
+                    AcxFishing.AddCatchDrops(this, corpse);   // Project ACX: a fishing-hole creature's special drops
+
                 if (killer != null && killer.IsPlayer && !killer.IsOlthoiPlayer)
                 {
                     if (Level >= 100)
@@ -616,6 +635,9 @@ namespace ACE.Server.WorldObjects
             corpse.PhysicsObj.Velocity = PhysicsObj.Velocity;
 
             corpse.EnterWorld();
+
+            if (player != null)
+                player.AcxLastCorpse = corpse;   // Project ACX: the ghost waits beside it
 
             if (player != null)
             {
@@ -648,9 +670,10 @@ namespace ACE.Server.WorldObjects
             var droppedItems = new List<WorldObject>();
 
             // create death treasure from loot generation factory
-            if (DeathTreasure != null)
+            var deathTreasure = IsAcxElite ? AcxEliteDeathTreasure(AcxEliteLootTier) : DeathTreasure;   // Project ACX: elites drop more
+            if (deathTreasure != null)
             {
-                List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
+                List<WorldObject> items = LootGenerationFactory.CreateAcxCreatureLoot(deathTreasure);   // Project ACX: no coins from monsters
                 foreach (WorldObject wo in items)
                 {
                     if (corpse != null)

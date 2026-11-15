@@ -350,7 +350,7 @@ namespace ACE.Server.Managers
             uint nextSolveTime;
 
             if (CanScaleQuestMinDelta(quest))
-                nextSolveTime = playerQuest.LastTimeCompleted + (uint)(quest.MinDelta * PropertyManager.GetDouble("quest_mindelta_rate", 1).Item);
+                nextSolveTime = playerQuest.LastTimeCompleted + AcxQuestTimers.Scale(quest.MinDelta);   // Project ACX: rate plus shortest/longest clamps
             else
                 nextSolveTime = playerQuest.LastTimeCompleted + quest.MinDelta;
 

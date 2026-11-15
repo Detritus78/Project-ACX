@@ -46,25 +46,28 @@ namespace ACE.Server.Factories.Tables
 
         // from magloot corpse logs
         // it appears they might have gotten rid of the tier chances
+        // Project ACX: Eternal thrown weapons take 6% of weapon drops, as often as atlatls, and every other type drops
+        // 6% less often (JJ 2026-11-14: "6% works"); retail's chances below are the originals x 0.94
         private static ChanceTable<TreasureWeaponType> RetailChances = new ChanceTable<TreasureWeaponType>()
         {
-            // melee: 63%
-            // missile: 20%
-            // two-handed: 10%
-            // caster: 7%
-            ( TreasureWeaponType.Sword,           0.09f ),
-            ( TreasureWeaponType.Mace,            0.09f ),
-            ( TreasureWeaponType.Axe,             0.09f ),
-            ( TreasureWeaponType.Spear,           0.09f ),
-            ( TreasureWeaponType.Unarmed,         0.09f ),
-            ( TreasureWeaponType.Staff,           0.09f ),
-            ( TreasureWeaponType.Dagger,          0.09f ),
-            ( TreasureWeaponType.Bow,             0.07f ),
-            ( TreasureWeaponType.Crossbow,        0.07f ),
-            ( TreasureWeaponType.Atlatl,          0.06f ),
-            ( TreasureWeaponType.Caster,          0.07f ),
-            ( TreasureWeaponType.TwoHandedWeapon, 0.10f ),      // see TreasureWeaponType for an explanation of why this is here,
-                                                                // and not deeper in WeaponWcids.cs
+            // melee: 59.2% (retail 63%)
+            // missile: 24.4% with thrown (retail 20%)
+            // two-handed: 9.4% (retail 10%)
+            // caster: 6.6% (retail 7%)
+            ( TreasureWeaponType.Sword,           0.0846f ),   // 0.09
+            ( TreasureWeaponType.Mace,            0.0846f ),   // 0.09
+            ( TreasureWeaponType.Axe,             0.0846f ),   // 0.09
+            ( TreasureWeaponType.Spear,           0.0846f ),   // 0.09
+            ( TreasureWeaponType.Unarmed,         0.0846f ),   // 0.09
+            ( TreasureWeaponType.Staff,           0.0846f ),   // 0.09
+            ( TreasureWeaponType.Dagger,          0.0846f ),   // 0.09
+            ( TreasureWeaponType.Bow,             0.0658f ),   // 0.07
+            ( TreasureWeaponType.Crossbow,        0.0658f ),   // 0.07
+            ( TreasureWeaponType.Atlatl,          0.0564f ),   // 0.06
+            ( TreasureWeaponType.Caster,          0.0658f ),   // 0.07
+            ( TreasureWeaponType.TwoHandedWeapon, 0.094f ),    // 0.10: see TreasureWeaponType for an explanation of why this is here,
+                                                               // and not deeper in WeaponWcids.cs
+            ( TreasureWeaponType.AcxThrown,       0.06f ),     // Project ACX
         };
 
         /// <summary>

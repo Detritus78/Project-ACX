@@ -19,9 +19,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="amount">The amount of XP being added</param>
         /// <param name="xpType">The source of XP being added</param>
         /// <param name="shareable">True if this XP can be shared with Fellowship</param>
-        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
+        public void EarnXP(long amount, XpType xpType, ShareType shareType = ShareType.All, Creature xpSource = null)   // Project ACX: xpSource = the creature killed, for T.A.R.
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
+
+            amount = AcxCampManager.OnKillXp(this, amount, xpType, xpSource);   // Project ACX: T.A.R. camps scale kill XP first, as in ClassicACE
 
             // apply xp modifiers.  Quest XP is multiplicative with general XP modification
             var questModifier = PropertyManager.GetDouble("quest_xp_modifier").Item;
@@ -41,6 +43,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            m_amount += AcxKillXpBonus(m_amount, xpType);   // Project ACX: outdoor kill bonus
+
             GrantXP(m_amount, xpType, shareType);
         }
 
@@ -52,6 +56,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
         public void GrantXP(long amount, XpType xpType, ShareType shareType = ShareType.All)
         {
+            if (xpType == XpType.Fellowship && IsAcxGhost) return;   // Project ACX: no fellowship experience while a ghost
             if (IsOlthoiPlayer)
             {
                 if (HasVitae)
@@ -86,18 +91,24 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void UpdateXpAndLevel(long amount, XpType xpType)
         {
+            AcxXphRecordXp(amount, xpType);   // Project ACX: /xph session XP (after all modifiers and the fellowship split)
             // until we are max level we must make sure that we send
             var xpTable = DatManager.PortalDat.XpTable;
 
             var maxLevel = GetMaxLevel();
-            var maxLevelXp = xpTable.CharacterLevelXPList.Last();
+            var maxLevelXp = xpTable.CharacterLevelXPList[(int)maxLevel];   // Project ACX: the configured max level's XP (was .Last())
 
-            if (Level != maxLevel)
+            if (HasVitae && xpType != XpType.Allegiance && xpType != XpType.Admin)   // Project ACX: vitae soaks up experience first
+                amount = AcxSoakXpIntoVitae(amount);
+
+            var xpAtMax = PropertyManager.GetBool("allow_xp_at_max_level").Item;   // Project ACX: keep earning XP at the cap
+
+            if (Level != maxLevel || xpAtMax)
             {
                 var addAmount = amount;
 
                 var amountLeftToEnd = (long)maxLevelXp - TotalExperience ?? 0;
-                if (amount > amountLeftToEnd)
+                if (amount > amountLeftToEnd && !xpAtMax)
                     addAmount = amountLeftToEnd;
 
                 AvailableExperience += addAmount;
@@ -113,8 +124,7 @@ namespace ACE.Server.WorldObjects
             if (xpType == XpType.Quest)
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"You've earned {amount:N0} experience.", ChatMessageType.Broadcast));
 
-            if (HasVitae && xpType != XpType.Allegiance)
-                UpdateXpVitae(amount);
+            // Project ACX: experience already paid vitae off above (AcxSoakXpIntoVitae), so the retail vitae pool isn't fed too
         }
 
         /// <summary>
@@ -188,7 +198,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static uint GetMaxLevel()
         {
-            return (uint)DatManager.PortalDat.XpTable.CharacterLevelXPList.Count - 1;
+            var datMax = (uint)DatManager.PortalDat.XpTable.CharacterLevelXPList.Count - 1;
+            return Math.Min(datMax, (uint)Math.Max(1, PropertyManager.GetLong("max_level").Item));   // Project ACX: configurable max level
         }
 
         /// <summary>

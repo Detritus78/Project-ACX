@@ -50,6 +50,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionTargetedMeleeAttack(uint targetGuid, uint attackHeight, float powerLevel)
         {
+            if (AcxGhostBlocks()) { OnAttackDone(); return; }   // Project ACX: ghosts don't fight
             //log.Info($"-");
 
             if (CombatMode != CombatMode.Melee)
@@ -167,11 +168,21 @@ namespace ACE.Server.WorldObjects
         public const float StickyDistance = 4.0f;
         public const float RepeatDistance = 16.0f;
 
+        /// <summary>
+        /// Project ACX: whether the target is close enough to swing at without running in first. ACE's StickyDistance (4 m) relies
+        /// on the client sliding the attacker in during the swing; AC:Unreal doesn't slide your own character, so hits landed from
+        /// 4 m away (JJ 2026-11-14). acx_melee_reach replaces it; set it back to 4 once the client slides.
+        /// </summary>
+        private bool AcxInMeleeReach(WorldObject target, float dist)
+        {
+            return dist <= MeleeDistance || dist <= PropertyManager.GetDouble("acx_melee_reach").Item && IsMeleeVisible(target);
+        }
+
         public void HandleActionTargetedMeleeAttack_Inner(WorldObject target, int attackSequence)
         {
             var dist = GetCylinderDistance(target);
 
-            if (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target))
+            if (AcxInMeleeReach(target, dist))
             {
                 // sticky melee
                 var angle = GetAngle(target);
@@ -313,6 +324,8 @@ namespace ACE.Server.WorldObjects
             var prevTime = 0.0f;
             bool targetProc = false;
 
+            var acxBleed = (Damage: 0f, Type: DamageType.Undef, Crit: false);   // Project ACX: bleed from this attack's strikes
+
             for (var i = 0; i < numStrikes; i++)
             {
                 // are there animation hooks for damage frames?
@@ -331,6 +344,14 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var damageEvent = DamageTarget(creature, weapon);
+
+                    if (damageEvent != null && damageEvent.HasDamage)   // Project ACX
+                    {
+                        acxBleed.Damage += damageEvent.Damage;
+                        acxBleed.Crit |= damageEvent.IsCritical;
+                        if (acxBleed.Type == DamageType.Undef)
+                            acxBleed.Type = damageEvent.DamageType;
+                    }
 
                     // handle target procs
                     if (damageEvent != null && damageEvent.HasDamage && !targetProc)
@@ -360,6 +381,8 @@ namespace ACE.Server.WorldObjects
                     //actionChain.AddDelaySeconds(swingTime);
             }
 
+            actionChain.AddAction(this, () => creature.AcxApplyWeaponBleed(this, weapon, acxBleed.Damage, acxBleed.Type, acxBleed.Crit));   // Project ACX: daggers and multi-strike swords bleed
+
             //actionChain.AddDelaySeconds(animLength - swingTime * numStrikes);
             actionChain.AddDelaySeconds(animLength - prevTime);
 
@@ -378,14 +401,22 @@ namespace ACE.Server.WorldObjects
 
                 var dist = GetCylinderDistance(target);
 
-                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && (dist <= MeleeDistance || dist <= StickyDistance && IsMeleeVisible(target)) && !IsBusy && !AttackCancelled)
+                // Project ACX: a target that steps out of reach is followed (up to RepeatDistance) instead of ending the attack
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks) && dist <= RepeatDistance && !IsBusy && !AttackCancelled)
                 {
                     // client starts refilling power meter
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     var nextAttack = new ActionChain();
                     nextAttack.AddDelaySeconds(nextRefillTime);
-                    nextAttack.AddAction(this, () => Attack(target, attackSequence, true));
+                    nextAttack.AddAction(this, () =>
+                    {
+                        // Attack itself ends a cancelled or replaced attack
+                        if (MeleeTarget == null || AttackSequence != attackSequence || AcxInMeleeReach(target, GetCylinderDistance(target)))
+                            Attack(target, attackSequence, true);
+                        else
+                            HandleActionTargetedMeleeAttack_Inner(target, attackSequence);
+                    });
                     nextAttack.EnqueueChain();
                 }
                 else

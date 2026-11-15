@@ -39,6 +39,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
         public void HandleActionTargetedMissileAttack(uint targetGuid, uint attackHeight, float accuracyLevel)
         {
+            if (AcxGhostBlocks()) { OnAttackDone(); return; }   // Project ACX: ghosts don't fight
             //log.Info($"-");
 
             if (CombatMode != CombatMode.Missile)
@@ -272,8 +273,13 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 if (CombatMode == CombatMode.Missile)
+                {
                     EnqueueBroadcast(new GameMessageParentEvent(this, ammo, ACE.Entity.Enum.ParentLocation.RightHand, ACE.Entity.Enum.Placement.RightHandCombat));
-            }); 
+
+                    if (ammo == weapon)
+                        ammo.BroadcastAcxEffects(this);   // Project ACX: a thrown weapon's effects went when it was hidden at the throw
+                }
+            });
 
             actionChain.AddDelaySeconds(linkTime);
 

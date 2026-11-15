@@ -72,7 +72,10 @@ namespace ACE.Server.WorldObjects
                 if (!corpse.InventoryLoaded)
                     return;
 
-                if (corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime)
+                if (corpse.AcxHeldByVitae())   // Project ACX: kept while its owner has vitae, then a headstone
+                    return;
+
+                if (corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime && !corpse.AcxHoldsGhost)   // Project ACX: kept while its owner waits as a ghost
                 {
                     TimeToRot = Corpse.EmptyDecayTime;
                     if (Level.HasValue && PropertyManager.GetBool("corpse_decay_tick_logging").Item)

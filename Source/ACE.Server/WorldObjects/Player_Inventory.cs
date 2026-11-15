@@ -894,7 +894,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (container is Hook hook)
+            if (container is Hook hook && hook.House != null)   // Project ACX: Haven vault hooks have no house limits
             {
                 if (PropertyManager.GetBool("house_hook_limit").Item)
                 {
@@ -977,6 +977,9 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionPutItemInContainer({itemGuid:X8}, {containerGuid:X8}, {placement})");
 
+            if (AcxMarks.TryTakeFromCorpse(this, itemGuid))   // Project ACX: one ACX Mark each from an elite's corpse
+                return;
+
             if (!HandleActionPutItemInContainer_Verify(itemGuid, containerGuid, placement,
                 out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped))
             {
@@ -985,6 +988,7 @@ namespace ACE.Server.WorldObjects
 
             if ((itemRootOwner == this && containerRootOwner != this) || (itemRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
+                if (AcxGhostBlocksItem(itemGuid)) return;   // Project ACX: ghosts only move and talk
                 if (itemRootOwner is Vendor)
                 {
                     Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.NotAllTheItemsAreAvailable));
@@ -1103,11 +1107,11 @@ namespace ACE.Server.WorldObjects
 
                             if (PropertyManager.GetBool("house_hook_limit").Item)
                             {
-                                if (container is Hook toHook && toHook.House.HouseMaxHooksUsable != -1 && toHook.House.HouseCurrentHooksUsable <= 0)
+                                if (container is Hook toHook && toHook.House != null && toHook.House.HouseMaxHooksUsable != -1 && toHook.House.HouseCurrentHooksUsable <= 0)   // Project ACX: vault hooks have no house
                                 {
                                     SendWeenieError(WeenieError.YouAreNowUsingMaxHooks);
                                 }
-                                else if (itemRootOwner is Hook fromHook && fromHook.House.HouseMaxHooksUsable != -1 && fromHook.House.HouseCurrentHooksUsable == 1)
+                                else if (itemRootOwner is Hook fromHook && fromHook.House != null && fromHook.House.HouseMaxHooksUsable != -1 && fromHook.House.HouseCurrentHooksUsable == 1)
                                 {
                                     SendWeenieError(WeenieError.YouAreNoLongerUsingMaxHooks);
                                 }
@@ -1115,7 +1119,7 @@ namespace ACE.Server.WorldObjects
 
                             if (PropertyManager.GetBool("house_hookgroup_limit").Item)
                             {
-                                if (container is Hook toHook)
+                                if (container is Hook toHook && toHook.House != null)   // Project ACX: vault hooks have no house
                                 {
                                     var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
                                     var houseHookGroupMax = toHook.House.GetHookGroupMaxCount(itemHookGroup);
@@ -1124,7 +1128,7 @@ namespace ACE.Server.WorldObjects
                                     if (houseHookGroupMax != -1 && houseHookGroupCurrent >= houseHookGroupMax)
                                         SendWeenieErrorWithString(WeenieErrorWithString.MaxNumberOf_HookedUntilOneIsRemoved, itemHookGroup.ToSentence());
                                 }
-                                else if (itemRootOwner is Hook fromHook)
+                                else if (itemRootOwner is Hook fromHook && fromHook.House != null)
                                 {
                                     var itemHookGroup = item.HookGroup ?? HookGroupType.Undef;
                                     var houseHookGroupMax = fromHook.House.GetHookGroupMaxCount(itemHookGroup);
@@ -1251,7 +1255,9 @@ namespace ACE.Server.WorldObjects
                 var itemFoundOnMyCorpse = itemFoundOnCorpse && (itemRootOwner.VictimId == Guid.Full);
                 if (item.GeneratorId != null || (itemFoundOnCorpse && !itemFoundOnMyCorpse)) // item is controlled by a generator or is on a corpse that is not my own
                 {
-                    if (QuestManager.CanSolve(item.Quest))
+                    if (AcxUnlimitedRespec(item.Quest))   // Project ACX: respec gems have no timer at low level
+                        questSolve = false;
+                    else if (QuestManager.CanSolve(item.Quest))
                     {
                         questSolve = true;
                     }
@@ -1267,6 +1273,13 @@ namespace ACE.Server.WorldObjects
 
         private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
+            if (!container.AcxAccepts(item))   // Project ACX: pouches only take their own kind
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {container.Name} only holds {container.AcxPouchContents}."));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
+                return false;
+            }
+
             //Console.WriteLine($"-> DoHandleActionPutItemInContainer({item.Name}, {itemRootOwner?.Name}, {itemWasEquipped}, {container?.Name}, {containerRootOwner?.Name}, {placement})");
 
             Position prevLocation = null;
@@ -1370,6 +1383,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionDropItem(uint itemGuid)
         {
+            if (AcxGhostBlocksItem(itemGuid)) return;   // Project ACX: ghosts only move and talk
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
@@ -1644,7 +1658,10 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation);
+                if (AcxHasIncompatibleOffhand(item, wieldedLocation))   // Project ACX: take a conflicting off-hand off first
+                    AcxWieldAfterOffhand(() => DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation));
+                else
+                    DoHandleActionGetAndWieldItem(item, fromContainer, rootOwner, wasEquipped, wieldedLocation);
             }
         }
 
@@ -2077,7 +2094,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        private WeenieError CheckWieldRequirements(WorldObject item)
+        public WeenieError CheckWieldRequirements(WorldObject item)   // Project ACX: public for RecipeManager's craft warning
         {
             if (!PropertyManager.GetBool("use_wield_requirements").Item)
                 return WeenieError.None;
@@ -2244,6 +2261,9 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.HandleActionStackableSplitToContainer({stackId:X8}, {containerId:X8}, {placementPosition}, {amount})");
 
+            if (AcxMarks.TryTakeFromCorpse(this, stackId))   // Project ACX: one ACX Mark each from an elite's corpse
+                return;
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
@@ -2254,6 +2274,13 @@ namespace ACE.Server.WorldObjects
 
             var stack = FindObject(new ObjectGuid(stackId), SearchLocations.LocationsICanMove, out var stackFoundInContainer, out var stackRootOwner, out _);
             var container = FindObject(new ObjectGuid(containerId), SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
+
+            if (stack != null && container != null && !container.AcxAccepts(stack))   // Project ACX: pouches only take their own kind
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {container.Name} only holds {container.AcxPouchContents}."));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
+                return;
+            }
 
             if (stack == null)
             {
@@ -2476,6 +2503,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionStackableSplitTo3D(uint stackId, int amount)
         {
+            if (AcxGhostBlocksItem(stackId)) return;   // Project ACX: ghosts only move and talk
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, stackId, amount);
@@ -2859,6 +2887,9 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"HandleActionStackableMerge({mergeFromGuid:X8}, {mergeToGuid:X8}, {amount})");
 
+            if (AcxMarks.TryTakeFromCorpse(this, mergeFromGuid))   // Project ACX: one ACX Mark each from an elite's corpse
+                return;
+
             if (amount <= 0)
             {
                 log.WarnFormat("Player 0x{0}:{1} tried to merge item with invalid amount ({3}) 0x{2:X8}.", Guid.Full, Name, mergeFromGuid, amount);
@@ -3198,6 +3229,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
+            if (AcxGhostBlocksItem(itemGuid)) return;   // Project ACX: ghosts only move and talk
             if (IsBusy || Teleporting || suicideInProgress)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
@@ -3453,7 +3485,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
                         target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.ReceiveItem));
 
-                        target.EmoteManager.ExecuteEmoteSet(emoteResult, this);
+                        target.EmoteManager.ExecuteEmoteSet(emoteResult, this, false, AcxCampManager.OnTurnIn(this, itemToGive, target));   // Project ACX: T.A.R. turn-in camp scales the rewards
 
                         itemToGive.Destroy();
                     }

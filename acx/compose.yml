@@ -33,9 +33,13 @@ services:
     volumes:
       - ${ACX_DATA_DIR}/Config:/ace/Config
       - ./Content:/ace/Content:ro
+      # ACE's placement commands (/createinst, nudge, ...) write a temporary .sql under Content/sql before loading it into
+      # the world DB; this gives them a writable folder there while Content itself stays read-only (JJ 2026-11-14)
+      - ${ACX_DATA_DIR}/content-sql:/ace/Content/sql
       - ${ACX_DAT_DIR}:/ace/Dats:ro
       - ${ACX_DATA_DIR}/Logs:/ace/Logs
       - ${ACX_DATA_DIR}/Mods:/ace/Mods
+      - ${ACX_DATA_DIR}/Pathfinding:/ace/Pathfinding   # navmeshes (/acxmeshbuild) and path test logs
     ports:
       - "${ACX_GAME_PORT}-${ACX_GAME_PORT_2}:9000-9001/udp"
     stdin_open: true

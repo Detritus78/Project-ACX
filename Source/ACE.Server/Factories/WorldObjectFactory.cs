@@ -365,6 +365,8 @@ namespace ACE.Server.Factories
 
             LootGenerationFactory.ApplyAcxArcaneLore(worldObject); // Project ACX
 
+            Managers.AcxAtlans.OnCreate(worldObject);   // Project ACX: a newly forged Atlan gets its flavor
+
             return worldObject;
         }
 

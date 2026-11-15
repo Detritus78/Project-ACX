@@ -224,5 +224,9 @@ namespace ACE.Entity.Enum.Properties
 
         // Project ACX: 30000+ is reserved for ACX properties
         RolledSpellcraftMultiplier     = 30001,
+        AcxVitaeDecayTimestamp         = 30002,
+        AcxLastHeadstone               = 30003,
+        AcxAttacksCauseBleedChance     = 30004,
+        AcxPortalTriggerRadius         = 30005,
     }
 }

@@ -45,6 +45,9 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Its lifespan finished, your {expireItem.Name} crumbles to dust.", ChatMessageType.Broadcast));
             }
 
+            if (IsAcxElite)
+                AcxEliteHeartbeat();   // Project ACX: elite mods
+
             base.Heartbeat(currentUnixTime);
         }
     }

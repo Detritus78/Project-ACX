@@ -334,6 +334,15 @@ namespace ACE.Server.WorldObjects
         public override void ActOnUse(WorldObject worldObject)
         {
             // handled in base.OnActivate -> EmoteManager.OnUse()
+
+            if (worldObject is Player player && ACE.Server.Managers.AcxJobBoard.IsJobObject(this))   // Project ACX: town Job Runner
+                ACE.Server.Managers.AcxJobBoard.OnRunnerUse(this, player);
+
+            if (worldObject is Player explorer && ACE.Server.Managers.AcxExploration.IsMarker(this))   // Project ACX: dungeon exploration marker
+                ACE.Server.Managers.AcxExploration.OnMarkerUse(this, explorer);
+
+            if (worldObject is Player listener && Name == "Town Crier")   // Project ACX: exploration contracts, handed out by talking
+                ACE.Server.Managers.AcxContracts.OnCrierUse(this, listener);
         }
 
         public override void OnCollideObject(WorldObject target)
