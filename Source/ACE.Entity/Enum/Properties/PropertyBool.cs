@@ -197,5 +197,6 @@ namespace ACE.Entity.Enum.Properties
         AcxSalvageAvoidInscribed         = 30011,
         AcxSalvageWhitelist              = 30012,
         AcxPracticeTarget                = 30013,
+        AcxConcordiaRecall               = 30014,
     }
 }

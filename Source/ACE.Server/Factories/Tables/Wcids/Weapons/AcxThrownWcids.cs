@@ -13,15 +13,27 @@ namespace ACE.Server.Factories.Tables.Wcids
     /// Project ACX: Eternal thrown weapons (acx/Content/thrown/10-eternal-thrown.sql; JJ 2026-11-14: "I want to make
     /// thrown weapon appealing more so then the others since nobody has played it since it was made"). One unlimited-use
     /// weapon per retail thrown family, plain or acid/fire/frost/electric, that never runs out and leaves the off hand
-    /// free for a shield. They roll like atlatls (the non-elemental atlatl script: damage multiplier and wield
-    /// requirement), then their multiplier is scaled by tier to JJ's band: 85% of atlatls through tier 6, staying under
-    /// one-handed melee, then a little over one-handed melee at tiers 7 and 8 (JJ: "sword trumps through all levels up
-    /// until T7 we can let thrown beat out sword but lets close the gap"; then, as needing no ammo or Fletching is worth
-    /// something, the bottom of that band: "Lets go with A"). Benched with /acxbench thrownloot, without buffs.
-    /// The multiplier then goes into the weapon's own damage, and its damage range rolls too, like a melee weapon's (JJ
-    /// 2026-11-15: "its the base damage that should reflect the differences", "it should have variations just like melee
-    /// weapons"): the examine window shows each drop's damage, every throw hits in that range, and Blood Drinker adds
-    /// the same flat amount as on a sword (on a missile weapon's multiplier it was multiplied, about 7x at tier 8).
+    /// free for a shield.
+    /// A thrown weapon is a launcher and its own ammunition in one (JJ 2026-11-15: "it is ammo. Just eternal ammo", "it
+    /// could be a launcher and its own ammo", "how can we get a modifier on our eternal ammo so that it behaves and is
+    /// treated similar to bows for damage ... If we do the modifier and it looks just like a bow it makes more sense"):
+    ///   its Damage and damage range are the ammunition's part, what an atlatl gets from its dart: the tier's dart damage
+    ///   plus, from tier 5, the elemental bonus the atlatl script rolls, with a damage range rolled per drop;
+    ///   its DamageMod is the launcher's part: rolled by the atlatl script as an atlatl's is (+70% to +160%), and raised
+    ///   by Mahogany as a bow's is (RecipeManager_New).
+    /// A hit is (own damage + Blood Drinker and the like) x DamageMod (BaseDamageMod; the projectile carries the weapon's
+    /// own damage: CarryRoll), an atlatl's with that dart, so buffs and tinkering move both alike and a thrown weapon
+    /// sits in JJ's band by its slower throw alone: about 85% of an atlatl ("Lets go with A"), which at tiers 7 and 8 is
+    /// a little over one-handed melee ("sword trumps through all levels up until T7 we can let thrown beat out sword").
+    /// Benched with /acxgear class (real monsters, buffed, untinked and tinked); OwnDamageScale tunes it by tier.
+    /// The examine window shows both numbers (JJ: no "invisible hidden numbers"): the appraisal, and only the appraisal,
+    /// carries an ammunition type for it (AppraisalAmmoType, AppraiseInfo), so AC:Unreal prints a launcher's lines
+    /// ("Damage Bonus: 25 - 33", "Damage Modifier: +150%."), and a usage line says it for any client (DescribeDamage).
+    /// The weapon's public description has no ammunition type, so it still takes a shield and no client or combat macro
+    /// asks it for ammunition.
+    /// Before: the multiplier was scaled to the band on a base of 10 (up to x13 at tier 8, and Blood Drinker with it),
+    /// then folded into Damage (2026-11-15 morning: "its the base damage that should reflect the differences"), which
+    /// left buffs and tinkering far behind the launchers' (48-66% of an atlatl on /acxgear class).
     /// Like atlatls: plain only through tier 4, mixed at tier 5, elemental beside the physical ones from tier 6.
     /// </summary>
     public static class AcxThrownWcids
@@ -80,14 +92,12 @@ namespace ACE.Server.Factories.Tables.Wcids
             T6_T8_Chances,
         };
 
-        /// <summary>
-        /// The atlatl script's damage multiplier times this, by tier (calibrated with /acxbench thrownloot against the
-        /// atlatl and one-handed melee medians). Benched without Blood Drinker or Swift Killer on any class (JJ
-        /// 2026-11-15: "blood drinker is only applied if a weapon rolls with it ... Or the player cast's it"): 85% of the
-        /// atlatl median at tiers 1-6, 104% / 106% of the one-handed melee median at tiers 7 / 8, where the buffed
-        /// calibration of 2026-11-15 00:13 had put them
-        /// </summary>
-        private static readonly double[] DamageModScale = { 1.201, 1.201, 1.805, 1.791, 2.956, 3.239, 4.830, 5.343 };
+        // the tier's atlatl dart, the ammunition a thrown weapon carries built in: Atlatl Dart 12, Greater 18, Prismatic 28,
+        // Deadly Prismatic 52 (the darts /acxbench and /acxgear give atlatls by tier)
+        private static readonly int[] DartDamage = { 12, 12, 18, 18, 28, 28, 52, 52 };
+
+        // calibration of the weapon's own damage by tier (1 = the dart's), against the atlatl of the tier on /acxgear class
+        private static readonly double[] OwnDamageScale = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
 
         public static WeenieClassName Roll(int tier)
         {
@@ -115,17 +125,15 @@ namespace ACE.Server.Factories.Tables.Wcids
             return netherWcid != 0;
         }
 
-        // retail quality for tier 5 and up: the elemental atlatl script's ElementalDamageBonus (1-4 at tier 5 up to 8-22
-        // at tier 8) is flat damage on the dart, so on a thrown weapon (base 8-11) it would swing damage four times as
-        // much; it becomes a multiplier with the effect it has on that tier's atlatl dart instead (Atlatl Dart 12,
-        // Greater 18, Prismatic 28, Deadly Prismatic 52), around the tier's mean bonus
-        private static readonly int[] DartDamage = { 12, 12, 18, 18, 28, 28, 52, 52 };
-        private static readonly double[] MeanBonus = { 0, 0, 0, 0, 2.35, 5.20, 13.10, 17.03 };
-
-        public static double QualityFromBonus(int tier, int elementalDamageBonus)
+        /// <summary>
+        /// A drop's own damage: the tier's dart plus the elemental bonus the atlatl script rolled (tier 5 up: 1-4 at tier
+        /// 5 to 8-22 at tier 8; on an atlatl it is flat damage on a dart of the launcher's type, and a thrown weapon is
+        /// always its own type), with tiers 3 and 4's quality roll
+        /// </summary>
+        public static int RollOwnDamage(int tier, int? elementalDamageBonus)
         {
             var t = System.Math.Clamp(tier, 1, 8) - 1;
-            return (DartDamage[t] + elementalDamageBonus) / (DartDamage[t] + MeanBonus[t]);
+            return System.Math.Max(1, (int)System.Math.Round((DartDamage[t] + (elementalDamageBonus ?? 0)) * OwnDamageScale[t] * RollQuality(tier)));
         }
 
         public static bool IsEternalThrown(uint wcid) => TryGetValue((WeenieClassName)wcid, out _);
@@ -155,8 +163,6 @@ namespace ACE.Server.Factories.Tables.Wcids
             return version != 0;
         }
 
-        public static double GetDamageModScale(int tier) => DamageModScale[System.Math.Clamp(tier, 1, 8) - 1];
-
         /// <summary>
         /// Tiers 3 and 4 get a quality roll of their own: the atlatl script spreads them only about 7%, so a pack of
         /// djarids would read alike (JJ: "I shouldnt have 5 in my pack that say the same thing"); averages 1
@@ -164,7 +170,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static double RollQuality(int tier) => tier == 3 || tier == 4 ? ThreadSafeRandom.Next(0.92f, 1.08f) : 1.0;
 
         // the damage range, as melee loot rolls it (a sword's 0.47-0.62 around 0.53, 10/20/40/20/10) around the retail
-        // thrown weapons' 0.25; averages 0.25, so the benched damage holds
+        // thrown weapons' 0.25, the darts' range too (0.24-0.30); averages 0.25
         private static readonly ChanceTable<float> VarianceChances = new ChanceTable<float>()
         {
             (0.19f, 0.10f),
@@ -177,8 +183,27 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static float RollVariance() => VarianceChances.Roll();
 
         /// <summary>
+        /// The ammunition type an Eternal thrown weapon reports in its appraisal and nowhere else (AppraiseInfo): the
+        /// examine window prints a damage multiplier only for a weapon that takes ammunition, and this is none of the
+        /// retail kinds (AmmoType), so it prints a launcher's lines without "Uses arrows as ammunition."
+        /// </summary>
+        public const int AppraisalAmmoType = 0x200;
+
+        /// <summary>
+        /// The examine window's usage line for an Eternal thrown weapon: its damage type, which a launcher's lines leave
+        /// out, and its multiplier, for a client that prints none for a weapon without separate ammunition
+        /// </summary>
+        public static string DescribeDamage(WorldObject weapon, double damageMod)
+        {
+            var type = ACE.Entity.Enum.DamageTypeExtensions.GetName(weapon.W_DamageType);
+            var percent = (int)System.Math.Round(System.Math.Abs(damageMod - 1.0) * 100.0);
+            return $"Thrown: its own ammunition. {(type != null ? type + " damage" : "Its damage")}, multiplied by its Damage Modifier ({(damageMod < 1.0 ? "-" : "+")}{percent}%).";
+        }
+
+        /// <summary>
         /// A thrown weapon's projectile is made new from its weenie (Creature.LaunchProjectile); an Eternal thrown one
-        /// takes the damage and damage range its weapon rolled as loot, so every throw hits in the range it shows
+        /// takes the damage and damage range its weapon rolled as loot (its ammunition's part; the multiplier is read from
+        /// the wielded weapon), so every throw hits in the range it shows
         /// </summary>
         public static void CarryRoll(WorldObject weapon, WorldObject projectile)
         {

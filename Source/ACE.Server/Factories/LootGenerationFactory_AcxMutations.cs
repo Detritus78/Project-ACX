@@ -71,12 +71,13 @@ namespace ACE.Server.Factories
                     if (wo.IsCaster)
                     {
                         wo.ResistanceModifierType = AcxCleaveElement(wo);
-                        wo.ResistanceModifier = 0.6f;
+                        wo.ResistanceModifier = 0.3f;   // x1.3, under retail quest weapons' cleaving (1.0 = x2.0; JJ 2026-11-15: quest
+                                                        // weapons better than loot, and no one-hitting; ClassicACE's 0.6)
                         tags.Add(AcxElementTag(wo.ResistanceModifierType.Value));
                     }
                     else
                     {
-                        wo.IgnoreArmor = 0.625f;   // about -75 armor against 200 armor
+                        wo.IgnoreArmor = 0.625f;   // armor x0.625, about -75 armor against 200 armor (a value under 1 is read as is: WorldObject.GetArmorCleavingMod)
                         tags.Add("AC");
                     }
                     count++;

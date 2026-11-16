@@ -1,8 +1,8 @@
 -- Project ACX (2026-11-15): vendors sell the Eternal thrown weapons instead of retail's consumable stacks (JJ: "convert
--- the vendor ones to eternal"). Same name, model and base damage as the retail one, but a single weapon that is never
--- used up (10-eternal-thrown.sql, the plain ones); unlike a loot drop it isn't rolled, so it keeps the weenie's base
--- damage 10, a starter weapon. Only shop lists (destination_Type 4) change: monsters and NPCs that wield retail thrown
--- stacks (destination_Type 2) keep them, as monsters throw from a stack.
+-- the vendor ones to eternal"). Same name and model as the retail one, but a single weapon that is never used up
+-- (10-eternal-thrown.sql, the plain ones); unlike a loot drop it isn't rolled, so it keeps the weenie's damage 12 and
+-- multiplier +70% (a vendor Atlatl with an Atlatl Dart), a starter weapon. Only shop lists (destination_Type 4) change:
+-- monsters and NPCs that wield retail thrown stacks (destination_Type 2) keep them, as monsters throw from a stack.
 -- Re-runnable: a second run finds no retail ids left in shop lists.
 UPDATE weenie_properties_create_list SET weenie_Class_Id = CASE weenie_Class_Id
         WHEN 316 THEN 900810   -- Throwing Dart

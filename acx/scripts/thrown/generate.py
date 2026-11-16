@@ -12,19 +12,21 @@ import pathlib
 
 OUT = pathlib.Path(__file__).resolve().parents[2] / "Content/thrown/10-eternal-thrown.sql"
 
-# key, name, retail vendor weenie, base damage (10 for all: evened out by bench), TsysMutationData, physical damage type, its
-# icon glow, and the retail elemental weenie whose model and icon each element borrows (acid, fire, frost, electric)
+# key, name, retail vendor weenie, own damage (12 for all, an Atlatl Dart's; loot rolls its own), TsysMutationData, physical
+# damage type, its icon glow, and the retail elemental weenie whose model and icon each element borrows (acid, fire, frost,
+# electric)
 FAMILIES = [
-    ("dart", "Throwing Dart", 316, 10, 0x11080702, 2, 2048, (3786, 3788, 3789, 3787)),
-    ("shouken", "Shouken", 343, 10, 0x11080702, 2, 2048, (3861, 3863, 3864, 3862)),
-    ("dagger", "Throwing Dagger", 315, 10, 0x11080702, 2, 2048, (3782, 3784, 3785, 3783)),
-    ("club", "Throwing Club", 310, 10, 0x1108070C, 4, 512, (3770, 3772, 3773, 3771)),
-    ("djarid", "Djarid", 317, 10, 0x1108070A, 2, 2048, (3790, 3792, 3793, 3791)),
-    ("javelin", "Javelin", 320, 10, 0x1108070A, 2, 2048, (3798, 3800, 3801, 3799)),
-    ("axe", "Throwing Axe", 304, 10, 0x1108070A, 1, 1024, (3758, 3760, 3761, 3759)),
+    ("dart", "Throwing Dart", 316, 12, 0x11080702, 2, 2048, (3786, 3788, 3789, 3787)),
+    ("shouken", "Shouken", 343, 12, 0x11080702, 2, 2048, (3861, 3863, 3864, 3862)),
+    ("dagger", "Throwing Dagger", 315, 12, 0x11080702, 2, 2048, (3782, 3784, 3785, 3783)),
+    ("club", "Throwing Club", 310, 12, 0x1108070C, 4, 512, (3770, 3772, 3773, 3771)),
+    ("djarid", "Djarid", 317, 12, 0x1108070A, 2, 2048, (3790, 3792, 3793, 3791)),
+    ("javelin", "Javelin", 320, 12, 0x1108070A, 2, 2048, (3798, 3800, 3801, 3799)),
+    ("axe", "Throwing Axe", 304, 12, 0x1108070A, 1, 1024, (3758, 3760, 3761, 3759)),
 ]
 ELEMENTS = [("acid", "Acid", 32, 256), ("fire", "Fire", 16, 32), ("frost", "Frost", 8, 128), ("electric", "Electric", 64, 64)]
 FIRST_PLAIN, FIRST_ELEMENTAL, FIRST_NETHER = 900810, 900817, 900845
+DAMAGE_MOD = 1.7   # the unrolled weapon's damage multiplier: a vendor Atlatl's
 
 rows = []   # wcid, source, look, class name, name, damage type, ui effects, damage, tsys
 for i, (key, name, src, dmg, tsys, dtype, ui, looks) in enumerate(FAMILIES):
@@ -44,16 +46,19 @@ OUT.write_text(f"""-- Project ACX (2026-11-14): Eternal thrown weapons (JJ: "I w
 -- ammo, and a thrown weapon leaves the off hand free for a shield (ACE equip rules; launchers don't). Missile Weapons
 -- skill, the family's speed; inscribable like retail's Vortex Thorn. Named like the retail weapon ("Javelin", "Fire
 -- Javelin"): JJ first had "Eternal" in front, then: "Lets also remove the eternal from the names. Since they are all
--- eternal now". Base damage 10 for every family (retail: Dart and Shouken 6, Dagger 8, Club, Djarid and Javelin 10,
--- Axe 12): benched without buffs (2026-11-15) that puts every family within about 3% of the others; they differ by speed.
+-- eternal now".
+-- Damage: a thrown weapon is a launcher and its own ammunition (JJ 2026-11-15: "it is ammo. Just eternal ammo"; "how can
+-- we get a modifier on our eternal ammo so that it behaves and is treated similar to bows for damage"). Its Damage is the
+-- ammunition's part and its DamageMod the launcher's: a hit is (Damage + Blood Drinker and the like) x DamageMod, an
+-- atlatl's with its dart (Factories/Tables/Wcids/Weapons/AcxThrownWcids.cs). The weenie, which is what vendors sell,
+-- is a vendor Atlatl with an Atlatl Dart: Damage 12 for every family (retail: Dart and Shouken 6, Dagger 8, Club,
+-- Djarid and Javelin 10, Axe 12; families differ by speed), DamageMod {DAMAGE_MOD} (+{round((DAMAGE_MOD - 1) * 100)}%). Loot rolls both (6% of weapon drops: the
+-- multiplier like an atlatl's, the damage the tier's dart with a range of its own; LootGenerationFactory_Missile.cs), and
+-- Mahogany raises the multiplier (RecipeManager_New.cs). The examine window shows both (AppraiseInfo.cs).
 -- Looks (JJ: "the items labled like fire/acid/frost they don't have their colors/animations"): the elemental ones take
 -- the model and icon of retail's old elemental thrown loot (Flaming Javelin, Frost Throwing Axe, Acid Shouken, ...);
--- the nether ones (JJ: "do they come in nether also?") look plain and get ACX's nether aura from their damage type.
--- They drop as 6% of weapon drops and roll like atlatls, damage multiplier scaled by tier to JJ's band, then folded
--- into the weapon's own damage with a damage range rolled like melee's, so the examine shows each drop's damage and
--- every throw hits in it (JJ 2026-11-15: "it should have variations just like melee weapons";
--- Factories/Tables/Wcids/Weapons/AcxThrownWcids.cs, LootGenerationFactory_Missile.cs; /acxbench thrownloot); a drop
--- turns nether like any elemental weapon (AcxNetherWeaponWcids).
+-- the nether ones (JJ: "do they come in nether also?") look plain and get ACX's nether aura from their damage type; a
+-- drop turns nether like any elemental weapon (AcxNetherWeaponWcids).
 --   {FIRST_PLAIN}-{FIRST_ELEMENTAL - 1} plain; {FIRST_ELEMENTAL}-{FIRST_NETHER - 1} each family's acid, fire, frost and electric version (family by family);
 --   {FIRST_NETHER}-{last} each family's nether version.
 -- Generated by acx/scripts/thrown/generate.py. Re-runnable.
@@ -63,9 +68,9 @@ CREATE TEMPORARY TABLE acx_eternal (class_Id INT UNSIGNED PRIMARY KEY, source IN
 INSERT INTO acx_eternal VALUES
 {values}
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT e.class_Id, e.class_Name, w.type, NOW() FROM acx_eternal e JOIN weenie w ON w.class_Id = e.source;
-INSERT INTO weenie_properties_int (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_int p ON p.object_Id = e.source WHERE p.type NOT IN (11, 12, 18, 19, 44, 45, 48, 169, 353);
+INSERT INTO weenie_properties_int (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_int p ON p.object_Id = e.source WHERE p.type NOT IN (11, 12, 15, 18, 19, 44, 45, 48, 169, 353);   -- not 15 StackUnitValue: a stackable's Value comes from it (Stackable.cs)
 INSERT INTO weenie_properties_int64 (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_int64 p ON p.object_Id = e.source;
-INSERT INTO weenie_properties_float (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_float p ON p.object_Id = e.source WHERE p.type <> 26;
+INSERT INTO weenie_properties_float (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_float p ON p.object_Id = e.source WHERE p.type NOT IN (26, 63);
 INSERT INTO weenie_properties_bool (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_bool p ON p.object_Id = e.source WHERE p.type NOT IN (22, 63);
 INSERT INTO weenie_properties_string (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_string p ON p.object_Id = e.source WHERE p.type NOT IN (1, 20);   -- not its name or plural
 INSERT INTO weenie_properties_d_i_d (object_Id, type, value) SELECT e.class_Id, p.type, p.value FROM acx_eternal e JOIN weenie_properties_d_i_d p ON p.object_Id = e.source WHERE p.type NOT IN (1, 8);
@@ -79,7 +84,8 @@ INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 12, 
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 19, 300 FROM acx_eternal;              -- Value: a vendor's eternal starter weapon costs a few hundred
                                                                                                                  -- pyreals, not retail's price for one dart (JJ 2026-11-15); loot builds its value on it
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 18, ui_effects FROM acx_eternal;      -- UiEffects: the icon glow of its damage type, like atlatls (nether: the nether border)
-INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 44, damage FROM acx_eternal;          -- Damage
+INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 44, damage FROM acx_eternal;          -- Damage: its own, the ammunition's part
+INSERT INTO weenie_properties_float (object_Id, type, value) SELECT class_Id, 63, {DAMAGE_MOD} FROM acx_eternal;          -- DamageMod: the launcher's part
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 45, damage_type FROM acx_eternal;     -- DamageType
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 48, 47 FROM acx_eternal;              -- WeaponSkill: Missile Weapons (retail thrown still names the retired Thrown Weapon)
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 353, 10 FROM acx_eternal;             -- WeaponType: Thrown

@@ -650,9 +650,7 @@ namespace ACE.Server.WorldObjects
             var shield = GetEquippedShield();
             if (shield == null) return 1.0f;
 
-            // phantom weapons ignore all armor and shields
-            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                return 1.0f;
+            // phantom weapons ignore all armor and shields (Project ACX: 85% of them, below)
 
             // is monster in front of player,
             // within shield effectiveness area?
@@ -708,6 +706,8 @@ namespace ACE.Server.WorldObjects
             effectiveLevel = Math.Min(effectiveLevel, shieldCap);
 
             var ignoreShieldMod = attacker.GetIgnoreShieldMod(weapon);
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
+                ignoreShieldMod = Math.Min(ignoreShieldMod, AcxIgnoreAllArmorMod);
             //Console.WriteLine($"IgnoreShieldMod: {ignoreShieldMod}");
 
             effectiveLevel *= ignoreShieldMod;

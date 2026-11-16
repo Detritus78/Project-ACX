@@ -912,6 +912,10 @@ namespace ACE.Server.Managers
 
             foreach (var requirement in intReqs)
             {
+                // Project ACX: an untinkerable quest or named weapon takes one imbue (WorldObject_AcxQuestWeapon)
+                if (reqType == RequirementType.Target && requirement.Stat == (int)PropertyInt.ItemWorkmanship && recipe.IsImbuing() && obj.IsAcxQuestWeapon)
+                    continue;
+
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
 
@@ -1090,6 +1094,11 @@ namespace ACE.Server.Managers
             var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) < destroyTargetChance;
             var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) < destroySourceChance;
 
+            // Project ACX: a failed imbue on a quest or named weapon uses up the gem but keeps the weapon (JJ 2026-11-15, on
+            // destroying it: "We do provide no risk avenues but a noob won't have access to them"), unless the setting is on
+            if (!success && destroyTarget && recipe.IsImbuing() && target.IsAcxQuestWeapon && !PropertyManager.GetBool("acx_quest_imbue_failure_destroys").Item)
+                destroyTarget = false;
+
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
@@ -1136,12 +1145,12 @@ namespace ACE.Server.Managers
                 log.Info($"[CRAFTING] {player.Name} used {source.NameWithMaterial} on {target.NameWithMaterial} {(success ? "" : "un")}successfully. {(destroySource ? $"| {source.NameWithMaterial} was destroyed " : "")}{(destroyTarget ? $"| {target.NameWithMaterial} was destroyed " : "")}| {message}");
             }
             else
-                BroadcastTinkering(player, source, target, successChance, success);
+                BroadcastTinkering(player, source, target, successChance, success, destroyTarget);
 
             return modified;
         }
 
-        public static void BroadcastTinkering(Player player, WorldObject tool, WorldObject target, double chance, bool success)
+        public static void BroadcastTinkering(Player player, WorldObject tool, WorldObject target, double chance, bool success, bool targetDestroyed = true)
         {
             // retail AC had some inconsistency with respect to the messages broadcast by tinkering.
             //
@@ -1157,7 +1166,7 @@ namespace ACE.Server.Managers
             // 
             var sourceName = Regex.Replace(tool.NameWithMaterial, @" \(\d+\)$", "");
 
-            var msg = $"{player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}{((target.Inscription != null && target.ScribeName != null) ? $" inscribed by {target.ScribeName}" : "")}.{(!success ? " The target is destroyed." : "")}";
+            var msg = $"{player.Name} {(success ? "successfully applies" : "fails to apply")} the {sourceName} (workmanship {(tool.Workmanship ?? 0):#.00}) to the {target.NameWithMaterial}{((target.Inscription != null && target.ScribeName != null) ? $" inscribed by {target.ScribeName}" : "")}.{(!success && targetDestroyed ? " The target is destroyed." : "")}";
 
             // send local broadcast
             player.EnqueueBroadcast(new GameMessageSystemChat(msg, ChatMessageType.Craft), WorldObject.LocalBroadcastRange, ChatMessageType.Craft);

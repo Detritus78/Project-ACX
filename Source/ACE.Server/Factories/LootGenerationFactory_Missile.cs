@@ -43,20 +43,14 @@ namespace ACE.Server.Factories
 
             mutationFilter.TryMutate(wo, profile.Tier);
 
-            // Project ACX: the rolled elemental bonus becomes part of the multiplier (thrown weapons have no launcher to
-            // add it), then the multiplier is scaled to the thrown band, and it all goes into the weapon's own damage with
-            // a damage range of its own, like a melee weapon's (AcxThrownWcids; the projectile carries both: CarryRoll)
+            // Project ACX: an Eternal thrown weapon is a launcher and its own ammunition (AcxThrownWcids). It keeps the
+            // multiplier the script rolled, as an atlatl does; its own damage is the tier's dart with the rolled elemental
+            // bonus (on an atlatl, flat damage on its dart), with a damage range of its own (the projectile carries both:
+            // CarryRoll)
             if (isEternalThrown && wo.DamageMod != null)
             {
-                if (wo.ElementalDamageBonus != null)
-                {
-                    wo.DamageMod *= AcxThrownWcids.QualityFromBonus(profile.Tier, wo.ElementalDamageBonus.Value);
-                    wo.ElementalDamageBonus = null;
-                }
-                wo.DamageMod *= AcxThrownWcids.GetDamageModScale(profile.Tier) * AcxThrownWcids.RollQuality(profile.Tier);
-
-                wo.Damage = (int)System.Math.Round((wo.Damage ?? 0) * wo.DamageMod.Value);
-                wo.DamageMod = null;
+                wo.Damage = AcxThrownWcids.RollOwnDamage(profile.Tier, wo.ElementalDamageBonus);
+                wo.ElementalDamageBonus = null;
                 wo.DamageVariance = AcxThrownWcids.RollVariance();
             }
 

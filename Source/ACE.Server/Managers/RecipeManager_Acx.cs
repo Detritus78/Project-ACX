@@ -56,10 +56,15 @@ namespace ACE.Server.Managers
 
         public static Recipe GetAcxRecipe(WorldObject source, WorldObject target)
         {
-            if (source.ItemType != ItemType.TinkeringMaterial || source.MaterialType == null || target.Workmanship == null)
+            if (source.ItemType != ItemType.TinkeringMaterial || source.MaterialType == null)
                 return null;
 
             if (!acxTinkers.TryGetValue(source.MaterialType.Value, out var entry))
+                return null;
+
+            // workmanship, except Tiger Eye (an imbue) on an untinkerable quest or named caster, which takes one imbue
+            // (WorldObject_AcxQuestWeapon)
+            if (target.Workmanship == null && !(entry.Tinker == AcxTinker.ElementalRend && target.IsAcxQuestWeapon))
                 return null;
 
             var weapon = target.WeenieType == WeenieType.MeleeWeapon || target.WeenieType == WeenieType.MissileLauncher;
