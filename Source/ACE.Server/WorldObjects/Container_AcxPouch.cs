@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var types = (ItemType)(GetProperty(PropertyInt.AcxPouchItemTypes) ?? 0);
-                return types == ItemType.SpellComponents ? "spell components" : types == ItemType.Gem ? "gems" : types.ToString().ToLower();
+                return types == ItemType.SpellComponents ? "spell components" : types == ItemType.Gem ? "gems" : types == ItemType.TinkeringMaterial ? "salvage" : types.ToString().ToLower();
             }
         }
     }

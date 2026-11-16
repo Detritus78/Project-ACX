@@ -127,6 +127,7 @@ namespace ACE.Server.WorldObjects
 
             if (GetProperty(PropertyString.AcxContractId) != null) { ACE.Server.Managers.AcxContracts.UseGem(this, player); return; }   // Project ACX: contract portal gem
             if (ACE.Server.Managers.AcxSalvageSack.IsSack(this)) { ACE.Server.Managers.AcxSalvageSack.Open(this, player); return; }   // Project ACX: salvage sack
+            if (GetProperty(PropertyBool.AcxConcordiaRecall) ?? false) { player.AcxConcordiaRecall(); return; }   // Project ACX: Eternal Concordia Portal Gem
 
             // trying to use a dispel potion while pk timer is active
             // send error message and cancel - do not consume item

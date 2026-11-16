@@ -41,6 +41,17 @@ namespace ACE.Server.Managers
         private static readonly int[] BloodDrinkerBuff = { 0, 2, 4, 8, 12, 16, 20, 22, 24 };      // Aura of Blood Drinker
         private static readonly int[] SwiftKillerBuff = { 0, 10, 20, 30, 40, 50, 60, 70, 80 };    // Aura of Swift Killer (speed down)
 
+        // a spell of each buff's line (level VI), for its spell category
+        private const uint BloodDrinkerSpell = 1616, SwiftKillerSpell = 1627;
+        private static SpellCategory BuffCategory(uint spellId) => new ACE.Server.Entity.Spell(spellId).Category;
+        private static Dictionary<SpellCategory, PropertyAttribute> attributeSpells;
+        private static Dictionary<SpellCategory, PropertyAttribute> AttributeSpells => attributeSpells ??= new Dictionary<SpellCategory, PropertyAttribute>()
+        {
+            { BuffCategory(1332), PropertyAttribute.Strength },       // Strength Self VI
+            { BuffCategory(1378), PropertyAttribute.Coordination },   // Coordination Self VI
+            { BuffCategory(1402), PropertyAttribute.Quickness },      // Quickness Self VI
+        };
+
         // loot tier a player's weapon comes from at a level (the Foundry level buttons, one per tier)
         private static int TierFor(int level)
         {
@@ -51,7 +62,31 @@ namespace ACE.Server.Managers
             return tier;
         }
 
-        public static string StartXpModel(int fromLevel, int toLevel, int step, Action<string> reply)
+        /// <summary>
+        /// What-if gear on the model's sword (JJ 2026-11-15, an overkill check: "I am trying to avoid a overkill situation
+        /// where someone at thier proper level hunting their proper area is one hitting everything"): a rend or cleave
+        /// value (applied as fixed cleaving of the sword's own element, which the server combines with rending as the
+        /// larger of the two), a slayer against each monster fought, Biting Strike / Crushing Blow, and extra damage
+        /// (Legendary Blood Thirst is +10). Out, beside time to kill: the average hit and hits to kill.
+        /// </summary>
+        public class XpSetup
+        {
+            public double Rend = 1.0, Slayer = 1.0, CritChance, CritMultiplier;
+            public int Damage;
+
+            // a given weapon instead of the loot Long Swords (quest and named weapons: JJ "lets include a atlan type
+            // weapon ... the singularity wepons at different levels of upgrades and finally the end game weapons"), and
+            // the weapon's own spells cast on it as a wielded item's are (cantrips such as Legendary Blood Thirst)
+            public uint Wcid;
+            public bool Spells;
+
+            public string Tag => (Wcid != 0 ? $"-w{Wcid}" : "") + (Spells ? "-spells" : "") + (Rend > 1 ? $"-rend{Rend}" : "") + (Slayer > 1 ? $"-slayer{Slayer}" : "")
+                + (CritChance > 0 ? $"-crit{CritChance}" : "") + (CritMultiplier > 0 ? $"-critx{CritMultiplier}" : "") + (Damage > 0 ? $"-dmg{Damage}" : "");
+        }
+
+        public static string StartXpModel(int fromLevel, int toLevel, int step, Action<string> reply) => StartXpModel(fromLevel, toLevel, step, new XpSetup(), reply);
+
+        public static string StartXpModel(int fromLevel, int toLevel, int step, XpSetup setup, Action<string> reply)
         {
             if (running)
                 return "A bench is already running.";
@@ -61,7 +96,7 @@ namespace ACE.Server.Managers
             {
                 try
                 {
-                    reply(RunXpModel(fromLevel, toLevel, step));
+                    reply(RunXpModel(fromLevel, toLevel, step, setup));
                 }
                 catch (Exception e)
                 {
@@ -85,7 +120,7 @@ namespace ACE.Server.Managers
             public int Spots;
         }
 
-        private static string RunXpModel(int fromLevel, int toLevel, int step)
+        private static string RunXpModel(int fromLevel, int toLevel, int step, XpSetup setup)
         {
             var started = DateTime.Now;
             var monsters = SpawnedMonsters();
@@ -94,7 +129,7 @@ namespace ACE.Server.Managers
             var scale = PropertyManager.GetDouble("acx_bleed_damage_scale").Item;
 
             var sb = new StringBuilder();
-            sb.AppendLine("PlayerLevel,Tier,BloodDrinker,MonsterWcid,Monster,MonsterLevel,Spots,Health,XpPerKill,DPS,SecondsToKill,XpPerFightingHour");
+            sb.AppendLine("PlayerLevel,Tier,BloodDrinker,MonsterWcid,Monster,MonsterLevel,Spots,Health,XpPerKill,DPS,SecondsToKill,XpPerFightingHour,AvgHit,HitsToKill");
             var summary = new StringBuilder();
 
             for (var level = fromLevel; level <= toLevel; level += step)
@@ -104,31 +139,46 @@ namespace ACE.Server.Managers
                 var tier = TierFor(level);
                 var bloodDrinker = BloodDrinkerBuff[buff];
                 var attacker = CreateAttacker(level, new Options { Str = 100 + AttributeBuff[buff], Coord = 100 + AttributeBuff[buff], Quick = 100 + AttributeBuff[buff] });
-                attacker.GetCreatureSkill(Skill.HeavyWeapons).InitLevel = 1000;   // every attack hits; misses are a progression-sheet setting
+                foreach (var skill in new[] { Skill.HeavyWeapons, Skill.LightWeapons, Skill.FinesseWeapons, Skill.TwoHandedCombat })
+                    attacker.GetCreatureSkill(skill).InitLevel = 1000;   // every attack hits; misses are a progression-sheet setting
 
-                // best of 20 loot rolls of the level's Long Sword, in each element
+                // best of 20 loot rolls of the level's Long Sword, in each element (or the given weapon as it comes)
                 var weapons = new List<WorldObject>();
-                foreach (var (wcid, _) in (Factories.Entity.ChanceTable<Factories.Enum.WeenieClassName>)typeof(Factories.Tables.Wcids.HeavyWeaponWcids)
-                    .GetField("LongSwords", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null))
+                var weaponSpells = new Dictionary<WorldObject, List<ACE.Server.Entity.Spell>>();
+                var lootSwords = ((Factories.Entity.ChanceTable<Factories.Enum.WeenieClassName>)typeof(Factories.Tables.Wcids.HeavyWeaponWcids)
+                    .GetField("LongSwords", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null)).Select(e => (uint)e.result);
+                foreach (var wcid in setup.Wcid != 0 ? new[] { setup.Wcid } : lootSwords)
                 {
-                    var weenie = DatabaseManager.World.GetCachedWeenie((uint)wcid);
+                    var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
                     WorldObject best = null;
-                    for (var i = 0; i < 20; i++)
+                    for (var i = 0; i < (setup.Wcid != 0 ? 1 : 20); i++)
                     {
                         var weapon = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(WeaponGuid));
-                        LootGenerationFactory.MutateItem(weapon, new TreasureDeath { Tier = tier, LootQualityMod = 0 }, false);
+                        if (setup.Wcid == 0)
+                            LootGenerationFactory.MutateItem(weapon, new TreasureDeath { Tier = tier, LootQualityMod = 0 }, false);
                         if (best == null || (weapon.Damage ?? 0) * (1 - (weapon.DamageVariance ?? 0) / 2) > (best.Damage ?? 0) * (1 - (best.DamageVariance ?? 0) / 2))
                             best = weapon;
                     }
-                    best.Damage = (best.Damage ?? 0) + bloodDrinker;
+                    best.Damage = (best.Damage ?? 0) + bloodDrinker + setup.Damage;
                     best.WeaponTime = Math.Max(0, (best.WeaponTime ?? 0) - SwiftKillerBuff[buff]);
+                    if (setup.Rend > 1)
+                    {
+                        best.ResistanceModifierType = best.W_DamageType;
+                        best.ResistanceModifier = setup.Rend - 1;
+                    }
+                    if (setup.CritChance > 0)
+                        best.CriticalFrequency = setup.CritChance;
+                    if (setup.CritMultiplier > 0)
+                        best.SetProperty(PropertyFloat.CriticalMultiplier, setup.CritMultiplier);
                     weapons.Add(best);
+                    weaponSpells[best] = setup.Spells ? ResolveWeaponSpells(best, best.Biota.GetKnownSpellsIds(best.BiotaDatabaseLock).Select(id => (uint)id), attacker, buff)
+                        : new List<ACE.Server.Entity.Spell>();
                 }
 
                 // a few levels under the monsters (monster levels bunch up, e.g. at 80, 100, 110, so the window reaches 15% / 8 levels)
                 var low = level + 1;
                 var high = level + Math.Max(8, (int)Math.Ceiling(level * 0.15));
-                var rows = new List<(MonsterInfo Monster, double Health, double Dps, double Xph)>();
+                var rows = new List<(MonsterInfo Monster, double Health, double Dps, double Xph, double Hits)>();
 
                 foreach (var monster in monsters.Where(m => m.Level >= low && m.Level <= high))
                 {
@@ -150,23 +200,39 @@ namespace ACE.Server.Managers
 
                     // the element that works best on this monster
                     var dps = 0.0;
+                    var avgHit = 0.0;
                     foreach (var weapon in weapons)
                     {
+                        if (setup.Slayer > 1)
+                        {
+                            weapon.SlayerCreatureType = creature.CreatureType;
+                            weapon.SlayerDamageBonus = setup.Slayer;
+                        }
                         if (!attacker.TryEquipObject(weapon, weapon.ValidLocations ?? EquipMask.MeleeWeapon))
                             continue;
+                        foreach (var spell in weaponSpells[weapon])
+                        {
+                            // added straight to the target CreateItemSpell picks: its "You cast" line needs a session
+                            var onWeapon = spell.School == MagicSchool.ItemEnchantment && !spell.HasItemCategory && !spell.IsPortalSpell;
+                            (onWeapon ? weapon : attacker).EnchantmentManager.Add(spell, weapon, weapon, true);
+                        }
                         var sums = new Sums();
                         BenchSwings(attacker, weapon, creature, sums, 1.0f, 30, scale);
                         attacker.TryDequipObject(weapon.Guid, out _, out _);
-                        if (sums.Time > 0)
-                            dps = Math.Max(dps, (sums.Direct + sums.Bleed) / sums.Time);
+                        if (sums.Time > 0 && (sums.Direct + sums.Bleed) / sums.Time > dps)
+                        {
+                            dps = (sums.Direct + sums.Bleed) / sums.Time;
+                            avgHit = sums.Swings > 0 ? sums.Direct / sums.Swings : 0;   // per attack, as a player counts hits
+                        }
                     }
                     if (dps <= 0)
                         continue;
 
                     var seconds = health / dps;
                     var xph = monster.Xp / seconds * 3600;
-                    rows.Add((monster, health, dps, xph));
-                    sb.AppendLine(string.Join(",", level, tier, bloodDrinker, monster.Wcid, Csv(monster.Name), monster.Level, monster.Spots, F(health, "0"), monster.Xp, F(dps, "0.#"), F(seconds, "0.#"), F(xph, "0")));
+                    var hits = avgHit > 0 ? health / avgHit : 0;
+                    rows.Add((monster, health, dps, xph, hits));
+                    sb.AppendLine(string.Join(",", level, tier, bloodDrinker, monster.Wcid, Csv(monster.Name), monster.Level, monster.Spots, F(health, "0"), monster.Xp, F(dps, "0.#"), F(seconds, "0.#"), F(xph, "0"), F(avgHit, "0.#"), F(hits, "0.##")));
                 }
 
                 if (rows.Count > 0)
@@ -186,15 +252,52 @@ namespace ACE.Server.Managers
                         }
                         return weighted.Last().Xph;
                     }
-                    summary.AppendLine($"L{level} (T{tier}, buffs {buff}): {rows.Count} monster kinds, XP/fighting hour median {Percentile(0.5):N0}, top quarter {Percentile(0.75):N0}");
+                    // overkill: the spawn-weighted share of monsters that die to one or two average hits
+                    var oneHit = rows.Where(r => r.Hits <= 1).Sum(r => r.Monster.Spots) * 100.0 / total;
+                    var twoHits = rows.Where(r => r.Hits <= 2).Sum(r => r.Monster.Spots) * 100.0 / total;
+                    var byHits = rows.OrderBy(r => r.Hits).ToList();
+                    var medianHits = byHits.First().Hits;
+                    var acc = 0.0;
+                    foreach (var r in byHits)
+                    {
+                        acc += r.Monster.Spots;
+                        if (acc >= total / 2.0) { medianHits = r.Hits; break; }
+                    }
+                    summary.AppendLine($"L{level} (T{tier}, buffs {buff}): {rows.Count} monster kinds, XP/fighting hour median {Percentile(0.5):N0}, top quarter {Percentile(0.75):N0}; hits to kill median {medianHits:0.#}, one hit {oneHit:0}%, two hits {twoHits:0}%");
                 }
             }
 
             var dir = Path.Combine("Logs", "acxbench");
             Directory.CreateDirectory(dir);
-            var file = Path.Combine(dir, $"acxxpmodel-{fromLevel}-{toLevel}-{started:yyyyMMdd-HHmmss}.csv");
+            var file = Path.Combine(dir, $"acxxpmodel-{fromLevel}-{toLevel}{setup.Tag}-{started:yyyyMMdd-HHmmss}.csv");
             File.WriteAllText(file, sb.ToString());
             return $"XP model done in {(DateTime.Now - started).TotalSeconds:0}s: {monsters.Count} spawned monster kinds, written to {file}.\n" + summary.ToString().TrimEnd();
+        }
+
+        /// <summary>
+        /// A wielded weapon's spells, on a weapon that already has the level's buffs: a Blood Drinker, Swift Killer or
+        /// Strength/Coordination/Quickness one shares its category with the buff and only the stronger counts in game, so it
+        /// adds just what it has over the buff (to the weapon or the attacker); the rest (cantrips and the like) come back to
+        /// be cast in the fight loop, after equipping
+        /// </summary>
+        private static List<ACE.Server.Entity.Spell> ResolveWeaponSpells(WorldObject weapon, IEnumerable<uint> spellIds, Player attacker, int buff)
+        {
+            var spells = new List<ACE.Server.Entity.Spell>();
+            foreach (var spellId in spellIds)
+            {
+                var spell = new ACE.Server.Entity.Spell(spellId);
+                if (spell.NotFound)
+                    continue;
+                if (spell.Category == BuffCategory(BloodDrinkerSpell))
+                    weapon.Damage += Math.Max(0, (int)spell.StatModVal - BloodDrinkerBuff[buff]);
+                else if (spell.Category == BuffCategory(SwiftKillerSpell))
+                    weapon.WeaponTime = Math.Max(0, weapon.WeaponTime.Value - Math.Max(0, -(int)spell.StatModVal - SwiftKillerBuff[buff]));
+                else if (AttributeSpells.TryGetValue(spell.Category, out var attribute))
+                    attacker.Attributes[attribute].StartingValue += (uint)Math.Max(0, (int)spell.StatModVal - AttributeBuff[buff]);
+                else
+                    spells.Add(spell);
+            }
+            return spells;
         }
 
         /// <summary>

@@ -774,6 +774,14 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.IgnoreArmor); else SetProperty(PropertyFloat.IgnoreArmor, value.Value); }
         }
 
+        /// <summary>
+        /// Project ACX: what IgnoreAllArmor (the Phantom weapons and Deadly Chorizite ammo) leaves of armor and shields: 15%,
+        /// so it ignores 85% instead of all of it (JJ 2026-11-15: /acxgear showed a Phantom with no tinking matching fully
+        /// tinked loot up to level 200 on targets that aren't debuffed; a 67% ignore left it no better than an untinked
+        /// drop, then "lets to 85% with the biting strike", acx/Content/phantom/10-phantom-biting-strike.sql)
+        /// </summary>
+        public const float AcxIgnoreAllArmorMod = 0.15f;
+
         public float GetArmorCleavingMod(WorldObject weapon)
         {
             // investigate: should this value be on creatures directly?
@@ -787,6 +795,12 @@ namespace ACE.Server.WorldObjects
         {
             if (IgnoreArmor == null)
                 return 1.0f;
+
+            // Project ACX: a value under 1 is the armor multiplier itself, as our loot Armor Cleaving roll sets it (0.625,
+            // LootGenerationFactory_AcxMutations; JJ 2026-11-15 chose a fixed value, under the Rynthid weapons' 50%). Retail
+            // data (1 and up) keeps the spell-level rule below, which ignored the value: an ACX roll got 10% to 50% by its spells.
+            if (IgnoreArmor < 1.0)
+                return (float)IgnoreArmor.Value;
 
             // FIXME: data
             var maxSpellLevel = GetMaxSpellLevel();

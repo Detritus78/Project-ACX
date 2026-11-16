@@ -83,14 +83,81 @@ namespace ACE.Server.Command.Handlers
 
         [CommandHandler("acxxpmodel", AccessLevel.Admin, CommandHandlerFlag.None, 0,
             "XP model: for each character level, fights the monsters that spawn near that level and records XP per hour of fighting. Writes a CSV to Logs/acxbench.",
-            "[from level, default 10] [to level, default 130] [step, default 5]")]
+            "[from level, default 10] [to level, default 130] [step, default 5] [rend=2.5 slayer=1.5 crit=0.15 critx=2 dmg=10 wcid=<weapon> spells=1 (what-if gear: rend or cleave value, slayer vs each monster, Biting Strike, Crushing Blow, extra damage, a given weapon instead of loot Long Swords, its own spells on)]")]
         public static void HandleAcxXpModel(Session session, params string[] parameters)
         {
             var from = parameters.Length > 0 && int.TryParse(parameters[0], out var f) ? Math.Clamp(f, 1, 275) : 10;
             var to = parameters.Length > 1 && int.TryParse(parameters[1], out var t) ? Math.Clamp(t, from, 275) : 130;
             var step = parameters.Length > 2 && int.TryParse(parameters[2], out var s) ? Math.Clamp(s, 1, 50) : 5;
 
-            CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartXpModel(from, to, step, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+            var setup = new AcxBench.XpSetup();
+            foreach (var p in parameters.Where(p => p.Contains('=')))
+            {
+                var kv = p.Split('=', 2);
+                if (!double.TryParse(kv[1], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v))
+                    continue;
+                switch (kv[0].ToLowerInvariant())
+                {
+                    case "rend": setup.Rend = v; break;
+                    case "slayer": setup.Slayer = v; break;
+                    case "crit": setup.CritChance = v; break;
+                    case "critx": setup.CritMultiplier = v; break;
+                    case "dmg": setup.Damage = (int)v; break;
+                    case "wcid": setup.Wcid = (uint)v; break;
+                    case "spells": setup.Spells = v != 0; break;
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartXpModel(from, to, step, setup, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+        }
+
+        [CommandHandler("acxxptables", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "Writes the XP tables (character level, attribute, trained and specialized skill ranks) to Logs/acxbench/acxxptables.csv, for level estimates.")]
+        public static void HandleAcxXpTables(Session session, params string[] parameters)
+        {
+            var table = ACE.DatLoader.DatManager.PortalDat.XpTable;
+            var rows = new[] { table.CharacterLevelXPList.Count, table.AttributeXpList.Count, table.TrainedSkillXpList.Count, table.SpecializedSkillXpList.Count }.Max();
+            var sb = new System.Text.StringBuilder("Index,CharacterLevelXP,AttributeXP,TrainedSkillXP,SpecializedSkillXP\n");
+            string At<T>(System.Collections.Generic.List<T> list, int i) => i < list.Count ? list[i].ToString() : "";
+            for (var i = 0; i < rows; i++)
+                sb.AppendLine(string.Join(",", i, At(table.CharacterLevelXPList, i), At(table.AttributeXpList, i), At(table.TrainedSkillXpList, i), At(table.SpecializedSkillXpList, i)));
+            var dir = System.IO.Path.Combine("Logs", "acxbench");
+            System.IO.Directory.CreateDirectory(dir);
+            var file = System.IO.Path.Combine(dir, "acxxptables.csv");
+            System.IO.File.WriteAllText(file, sb.ToString());
+            CommandHandlerHelper.WriteOutputInfo(session, $"XP tables written to {file} ({rows} rows).");
+        }
+
+        [CommandHandler("acxgear", AccessLevel.Admin, CommandHandlerFlag.None, 1,
+            "Gear bench: a quest weapon against loot of its weapon type in every class at the same wield requirement, untinked and tinked. Writes a CSV to Logs/acxbench.",
+            "<quest weapon wcid | class> [character level, default: where loot of that wield requirement drops] [kinds=all: every loot kind, not one per class] [check=1: each row the bench's way and the game's way, 30 swings] [debuff=1: Imperil and the matching vulnerability on each monster] [wield=N: compare against loot of this wield requirement] [single=1: just this weapon, not its element versions]")]
+        public static void HandleAcxGear(Session session, params string[] parameters)
+        {
+            // /acxgear class <level> [debuff=1]: every weapon class at a level (AcxBench_Gear.RunClassBench)
+            if (parameters[0].Equals("class", StringComparison.OrdinalIgnoreCase))
+            {
+                var classLevel = parameters.Length > 1 && int.TryParse(parameters[1], out var cl) ? Math.Clamp(cl, 1, 275) : 155;
+                var classDebuff = parameters.Any(p => p.Equals("debuff=1", StringComparison.OrdinalIgnoreCase));
+                // type=slash|bludgeon: the missile classes' damage type (default pierce)
+                var missileType = parameters.Any(p => p.Equals("type=slash", StringComparison.OrdinalIgnoreCase)) ? DamageType.Slash
+                    : parameters.Any(p => p.Equals("type=bludgeon", StringComparison.OrdinalIgnoreCase)) ? DamageType.Bludgeon : DamageType.Pierce;
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartClassBench(classLevel, classDebuff, missileType, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                return;
+            }
+
+            if (!uint.TryParse(parameters[0], out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxgear <quest weapon wcid> [level]");
+                return;
+            }
+            var level = parameters.Length > 1 && int.TryParse(parameters[1], out var l) ? Math.Clamp(l, 1, 275) : 0;
+            var allKinds = parameters.Any(p => p.Equals("kinds=all", StringComparison.OrdinalIgnoreCase));
+            var check = parameters.Any(p => p.Equals("check=1", StringComparison.OrdinalIgnoreCase));
+            var debuff = parameters.Any(p => p.Equals("debuff=1", StringComparison.OrdinalIgnoreCase));
+            var lootWield = parameters.Select(p => p.StartsWith("wield=", StringComparison.OrdinalIgnoreCase) && int.TryParse(p.Substring(6), out var w) ? w : 0).Max();
+            var single = parameters.Any(p => p.Equals("single=1", StringComparison.OrdinalIgnoreCase));
+
+            CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartGear(wcid, level, allKinds, check, debuff, lootWield, single, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
         }
     }
 }

@@ -184,7 +184,11 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALMAHOGANY_CLASS:
 
                     // ensure missile weapon and workmanship
-                    if (target.WeenieType != WeenieType.MissileLauncher || target.Workmanship == null)
+                    // Project ACX: an Eternal thrown weapon too. It is a launcher and its own ammunition, with a damage
+                    // multiplier like a bow's (AcxThrownWcids), and until now could take no damage tink at all (JJ 2026-11-15:
+                    // "We want to be able to use mahogany on it like bows to increase the damage"). Like a bow, it takes
+                    // Mahogany and not Iron or Granite.
+                    if ((target.WeenieType != WeenieType.MissileLauncher && !Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(target.WeenieClassId)) || target.Workmanship == null)
                         return null;
 
                     // use mahogany recipe as base

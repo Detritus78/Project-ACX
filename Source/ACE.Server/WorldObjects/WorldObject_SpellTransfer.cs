@@ -87,6 +87,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (ExtraSpellsMaxOverride.HasValue && ExtraSpellsMaxOverride > 0)
                     return true;
+                else if (IsAcxQuestWeapon)
+                    return true;   // Project ACX: two transfers on an untinkerable quest or named weapon (WorldObject_AcxQuestWeapon)
                 else
                     return ItemWorkmanship > 0 && (ItemType & (ItemType.WeaponOrCaster | ItemType.Vestements | ItemType.Jewelry)) != 0;
             }
@@ -98,6 +100,9 @@ namespace ACE.Server.WorldObjects
             {
                 if (ExtraSpellsMaxOverride.HasValue)
                     return Math.Max(ExtraSpellsMaxOverride.Value, 0);
+
+                if (IsAcxQuestWeapon)
+                    return AcxQuestWeaponTransfers;
 
                 var baseSlots = (int)Math.Floor((ItemWorkmanship ?? 0) / 2f);
                 if (IsRobe)

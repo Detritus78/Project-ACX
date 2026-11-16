@@ -119,6 +119,20 @@ namespace ACE.Server.Network.Structure
             if (wo.Damage != null && !(wo is Clothing) || wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster)
                 BuildWeapon(wo);
 
+            // Project ACX: an Eternal thrown weapon is a launcher and its own ammunition, with a damage multiplier like a
+            // bow's (AcxThrownWcids). The examine window prints a multiplier only for a weapon that takes ammunition, which
+            // it reads from the weapon's public description or, in AC:Unreal, from the appraisal first. So the appraisal
+            // alone names an ammunition type: the window shows "Damage Bonus" and "Damage Modifier" as on a bow, while the
+            // public description stays a thrown weapon's (a shield in the other hand, no ammunition asked for). The usage
+            // line gives the damage type, which those lines leave out, and the multiplier for any other client.
+            if (WeaponProfile != null && Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(wo.WeenieClassId))
+            {
+                PropertiesInt[PropertyInt.AmmoType] = Factories.Tables.Wcids.AcxThrownWcids.AppraisalAmmoType;
+
+                var note = Factories.Tables.Wcids.AcxThrownWcids.DescribeDamage(wo, WeaponProfile.DamageMod);
+                PropertiesString[PropertyString.Use] = PropertiesString.TryGetValue(PropertyString.Use, out var use) && !string.IsNullOrEmpty(use) ? use + "\n" + note : note;
+            }
+
             // TODO: Resolve this issue a better way?
             // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
             // we need to check the following weapon properties to see if they're below expected minimum and adjust accordingly

@@ -310,6 +310,10 @@ namespace ACE.Server.Entity
 
             var ignoreArmorMod = Math.Min(armorRendingMod, armorCleavingMod);
 
+            // Project ACX: IgnoreAllArmor leaves a third of the armor (WorldObject.AcxIgnoreAllArmorMod)
+            if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
+                ignoreArmorMod = Math.Min(ignoreArmorMod, WorldObject.AcxIgnoreAllArmorMod);
+
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
             {
@@ -338,8 +342,7 @@ namespace ACE.Server.Entity
                 ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, Attacker, Weapon, ignoreArmorMod);
             }
 
-            if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.IgnoreAllArmor))
-                ArmorMod = 1.0f;
+            // Project ACX: IgnoreAllArmor no longer skips armor outright; it goes through ignoreArmorMod above
 
             // get resistance modifiers
             WeaponResistanceMod = WorldObject.GetWeaponResistanceModifier(Weapon, attacker, attackSkill, DamageType);

@@ -25,6 +25,12 @@ namespace ACE.Server.Managers
         {
             foreach (var dataId in recipe.RecipeMod.Select(m => (uint)m.DataId).Where(d => d != 0))
             {
+                if (target.IsAcxAtlanWeapon && AcxRendingImbues.Contains(dataId))
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Atlan weapons can't take rending, so the {target.NameWithMaterial} can't take this imbue.", ChatMessageType.Craft));
+                    return true;
+                }
+
                 var reason = AcxPairReason(dataId, target);
                 if (reason == null)
                     continue;
@@ -34,6 +40,12 @@ namespace ACE.Server.Managers
             }
             return false;
         }
+
+        // the rending imbues: Red Garnet, Aquamarine, Emerald, Jet, White Sapphire, Black Garnet, Imperial Topaz, and Tiger Eye on a caster
+        private static readonly System.Collections.Generic.HashSet<uint> AcxRendingImbues = new System.Collections.Generic.HashSet<uint>()
+        {
+            0x3800003E, 0x3800003C, 0x3800003A, 0x3800003D, 0x3800003B, 0x3800003F, 0x38000040, AcxDataIdBase + (uint)AcxTinker.ElementalRend,
+        };
 
         private static string AcxPairReason(uint dataId, WorldObject target)
         {
