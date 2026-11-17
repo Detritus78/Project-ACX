@@ -815,6 +815,12 @@ namespace ACE.Server.Managers
             { ImbuedEffectType.SlashRending,    0x0600335c },
         };
 
+        private static bool IsImbuedEffectStat(PropertyInt stat)
+        {
+            return stat == PropertyInt.ImbuedEffect || stat == PropertyInt.ImbuedEffect2 || stat == PropertyInt.ImbuedEffect3
+                || stat == PropertyInt.ImbuedEffect4 || stat == PropertyInt.ImbuedEffect5;
+        }
+
         public static ImbuedEffectType GetImbuedEffects(WorldObject target)
         {
             var imbuedEffects = 0;
@@ -918,6 +924,12 @@ namespace ACE.Server.Managers
 
                 int? value = obj.GetProperty((PropertyInt)requirement.Stat);
                 double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+
+                // Project ACX: imbue flags are unsigned. IgnoreAllArmor (0x80000000, Phantom weapons) reads as a negative
+                // int, so it passed the imbue recipes' "not imbued yet" check (ImbuedEffect < 1) and the new imbue then
+                // replaced the Phantom effect
+                if (value != null && IsImbuedEffectStat((PropertyInt)requirement.Stat))
+                    normalized = (uint)value.Value;
 
                 if (Debug)
                     Console.WriteLine($"PropertyInt.{(PropertyInt)requirement.Stat} {(CompareType)requirement.Enum} {requirement.Value}, current: {value}");
@@ -1094,9 +1106,13 @@ namespace ACE.Server.Managers
             var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) < destroyTargetChance;
             var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) < destroySourceChance;
 
-            // Project ACX: a failed imbue on a quest or named weapon uses up the gem but keeps the weapon (JJ 2026-11-15, on
-            // destroying it: "We do provide no risk avenues but a noob won't have access to them"), unless the setting is on
-            if (!success && destroyTarget && recipe.IsImbuing() && target.IsAcxQuestWeapon && !PropertyManager.GetBool("acx_quest_imbue_failure_destroys").Item)
+            // Project ACX: a failed imbue uses up the salvage (or gem) and keeps the weapon, unless the setting for its kind is on:
+            // quest and named weapons since 2026-11-15 (JJ: "We do provide no risk avenues but a noob won't have access to them"),
+            // every weapon since 2026-11-17 (JJ: "The salvage blowing up isn't a bad idea actually ... salvage takes time and
+            // investment to make. And always becomes something you have to much of in later games", then "okay imbues only":
+            // tinking keeps retail's risk). Imbue recipes add nothing on failure, so the weapon's tinker count doesn't change.
+            if (!success && destroyTarget && recipe.IsImbuing()
+                && !PropertyManager.GetBool(target.IsAcxQuestWeapon ? "acx_quest_imbue_failure_destroys" : "acx_imbue_failure_destroys").Item)
                 destroyTarget = false;
 
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;

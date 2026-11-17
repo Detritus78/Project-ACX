@@ -7,6 +7,8 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories.Tables.Wcids;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -411,6 +413,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
         public float GetAttributeMod(WorldObject weapon)
         {
+            // Project ACX: an Alchemist's bomb blasts with its thrower's Alchemy, not Strength (JJ 2026-11-16: "throwing harder
+            // doesnt make a grenade blow up any stronger"; AcxBombWcids)
+            if (weapon != null && AcxBombWcids.IsBomb(weapon.WeenieClassId))
+                return (float)Math.Max(1.0, 1.0 + ((int)GetCreatureSkill(Skill.Alchemy).Current - 55) * PropertyManager.GetDouble("acx_alchemist_skill_damage").Item);
+
             var isBow = weapon != null && weapon.IsBow;
 
             //var attribute = isBow || GetCurrentWeaponSkill() == Skill.FinesseWeapons ? Coordination : Strength;

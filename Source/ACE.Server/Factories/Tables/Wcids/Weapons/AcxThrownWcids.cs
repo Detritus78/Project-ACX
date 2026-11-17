@@ -28,7 +28,7 @@ namespace ACE.Server.Factories.Tables.Wcids
     /// Benched with /acxgear class (real monsters, buffed, untinked and tinked); OwnDamageScale tunes it by tier.
     /// The examine window shows both numbers (JJ: no "invisible hidden numbers"): the appraisal, and only the appraisal,
     /// carries an ammunition type for it (AppraisalAmmoType, AppraiseInfo), so AC:Unreal prints a launcher's lines
-    /// ("Damage Bonus: 25 - 33", "Damage Modifier: +150%."), and a usage line says it for any client (DescribeDamage).
+    /// ("Damage Bonus: 25 - 33", "Damage Modifier: +150%."); the name gives the damage type.
     /// The weapon's public description has no ammunition type, so it still takes a shield and no client or combat macro
     /// asks it for ammunition.
     /// Before: the multiplier was scaled to the band on a base of 10 (up to x13 at tier 8, and Blood Drinker with it),
@@ -92,15 +92,25 @@ namespace ACE.Server.Factories.Tables.Wcids
             T6_T8_Chances,
         };
 
-        // the tier's atlatl dart, the ammunition a thrown weapon carries built in: Atlatl Dart 12, Greater 18, Prismatic 28,
-        // Deadly Prismatic 52 (the darts /acxbench and /acxgear give atlatls by tier)
-        private static readonly int[] DartDamage = { 12, 12, 18, 18, 28, 28, 52, 52 };
+        // the tier's atlatl dart, the ammunition a thrown weapon carries built in: Atlatl Dart 12 (tiers 1-2), Prismatic 28 (3-4),
+        // Deadly Prismatic 52 (5-8): what an atlatl is really thrown with at the tier's levels (JJ 2026-11-16: "Most people don't
+        // use the greater deadlys ... they sacrifice some damage for prismatics then they jump to the next level of prismatics so
+        // one ammo to rule them all. I would bench all missile ammo at prismatics. And adjust thrown accordingly"). Prismatic
+        // needs base Fletching 250 (about 10M XP specialized: level 50), Deadly Prismatic Fletching specialized and 385-400 to
+        // make (a specialized fletcher's buffed skill by about level 115). Until then this ran a grade late (Greater 18 at tiers
+        // 3-4, Prismatic 28 at 5-6, as the benches armed atlatls), which left a thrown weapon at 56-68% of a real atlatl through
+        // tier 6 against the 85% it is meant to be, and a sword twice as strong (/acxsurvival, levels 50-180, 2026-11-16).
+        private static readonly int[] DartDamage = { 12, 12, 28, 28, 52, 52, 52, 52 };
 
         // calibration of the weapon's own damage by tier (1 = the dart's), against the atlatl of the tier on /acxgear class
         private static readonly double[] OwnDamageScale = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
 
         public static WeenieClassName Roll(int tier)
         {
+            // Project ACX: the Alchemist's bombs drop as one more family of the thrown pool (AcxBombWcids)
+            if (AcxBombWcids.Enabled && ThreadSafeRandom.Next(0.0f, 1.0f) < Managers.PropertyManager.GetDouble("acx_alchemist_loot_share").Item)
+                return (WeenieClassName)AcxBombWcids.Roll(tier);
+
             return thrownTiers[tier - 1].Roll();
         }
 
@@ -108,7 +118,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         {
             var id = (uint)wcid;
             weaponType = TreasureWeaponType.Atlatl;
-            return id >= FirstPlain && id < FirstNether + Families;
+            return id >= FirstPlain && id < FirstNether + Families || AcxBombWcids.IsBomb(id);   // the Alchemist's bombs are Eternal thrown weapons too
         }
 
         /// <summary>
@@ -145,7 +155,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static bool TryGetVersion(uint wcid, DamageType damageType, out uint version)
         {
             version = 0;
-            if (!IsEternalThrown(wcid))
+            if (!IsEternalThrown(wcid) || AcxBombWcids.IsBomb(wcid))
                 return false;
 
             var family = wcid < FirstElemental ? wcid - FirstPlain : wcid < FirstNether ? (wcid - FirstElemental) / Elements : wcid - FirstNether;
@@ -188,17 +198,6 @@ namespace ACE.Server.Factories.Tables.Wcids
         /// retail kinds (AmmoType), so it prints a launcher's lines without "Uses arrows as ammunition."
         /// </summary>
         public const int AppraisalAmmoType = 0x200;
-
-        /// <summary>
-        /// The examine window's usage line for an Eternal thrown weapon: its damage type, which a launcher's lines leave
-        /// out, and its multiplier, for a client that prints none for a weapon without separate ammunition
-        /// </summary>
-        public static string DescribeDamage(WorldObject weapon, double damageMod)
-        {
-            var type = ACE.Entity.Enum.DamageTypeExtensions.GetName(weapon.W_DamageType);
-            var percent = (int)System.Math.Round(System.Math.Abs(damageMod - 1.0) * 100.0);
-            return $"Thrown: its own ammunition. {(type != null ? type + " damage" : "Its damage")}, multiplied by its Damage Modifier ({(damageMod < 1.0 ? "-" : "+")}{percent}%).";
-        }
 
         /// <summary>
         /// A thrown weapon's projectile is made new from its weenie (Creature.LaunchProjectile); an Eternal thrown one

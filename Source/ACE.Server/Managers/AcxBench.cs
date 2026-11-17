@@ -254,6 +254,7 @@ namespace ACE.Server.Managers
 
         private static Player CreateAttacker(int level, Options o)
         {
+            survivalBandLevel = 0;   // the survival bench sets its gear band after this (CreateSurvivor); the gear bench has none
             var weenie = DatabaseManager.World.GetCachedWeenie(1);   // "human", what character creation starts from
             var player = new Player(weenie, new ObjectGuid(AttackerGuid), 0);
 
@@ -433,9 +434,21 @@ namespace ACE.Server.Managers
 
         // the ammo players use at each tier: basic, Greater, Prismatic, Deadly Prismatic (prismatic ammo takes the
         // launcher's element, so elemental and Slashing/Blunt launchers get their bonus)
-        private static readonly uint[] ArrowsByTier = { 300, 300, 5304, 5304, 43952, 43952, 43951, 43951 };
-        private static readonly uint[] QuarrelsByTier = { 305, 305, 5313, 5313, 43958, 43958, 43956, 43956 };
-        private static readonly uint[] DartsByTier = { 12464, 12464, 15287, 15287, 43955, 43955, 43953, 43953 };
+        // The ammunition a launcher is benched with, by the loot tier of the character's level (TierLevels: 10, 20, 50, 80, 115,
+        // 150, 200, 275): plain (tiers 1-2), Prismatic (3-4), Deadly Prismatic (5 up). JJ 2026-11-16: "Most people don't use the
+        // greater deadlys. They are heavy and it requires to much ammo to carry around. So they sacrifice some damage for
+        // prismatics then they jump to the next level of prismatics so one ammo to rule them all. I would bench all missile ammo
+        // at prismatics", "the best possible ammo at their level". What the ammunition asks:
+        //   Prismatic (26 an arrow, 28 a dart): base Fletching 250 to use, 250-275 to make: about 10M XP with Fletching
+        //     specialized (137 ranks and 100 cheap ranks of Coordination and Focus), 50M trained: level 50 (56M XP);
+        //   Deadly Prismatic (40 / 52): Fletching specialized to use, 385-400 to make: a specialized fletcher's buffed skill with
+        //     200 ranks (336M XP), about level 115.
+        // On a plain launcher (below loot tier 5) Prismatic is piercing. The 4 credits and the XP of Fletching aren't taken from
+        // the benches' builds. Until then Greater (14 / 18) ran through tier 4 and Prismatic through tier 6, which understated
+        // every launcher there by a quarter to a half (and with it what was tuned against them: thrown weapons, AcxThrownWcids).
+        private static readonly uint[] ArrowsByTier = { 300, 300, 43952, 43952, 43951, 43951, 43951, 43951 };
+        private static readonly uint[] QuarrelsByTier = { 305, 305, 43958, 43958, 43956, 43956, 43956, 43956 };
+        private static readonly uint[] DartsByTier = { 12464, 12464, 43955, 43955, 43953, 43953, 43953, 43953 };
 
         private static void BenchMissile(Player attacker, WorldObject launcher, Creature target, Result result, Options o, int tier)
         {

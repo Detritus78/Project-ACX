@@ -49,6 +49,16 @@ namespace ACE.Server.WorldObjects
         public bool IsAcxElite => AcxEliteMods != AcxEliteMod.None;
 
         /// <summary>
+        /// An elite's own damage multiplier on top of acx_elite_damage_mod, melee, missile and spells: its invaded town's
+        /// damageScale (AcxInvasions.ApplyTownStrength, towns.json)
+        /// </summary>
+        public double AcxEliteDamageScale
+        {
+            get => GetProperty(PropertyFloat.AcxEliteDamageScale) ?? 1.0;
+            set { if (value == 1.0) RemoveProperty(PropertyFloat.AcxEliteDamageScale); else SetProperty(PropertyFloat.AcxEliteDamageScale, value); }
+        }
+
+        /// <summary>
         /// The loot tier of the boss table an elite without its own death treasure drops from (the invaded town's tier)
         /// </summary>
         public int AcxEliteLootTier = 1;
@@ -98,13 +108,21 @@ namespace ACE.Server.WorldObjects
             ArmorModVsElectric += 1.5;
 
             RadarColor = ACE.Entity.Enum.RadarColor.Green;
-            HealthRate = NonProjectileMagicImmune ? 50 : 100;
+            // Project ACX: scaled by acx_elite_regen_scale (JJ 2026-11-16: "lets drop the regen by 50%"; duos at the elite's level
+            // outlasted it with kits but could never out-damage its regeneration, /acxsurvival duo)
+            HealthRate = (NonProjectileMagicImmune ? 50 : 100) * PropertyManager.GetDouble("acx_elite_regen_scale").Item;
             ManaRate = 1000;
             StaminaRate = 1000;
 
             var high = (Level ?? 1) > 99;
+
+            // Project ACX: every attribute up by a rolled share of itself, acx_elite_attribute_bonus_min..max (JJ 2026-11-16,
+            // after /acxsurvival duo: ClassicACE's flat +25-75 / +70-200 roughly tripled a level-15 drudge, so two players of
+            // the town's level died in seconds at tier 1, while it was a modest bump on a level-250 monster)
+            var bonusMin = PropertyManager.GetDouble("acx_elite_attribute_bonus_min").Item;
+            var bonusMax = Math.Max(bonusMin, PropertyManager.GetDouble("acx_elite_attribute_bonus_max").Item);
             foreach (var attribute in new[] { Strength, Endurance, Quickness, Coordination, Focus, Self })
-                attribute.StartingValue += (uint)(high ? ThreadSafeRandom.Next(70, 200) : ThreadSafeRandom.Next(25, 75));
+                attribute.StartingValue += (uint)Math.Round(attribute.Base * (bonusMin + ThreadSafeRandom.Next(0.0f, 1.0f) * (bonusMax - bonusMin)));
 
             var mods = AcxRollEliteMods(outdoors);
             AcxEliteMods = mods;
@@ -135,9 +153,12 @@ namespace ACE.Server.WorldObjects
 
             XpOverride = (int)Math.Min(int.MaxValue, PropertyManager.GetLong(high ? "acx_elite_xp_per_mod_high" : "acx_elite_xp_per_mod").Item * modCount);
 
+            // Project ACX: scaled by acx_elite_health_scale (JJ 2026-11-16: duos of the town's level outlasted high-tier elites
+            // for minutes but could never finish 50,000-160,000 health)
             var multiplier = mods.HasFlag(AcxEliteMod.Beefy) ? (high ? (Health.MaxValue > 100000 ? 15 : 30) : 21) : (high ? 17 : 12);
+            var scaledMultiplier = Math.Max(1.0, multiplier * PropertyManager.GetDouble("acx_elite_health_scale").Item);
             var health = Health.MaxValue;
-            Health.StartingValue += (uint)Math.Min(uint.MaxValue - Health.StartingValue, (long)health * (multiplier - 1));
+            Health.StartingValue += (uint)Math.Min(uint.MaxValue - Health.StartingValue, (long)Math.Round(health * (scaledMultiplier - 1)));
             Health.Current = Health.MaxValue;
             Stamina.Current = Stamina.MaxValue;
             Mana.Current = Mana.MaxValue;

@@ -1,0 +1,8 @@
+# Project ACX (desktop, user unit): copy the Live laptop's nightly backups to the HDD
+[Unit]
+Description=Project ACX: copy Live's nightly backups to the HDD
+OnFailure=acx-backup-failed@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/Work/ac/project-acx/acx/scripts/backup/acx-backup-pull.sh

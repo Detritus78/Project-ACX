@@ -146,7 +146,7 @@ namespace ACE.Server.Managers
         private static List<uint> TransferReal(WorldObject weapon, IEnumerable<uint> spellIds)
         {
             var added = new List<uint>();
-            foreach (var spellId in spellIds)
+            foreach (var spellId in spellIds.Select(BandCantrip))   // the survival bench's gear band: Major / Epic below level 181
             {
                 if (SpellTransferScroll.InjectSpell(weapon, (SpellId)spellId).Result == SpellTransferScroll.InjectSpellResult.Success)
                     added.Add(spellId);
@@ -166,7 +166,7 @@ namespace ACE.Server.Managers
             ImbueReal(weapon, ImbuedEffectType.Undef);
 
             var tinks = Math.Max(0, MaxTinks - weapon.NumTimesTinkered);
-            var iron = BestIron(weapon, BloodDrinkerBuff[buff] + (planned.Contains(LegendaryBloodThirst) || owned.Contains(LegendaryBloodThirst) ? 10 : 0), tinks);
+            var iron = BestIron(weapon, BloodDrinkerBuff[buff] + (planned.Contains(LegendaryBloodThirst) || owned.Contains(LegendaryBloodThirst) ? BandBloodThirst : 0), tinks);
             for (var i = 0; i < iron; i++)
                 MutationCache.GetMutation(IronMutation).TryMutate(weapon);
             for (var i = 0; i < tinks - iron; i++)
@@ -787,17 +787,16 @@ namespace ACE.Server.Managers
             if (profile == null)
                 return "examine: no weapon profile";
             info.PropertiesInt.TryGetValue(PropertyInt.AmmoType, out var ammoType);
-            info.PropertiesString.TryGetValue(PropertyString.Use, out var use);
             var low = profile.Damage * (1.0 - Math.Clamp(profile.DamageVariance, 0.0, 1.0));
             var damage = profile.Damage - low > 0.0002 ? $"{low.ToString(low >= 10 ? "G4" : "G3", System.Globalization.CultureInfo.InvariantCulture)} - {profile.Damage}" : profile.Damage.ToString();
             var lines = ammoType != 0
                 ? $"Damage Bonus: {damage}\nDamage Modifier: {(profile.DamageMod < 1 ? "-" : "+")}{(int)Math.Round(Math.Abs(profile.DamageMod - 1) * 100)}%."
                 : $"Damage: {damage}, {ACE.Entity.Enum.DamageTypeExtensions.GetName(profile.DamageType)}";
-            return $"examine (appraisal ammunition type {ammoType}):\n{lines}\n{use}";
+            return $"examine (appraisal ammunition type {ammoType}):\n{lines}";
         }
 
-        // Atlatl Dart, Greater, Prismatic, Deadly Prismatic (DartsByTier)
-        private static readonly int[] NominalAmmoDamage = { 12, 12, 18, 18, 28, 28, 52, 52 };
+        // Atlatl Dart, Prismatic, Deadly Prismatic (DartsByTier)
+        private static readonly int[] NominalAmmoDamage = { 12, 12, 28, 28, 52, 52, 52, 52 };
 
         public static string StartClassBench(int level, bool debuff, DamageType missileType, Action<string> reply)
         {

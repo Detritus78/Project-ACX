@@ -1,0 +1,9 @@
+# Project ACX (desktop, user unit): the weekly encrypted copy of Live on GitHub (Detritus78/acx-backups)
+[Unit]
+Description=Project ACX: weekly encrypted backup of Live to GitHub
+OnFailure=acx-backup-failed@%n.service
+After=acx-backup-pull.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/Work/ac/project-acx/acx/scripts/backup/acx-backup-offsite.sh

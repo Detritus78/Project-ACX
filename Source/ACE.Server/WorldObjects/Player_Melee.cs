@@ -334,6 +334,8 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(attackFrames[i].time * animLength - prevTime);
                 prevTime = attackFrames[i].time * animLength;
 
+                var strike = i;   // Project ACX: the loop variable changes before the action runs
+
                 actionChain.AddAction(this, () =>
                 {
                     if (IsDead)
@@ -344,6 +346,9 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var damageEvent = DamageTarget(creature, weapon);
+
+                    if (strike == 0)
+                        AcxDualWieldFollowUp(creature, weapon);   // Project ACX: the other hand's weapon follows up once per attack
 
                     if (damageEvent != null && damageEvent.HasDamage)   // Project ACX
                     {

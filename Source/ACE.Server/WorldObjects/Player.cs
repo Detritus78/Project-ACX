@@ -658,6 +658,7 @@ namespace ACE.Server.WorldObjects
             SetPropertiesAtLogOut();
             AcxSaveDoTsAndHoTs();   // Project ACX: bleeds and heals carry over through logout
             AcxXphWriteLog("logout");   // Project ACX: /xph session line in Logs/acx-xph.csv
+            AcxEconWriteLog();   // Project ACX: economy session line in Logs/acx-economy.csv
             SavePlayerToDatabase();
             PlayerManager.SwitchPlayerFromOnlineToOffline(this);
 

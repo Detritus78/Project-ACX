@@ -27,8 +27,11 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// Chests by tier 1-6: end-of-retail chests only (JJ 2026-11-12). Retail has no plain chest above tier 4 that a
-        /// spawned chest could use (the Sturdy Steel Chest's 7,500 lock has no key), so tiers 5-6 get the tier 5 runed chest.
+        /// Chests by loot tier 1-6: end-of-retail chests only (JJ 2026-11-12). Retail has no plain chest above tier 4 that a
+        /// spawned chest could use (the Sturdy Steel Chest's 7,500 lock has no key), so tier 5 gets the extreme runed chest
+        /// (22566, tier 5 loot) and tier 6 ACX's copy of it with tier 6 loot (acx/Content/chests). Tiers 7 and 8 get no chest,
+        /// as in retail, whose runed chests stop at tier 5 loot and whose locks a maxed picker clears (JJ 2026-11-17: "I am
+        /// seeing low level rune chests in high level areas like tou tou", then no chests there rather than 700/800 locks).
         /// </summary>
         private static readonly List<uint>[] AcxChests =
         {
@@ -37,15 +40,15 @@ namespace ACE.Server.WorldObjects
             new() { 1916, 3962, 1925, 3971, 1919, 3965, 7500, 1931, 3977, 1922, 3968, 1928, 3974, 1935, 3981, 1938, 3984, 1941, 3987, 1944, 3990, 1950, 3996 },
             new() { 3960, 2544, 1914, 1923, 3969, 1917, 3963, 7494, 7495, 1929, 3975, 1920, 3966, 1926, 3972, 1933, 3979, 1936, 3982, 1939, 3985, 1942, 3988, 1948, 3994, 7297, 1912, 3958 },
             new() { 22566 },
-            new() { 22566 },
+            new() { 900906 },
         };
 
         /// <summary>
-        /// Outdoor runed chests by tier 1-6 (retail has runed chests for tiers 2-5; tier 1 and 6 use the nearest)
+        /// Outdoor runed chests by loot tier 1-6 (retail has runed chests for tiers 2-5, tier 1 uses tier 2's; 6 is ACX's)
         /// </summary>
         private static readonly List<uint>[] AcxRunedChests =
         {
-            new() { 22572 }, new() { 22572, 22568 }, new() { 22576, 22570 }, new() { 22571, 22567 }, new() { 22566 }, new() { 22566 },
+            new() { 22572 }, new() { 22572, 22568 }, new() { 22576, 22570 }, new() { 22571, 22567 }, new() { 22566 }, new() { 900906 },
         };
 
         /// <summary>
@@ -87,7 +90,8 @@ namespace ACE.Server.WorldObjects
 
         private void AcxDeploy()
         {
-            if (Location == null || CurrentLandblock == null || IsDead)
+            // a monster that carries no loot brings no chest or trap (it would have rolled tier 1's anywhere)
+            if (Location == null || CurrentLandblock == null || IsDead || DeathTreasure == null)
                 return;
 
             // the chance shifts by day and by area, as on ClassicACE
@@ -102,6 +106,9 @@ namespace ACE.Server.WorldObjects
             if (inDungeon && ThreadSafeRandom.Next(0.0f, 1.0f) < AcxTrapChance * (1 + trapExtra))
                 AcxDeployTrap();
 
+            if (AcxTier() > AcxChests.Length)   // tier 7 and 8: no chests
+                return;
+
             var hasChest = false;
             if (!inDungeon && !AcxImmobile && ThreadSafeRandom.Next(0.0f, 1.0f) < chestChance)
                 hasChest = AcxDeployChest(AcxKeyChestFor() ?? AcxRunedChests[AcxTier() - 1]);
@@ -111,9 +118,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Loot tier 1-6 from the monster's death treasure
+        /// Loot tier 1-8 from the monster's death treasure
         /// </summary>
-        private int AcxTier() => Math.Clamp(DeathTreasure?.Tier ?? 1, 1, 6);
+        private int AcxTier() => Math.Clamp(DeathTreasure?.Tier ?? 1, 1, 8);
 
         private bool AcxImmobile => GetProperty(PropertyBool.AiImmobile) ?? false;
 

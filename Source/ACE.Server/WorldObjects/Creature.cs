@@ -343,6 +343,9 @@ namespace ACE.Server.WorldObjects
 
             if (worldObject is Player listener && Name == "Town Crier")   // Project ACX: exploration contracts, handed out by talking
                 ACE.Server.Managers.AcxContracts.OnCrierUse(this, listener);
+
+            if (worldObject is Player trainee && ACE.Server.Managers.AcxTrainers.IsTrainer(this))   // Project ACX: Alchemist / Thrown Weapons Trainer
+                ACE.Server.Managers.AcxTrainers.OnTrainerUse(this, trainee);
         }
 
         public override void OnCollideObject(WorldObject target)

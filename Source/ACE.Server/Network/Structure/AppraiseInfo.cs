@@ -123,15 +123,12 @@ namespace ACE.Server.Network.Structure
             // bow's (AcxThrownWcids). The examine window prints a multiplier only for a weapon that takes ammunition, which
             // it reads from the weapon's public description or, in AC:Unreal, from the appraisal first. So the appraisal
             // alone names an ammunition type: the window shows "Damage Bonus" and "Damage Modifier" as on a bow, while the
-            // public description stays a thrown weapon's (a shield in the other hand, no ammunition asked for). The usage
-            // line gives the damage type, which those lines leave out, and the multiplier for any other client.
-            if (WeaponProfile != null && Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(wo.WeenieClassId))
-            {
+            // public description stays a thrown weapon's (a shield in the other hand, no ammunition asked for). No usage
+            // line: the name and description say the rest, and the details go on the ACX wiki (JJ 2026-11-16: "all of that
+            // information is already on there", then "clear that all out"). An Alchemist's Healing bomb has no damage to show.
+            if (WeaponProfile != null && Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(wo.WeenieClassId)
+                && !Factories.Tables.Wcids.AcxBombWcids.IsHealingBomb(wo.WeenieClassId))
                 PropertiesInt[PropertyInt.AmmoType] = Factories.Tables.Wcids.AcxThrownWcids.AppraisalAmmoType;
-
-                var note = Factories.Tables.Wcids.AcxThrownWcids.DescribeDamage(wo, WeaponProfile.DamageMod);
-                PropertiesString[PropertyString.Use] = PropertiesString.TryGetValue(PropertyString.Use, out var use) && !string.IsNullOrEmpty(use) ? use + "\n" + note : note;
-            }
 
             // TODO: Resolve this issue a better way?
             // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)

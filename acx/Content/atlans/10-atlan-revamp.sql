@@ -3,7 +3,12 @@
 -- every stone change.
 --   Minor stones add only the element: the 24 Minor Atlans lose their resistance cleaving.
 --   Major, Black Fire and Enhanced stones keep element plus cleave.
---   Stones are used up when applied. The Stone Tool still resets a weapon to plain, and the stone is lost.
+--   Stones are kept when applied (JJ 2026-11-16, was "used up" since 11-12: "If you go and get a stone and you put it in
+--   your weapon first then you have to get another in a week for your armor"; "you can keep your stones use them for armor
+--   or even another weapon"): one stone upgrades any number of its owner's Atlan and Isparian weapons and Shadow armor.
+--   Every stone is attuned and bonded, so it can't be traded (retail's Major, Black Fire and Enhanced already were; the
+--   Minor ones are made so here). The Stone Tool still resets a weapon to plain; that rerolls nothing, as the weapon is a
+--   fresh copy of a fixed weenie and AcxAtlans carries its flavor.
 --   The four Minor and four Major stones lie in the world; each now sits on an item generator and carries a quest
 --   stamp, so picking one up starts a one-week timer for that stone (one timer per stone, JJ).
 -- Re-runnable. Restart the server after applying.
@@ -14,10 +19,17 @@ WHERE p.type = 263 AND n.value LIKE 'Minor % Atlan %' AND (p.object_Id BETWEEN 4
 DELETE p FROM weenie_properties_float p JOIN weenie_properties_string n ON n.object_Id = p.object_Id AND n.type = 1
 WHERE p.type = 157 AND n.value LIKE 'Minor % Atlan %' AND (p.object_Id BETWEEN 46037 AND 46141 OR p.object_Id BETWEEN 71262 AND 71268);
 
--- stones are used up: Minor and Major stones (6318-6321, 6123-6126), Black Fire (7469), Enhanced Black Fire (46035)
+-- stones are kept, on weapons and armor: Minor and Major stones (6318-6321, 6123-6126), Black Fire (7469), Enhanced Black
+-- Fire (46035)
 UPDATE recipe r JOIN cook_book c ON c.recipe_Id = r.id
-SET r.success_Destroy_Source_Chance = 1, r.success_Destroy_Source_Amount = 1
+SET r.success_Destroy_Source_Chance = 0, r.success_Destroy_Source_Amount = 0
 WHERE c.source_W_C_I_D IN (6318, 6319, 6320, 6321, 6123, 6124, 6125, 6126, 7469, 46035);
+
+-- Minor stones attuned and bonded like the others, so a kept stone serves only its owner (Attuned int 114, Bonded int 33)
+DELETE FROM weenie_properties_int WHERE object_Id IN (6318, 6319, 6320, 6321) AND type IN (33, 114);
+INSERT INTO weenie_properties_int (object_Id, type, value) VALUES
+    (6318, 114, 1), (6318, 33, 1), (6319, 114, 1), (6319, 33, 1),
+    (6320, 114, 1), (6320, 33, 1), (6321, 114, 1), (6321, 33, 1);
 
 -- one-week pickup timer per stone: Quest (string 33) on the stone, and its quest row
 DROP TEMPORARY TABLE IF EXISTS acx_atlan_stones;

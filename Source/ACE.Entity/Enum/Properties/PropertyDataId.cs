@@ -104,6 +104,7 @@ namespace ACE.Entity.Enum.Properties
         AcxAuraScript                    = 30001,
         AcxAuraScript2                   = 30002,
         AcxAuraScript3                   = 30003,
+        AcxBombTier                      = 30004,   // an Alchemist's bomb: the loot tier it dropped at, which sets its debuff (AcxBombWcids.GetDebuffSpell)
     }
 
     public static class PropertyDataIdExtensions

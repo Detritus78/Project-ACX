@@ -198,5 +198,7 @@ namespace ACE.Entity.Enum.Properties
         AcxSalvageWhitelist              = 30012,
         AcxPracticeTarget                = 30013,
         AcxConcordiaRecall               = 30014,
+        AcxTradeSkillsGranted            = 30015,
+        AcxGuideGiven                    = 30016,
     }
 }

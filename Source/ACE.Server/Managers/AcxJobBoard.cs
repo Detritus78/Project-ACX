@@ -19,7 +19,8 @@ namespace ACE.Server.Managers
 {
     /// <summary>
     /// Project ACX: town job boards. Each town's board (a Book) lists the retail quests nearby that a character
-    /// hasn't finished; the town's Job Runner hands out the jobs (/job take) and pays for finished ones.
+    /// hasn't finished; /job take by the board takes one, and reading the board again pays for finished ones (the four starter
+    /// towns' Job Runners pay too).
     /// A job counts as finished when the character carries the quest flag that quest already stamps on completion.
     /// The jobs live in Content/jobs/jobs.json, so they can be changed without a rebuild (/acxjobreload).
     /// </summary>
@@ -124,6 +125,11 @@ namespace ACE.Server.Managers
             var town = GetTown(board);
             var pages = new List<string>();
 
+            // Project ACX: the board pays for finished jobs when it's read (JJ 2026-11-16, choosing "pay at the board" over
+            // a Job Runner in every town); the four starter towns' runners still pay too
+            if (town != null)
+                PayFinished(town, player);
+
             if (town == null)
             {
                 pages.Add("This board is empty.");
@@ -137,8 +143,8 @@ namespace ACE.Server.Managers
                 var cover = new StringBuilder();
                 cover.Append($"{town.Name} Job Board\n\n");
                 cover.Append("Work wanted around town. Each page is one job.\n\n");
-                cover.Append($"To take a job, stand by the Job Runner and type /job take <number>.\n");
-                cover.Append("When you've finished it, use the Job Runner to collect your pay.\n\n");
+                cover.Append($"To take a job, stand by this board and type /job take <number>.\n");
+                cover.Append("When you've finished it, come back and read this board to collect your pay.\n\n");
                 cover.Append($"Open to you here: {listed.Count}. Finished and paid: {done} of {town.Jobs.Count}.\n");
                 cover.Append("/job lists the jobs you've taken.\n\nDungeon contracts, matched to your level: talk to a Town Crier (3 a day). /contract lists yours.");
                 pages.Add(cover.ToString());
@@ -155,7 +161,7 @@ namespace ACE.Server.Managers
                     page.Append(state switch
                     {
                         JobState.Taken => "\nYou've taken this job.",
-                        JobState.Finished => "\nFinished! See the Job Runner for your pay.",
+                        JobState.Finished => "\nFinished! Read this board again for your pay.",
                         _ => $"\nTake it with /job take {number}",
                     });
                     pages.Add(page.ToString());
@@ -172,6 +178,22 @@ namespace ACE.Server.Managers
             }).ToList();
 
             player.Session.Network.EnqueueSend(new GameEventBookDataResponse(player.Session, board.Guid.Full, 1000, pageData.Count, pageData, "", 0xFFFFFFFF, "", true));
+        }
+
+        /// <summary>
+        /// Pays for every finished job this player took in the town; false if their pack is too full to take the pay
+        /// </summary>
+        private static bool PayFinished(Town town, Player player)
+        {
+            foreach (var job in town.Jobs.Where(j => GetState(player, j) == JobState.Finished))
+            {
+                if (!PayJob(player, job))
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You can't carry your job pay right now. Make some room in your pack and read the board again.", ChatMessageType.Broadcast));
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -194,15 +216,46 @@ namespace ACE.Server.Managers
                 paid++;
             }
 
-            if (paid > 0)
+            // Project ACX: the starter towns' runners explain job boards to a newcomer once, in their own words (JJ 2026-11-16:
+            // "The runners will explain the process for the first time and how it works. in human sarcastic speak", "in the
+            // noob towns"); boards pay for themselves now, so after that they just needle
+            if (!player.QuestManager.HasQuest(RunnerIntroFlag))
+            {
+                player.QuestManager.Stamp(RunnerIntroFlag);
+                foreach (var line in RunnerIntro)
+                    Tell(runner, player, line);
                 return;
+            }
+
+            if (paid > 0)
+            {
+                Tell(runner, player, "Look at you, finishing things. Your mother would be proud. Probably.");
+                return;
+            }
 
             var taken = town.Jobs.Where(j => GetState(player, j) == JobState.Taken).Select(j => j.Name).ToList();
             if (taken.Count > 0)
-                Tell(runner, player, $"Still working on {string.Join(", ", taken)}? Come back to me when it's done.");
+                Tell(runner, player, $"Still working on {string.Join(", ", taken)}? It won't finish itself. I've checked.");
             else
-                Tell(runner, player, "Looking for work? Read the board, then tell me which job with /job take <number>.");
+                Tell(runner, player, RunnerQuips[ACE.Common.ThreadSafeRandom.Next(0, RunnerQuips.Length - 1)]);
         }
+
+        private const string RunnerIntroFlag = "AcxJobRunnerIntro";
+
+        private static readonly string[] RunnerIntro =
+        {
+            "Oh good, another hero. Here's how this works, since nobody reads anything.",
+            "See that job board? Each page is a job. Stand next to it and type /job take and the job's number.",
+            "Then go do the job. Wander off, poke things, try not to die. Come back and read the board again and it pays you: pyreals, some experience and an ACX Mark. Try to contain your excitement.",
+            "Every town has a board now, so stop asking me where the work is. And each job pays once. Once. I don't care how nicely you ask.",
+        };
+
+        private static readonly string[] RunnerQuips =
+        {
+            "The board's right there. It has words on it. You can read words, right?",
+            "Read the board, /job take a number. I'm not doing it for you.",
+            "Jobs are on the board. Pay's on the board. I'm just here for the scenery.",
+        };
 
         private static bool PayJob(Player player, Job job)
         {
@@ -227,7 +280,7 @@ namespace ACE.Server.Managers
             player.SetProperty(PropertyInt.AcxJobsDone, (player.GetProperty(PropertyInt.AcxJobsDone) ?? 0) + 1);
             AcxLeaderboards.CheckLeader(AcxLeaderboards.Board.Jobs);
 
-            AcxMarks.Give(player);   // one ACX Mark per job (JJ 2026-11-13)
+            AcxMarks.Give(player, "job");   // one ACX Mark per job (JJ 2026-11-13)
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Job done: {job.Name}. You're paid {pyreals:N0} pyreals, an ACX Mark and some experience.", ChatMessageType.Broadcast));
             return true;
         }
@@ -246,7 +299,7 @@ namespace ACE.Server.Managers
                 .Where(wo => IsJobObject(wo) && player.GetCylinderDistance(wo) <= TakeRange)
                 .OrderBy(wo => player.GetCylinderDistance(wo)).FirstOrDefault();
             if (near == null)
-                return "Stand by a town's job board or Job Runner to take a job.";
+                return "Stand by a town's job board to take a job.";
 
             var town = GetTown(near);
             if (town == null)
@@ -279,7 +332,7 @@ namespace ACE.Server.Managers
                 .Where(wo => IsJobObject(wo) && player.GetCylinderDistance(wo) <= TakeRange).FirstOrDefault();
             var nearTown = near != null ? GetTown(near) : null;
             if (nearTown == null)
-                return "Stand by the job board or Job Runner of the town the job is from.";
+                return "Stand by the job board of the town the job is from.";
             if (number < 1 || number > nearTown.Jobs.Count)
                 return $"The {nearTown.Name} board has jobs 1 to {nearTown.Jobs.Count}.";
 
@@ -306,7 +359,7 @@ namespace ACE.Server.Managers
                     if (state == JobState.Taken)
                         lines.Add($"{town.Name} job {i + 1}: {job.Name} (start with {job.Start}, {job.Where})");
                     else if (state == JobState.Finished)
-                        lines.Add($"{town.Name} job {i + 1}: {job.Name} (finished: see the {town.Name} Job Runner)");
+                        lines.Add($"{town.Name} job {i + 1}: {job.Name} (finished: read the {town.Name} job board for your pay)");
                 }
             }
 

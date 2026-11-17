@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
         {
             var targetCreature = !spell.IsSelfTargeted || spell.IsFellowshipSpell ? target as Creature : this as Creature;
 
-            if (this is Gem || this is Food || this is Hook)
+            if (this is Gem || this is Food || this is Hook || this is not Creature)
                 targetCreature = target as Creature;
 
             if (spell.School == MagicSchool.LifeMagic || spell.MetaSpellType == SpellType.Dispel)

@@ -1,7 +1,8 @@
 -- Project ACX (2026-11-14): furniture and animals for building gambling halls in Concordia (JJ: "gambling hall
 -- decorations from ghu and aluvian", "if we have counter tops and all that that would be great. some fence posts I wanna
--- put a permanent cow and a couple of chickens"), placed with the ACX Foundry Gambling tab. Fixed scenery like the
--- piles (70-decor-piles.sql): can't be picked up, worth nothing, walk-through.
+-- put a permanent cow and a couple of chickens"), placed with the ACX Foundry Gambling tab. Fixed scenery: can't be
+-- picked up, worth nothing, and solid like retail's placed tables and crates (JJ 2026-11-17: "furniture should be solid";
+-- they were walk-through like the piles in 70-decor-piles.sql, which stay that way so chests can sit in them).
 --   900771-900776: models built into the retail Aluvian and Gharu'ndim halls (they have no placeable version): a tall
 --     iron-bound crate, a plank crate, two big wooden fixtures (the large one's model is centred on its middle, so it
 --     needs nudging up 1.25 m after placing), and two standing paper lanterns.
@@ -36,7 +37,7 @@ INSERT INTO acx_hall_pieces VALUES
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT class_Id, class_Name, 1, NOW() FROM acx_hall_pieces;
 INSERT INTO weenie_properties_int (object_Id, type, value)
 SELECT h.class_Id, p.type, p.value FROM acx_hall_pieces h
-CROSS JOIN (SELECT 1 type, 128 value UNION ALL SELECT 5, 0 UNION ALL SELECT 16, 1 UNION ALL SELECT 19, 0 UNION ALL SELECT 93, 1044) p;   -- misc, no burden, not usable, no value, walk-through
+CROSS JOIN (SELECT 1 type, 128 value UNION ALL SELECT 5, 0 UNION ALL SELECT 16, 1 UNION ALL SELECT 19, 0 UNION ALL SELECT 93, 1048) p;   -- misc, no burden, not usable, no value, solid (PhysicsState Gravity | IgnoreCollisions | ReportCollisions, as retail's placed tables; 1044 added Ethereal)
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT class_Id, 65, placement FROM acx_hall_pieces WHERE placement IS NOT NULL;   -- Placement
 INSERT INTO weenie_properties_bool (object_Id, type, value) SELECT class_Id, 1, 1 FROM acx_hall_pieces;   -- Stuck
 INSERT INTO weenie_properties_float (object_Id, type, value) SELECT class_Id, 39, scale FROM acx_hall_pieces WHERE scale IS NOT NULL;   -- DefaultScale

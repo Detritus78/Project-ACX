@@ -75,7 +75,10 @@ namespace ACE.Server.Factories
                 {
                     tier = 5;
                 }
-                if (ThreadSafeRandom.Next(1, 3500) == 1)    // 1 in 8,750,000 chance
+                // Project ACX: tier 6 (the weapon rares) is retail's 1 in 3,500 rares divided by acx_rare_weapon_chance_mod
+                // (JJ 2026-11-16: 50x, about one rare weapon per 10 months of play for one player)
+                var tier6Odds = Math.Max(1, (int)Math.Round(3500 / Math.Max(1.0, Managers.PropertyManager.GetDouble("acx_rare_weapon_chance_mod").Item)));
+                if (ThreadSafeRandom.Next(1, tier6Odds) == 1)    // retail: 1 in 8,750,000 chance
                 {
                     tier = 6;
                 }

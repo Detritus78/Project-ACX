@@ -35,11 +35,32 @@ namespace ACE.Server.Managers
             }
         }
 
+        private const string AcxTestBagPrefix = "acx-test-bag-";
+
+        /// <summary>
+        /// Project ACX (Preview test tooling): the Foundry's test salvage bags (acx/Experiments/salvage-test-vendor.sql,
+        /// class name "acx-test-bag-" + the retail bag's) are full copies of retail salvage, but this code finds a
+        /// salvage's recipe by its item number, so a bag found none for any item missing from retail's cook book (quest
+        /// and loot weapons, ACX items; JJ 2026-11-16: "The Iron Salvaged cannot be used on the Ruby Partizan [BS]").
+        /// Returns the retail bag's item number for a test bag, else the item's own. No such bag exists on Live.
+        /// </summary>
+        private static uint AcxTestBagOriginal(WorldObject source)
+        {
+            var className = source.WeenieClassName;
+            if (className == null || !className.StartsWith(AcxTestBagPrefix))
+                return source.WeenieClassId;
+
+            return DatabaseManager.World.GetCachedWeenie(className.Substring(AcxTestBagPrefix.Length))?.WeenieClassId ?? source.WeenieClassId;
+        }
+
         public static Recipe GetNewRecipe(Player player, WorldObject source, WorldObject target)
         {
             Recipe recipe = null;
 
-            switch ((WeenieClassName)source.WeenieClassId)
+            // Project ACX: a Foundry test bag is looked up as the retail salvage it copies (AcxTestBagOriginal)
+            var sourceClass = (WeenieClassName)AcxTestBagOriginal(source);
+
+            switch (sourceClass)
             {
                 case WeenieClassName.W_POTDYEDARKGREEN_CLASS:
                 case WeenieClassName.W_POTDYEDARKRED_CLASS:
@@ -83,7 +104,7 @@ namespace ACE.Server.Managers
                     if (!(target.GetProperty(PropertyBool.Ivoryable) ?? false))
                         return null;
 
-                    var recipeId = source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALIVORY_CLASS ? 9069 : 3977;
+                    var recipeId = sourceClass == WeenieClassName.W_MATERIALRAREETERNALIVORY_CLASS ? 9069 : 3977;
 
                     recipe = DatabaseManager.World.GetCachedRecipe((uint)recipeId);
 
@@ -100,7 +121,7 @@ namespace ACE.Server.Managers
                     if (target.MaterialType == null && !target.IsSellable && target.ItemMaxMana == null)
                         return null;
 
-                    recipeId = source.WeenieClassId == (int)WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ? 9070 : 4426;
+                    recipeId = sourceClass == WeenieClassName.W_MATERIALRAREETERNALLEATHER_CLASS ? 9070 : 4426;
 
                     recipe = DatabaseManager.World.GetCachedRecipe((uint)recipeId);
 
@@ -177,7 +198,7 @@ namespace ACE.Server.Managers
                         return null;
 
                     // grab correct recipe to use as base
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 case WeenieClassName.W_MATERIALMAHOGANY100_CLASS:
@@ -189,6 +210,10 @@ namespace ACE.Server.Managers
                     // "We want to be able to use mahogany on it like bows to increase the damage"). Like a bow, it takes
                     // Mahogany and not Iron or Granite.
                     if ((target.WeenieType != WeenieType.MissileLauncher && !Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(target.WeenieClassId)) || target.Workmanship == null)
+                        return null;
+
+                    // Project ACX: an Alchemist's bomb takes Obsidian for its Potency instead (RecipeManager_Acx)
+                    if (Factories.Tables.Wcids.AcxBombWcids.IsBomb(target.WeenieClassId))
                         return null;
 
                     // use mahogany recipe as base
@@ -253,7 +278,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Generic || target.Workmanship == null || target.ValidLocations == EquipMask.TrinketOne)
                         return null;
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 //case WeenieClassName.W_MATERIALSTEEL50_CLASS:
@@ -287,7 +312,7 @@ namespace ACE.Server.Managers
                     if (source.MaterialType == MaterialType.Steel && !target.IsEnchantable)
                         return null;
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 case WeenieClassName.W_MATERIALPERIDOT_CLASS:
@@ -305,7 +330,7 @@ namespace ACE.Server.Managers
                     if (!target.HasArmorLevel() || target.Workmanship == null)
                         return null;
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 // imbues - foolproof handled in regular imbue code
@@ -358,7 +383,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_MATERIALACE36627FOOLPROOFSUNSTONE:
                 case WeenieClassName.W_MATERIALACE36628FOOLPROOFWHITESAPPHIRE:
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 // Society Shields
@@ -394,7 +419,7 @@ namespace ACE.Server.Managers
                     if (target.WeenieType != WeenieType.Generic || target.ItemType != ItemType.Armor || !target.IsShield)
                         return null;
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 // Slayer stones
@@ -403,7 +428,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_SPECTRALSKULL_CLASS:
                 case WeenieClassName.W_ANEKSHAYSLAYERSTONE_CLASS:
 
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 // Paragon Weapons
@@ -478,7 +503,7 @@ namespace ACE.Server.Managers
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE48THTIERPARAGON_CLASS:
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE49THTIERPARAGON_CLASS:
                 case WeenieClassName.W_LUMINOUSAMBEROFTHE50THTIERPARAGON_CLASS:
-                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[(WeenieClassName)source.WeenieClassId]);
+                    recipe = DatabaseManager.World.GetCachedRecipe(SourceToRecipe[sourceClass]);
                     break;
 
                 case WeenieClassName.W_UNINSCRIPTIONSTONE_CLASS:

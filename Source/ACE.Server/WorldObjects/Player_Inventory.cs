@@ -3437,6 +3437,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (item.WeenieClassId == AcxGuideWcid && target.Name == "Town Crier")   // Project ACX: the ACX Guide turn-in
+            {
+                AcxGuideTurnIn(target, item);
+                return;
+            }
+
             if (item is PetDevice petDevice && petDevice.Pet is not null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You must unsummon your pet before you can transfer this item!"));

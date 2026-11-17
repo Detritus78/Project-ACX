@@ -9,12 +9,41 @@
 #   acx.sh backup  <live|preview>   dump auth+shard+world to $ACX_BACKUP_DIR
 #   acx.sh apply-content <live|preview>  load acx/Content/**/*.sql into the world DB, then restart the server
 #   acx.sh clone-live-to-preview    copy Live's characters and accounts into Preview
+# Live runs on the Live laptop (ssh host acx-live, over Tailscale) since 2026-11-17. On a machine without acx/live.env,
+# the live commands run there: up first sends it main (git archive), the others run its own acx.sh, and backup and
+# clone-live-to-preview dump its database over SSH.
 set -euo pipefail
 
 ACX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ACX_BACKUP_DIR="${ACX_BACKUP_DIR:-/run/media/jj/HDDStorage/acx-backups}"
+ACX_LIVE_SSH="${ACX_LIVE_SSH:-acx-live}"
+ACX_LIVE_TREE=project-acx   # on the Live laptop, in its home
 
 die() { echo "acx: $*" >&2; exit 1; }
+
+live_remote() { [[ "$1" == live && ! -f "$ACX_DIR/live.env" ]]; }
+
+# the Live laptop's own acx.sh
+remote_acx() { ssh "$ACX_LIVE_SSH" "$(printf '%q ' "$ACX_LIVE_TREE/acx/scripts/acx.sh" "$@")"; }
+
+# Live runs main: replace the laptop's tree with main's, keeping its live.env
+deploy_live() {
+    local root; root="$(git -C "$ACX_DIR" rev-parse --show-toplevel)"
+    echo "deploy: main $(git -C "$root" rev-parse --short main) to $ACX_LIVE_SSH"
+    git -C "$root" archive --format=tar main | ssh "$ACX_LIVE_SSH" "set -e
+        rm -rf $ACX_LIVE_TREE.new $ACX_LIVE_TREE.old
+        mkdir $ACX_LIVE_TREE.new
+        tar -x -C $ACX_LIVE_TREE.new
+        cp -p $ACX_LIVE_TREE/acx/live.env $ACX_LIVE_TREE.new/acx/live.env
+        echo $(git -C "$root" rev-parse main) > $ACX_LIVE_TREE.new/.acx-deployed-main
+        mv $ACX_LIVE_TREE $ACX_LIVE_TREE.old
+        mv $ACX_LIVE_TREE.new $ACX_LIVE_TREE"
+}
+
+# Live's database dumped over SSH ($1: the databases)
+remote_live_dump() {
+    ssh "$ACX_LIVE_SSH" "docker exec acx-live-db-1 sh -c 'exec mysqldump -uroot -p\"\$MYSQL_ROOT_PASSWORD\" --single-transaction --routines --databases $1'"
+}
 
 instance_env() {
     local name="$1"
@@ -54,7 +83,12 @@ cmd_init() {
 }
 
 dump() {
-    local name="$1" out="$2" env; env="$(instance_env "$name")"
+    local name="$1" out="$2"
+    if live_remote "$name"; then
+        remote_live_dump "ace_auth ace_shard ace_world" > "$out"
+        return
+    fi
+    instance_env "$name" > /dev/null
     compose "$name" exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --databases ace_auth ace_shard ace_world' > "$out"
 }
 
@@ -79,12 +113,25 @@ cmd_apply_content() {
 cmd_clone_live_to_preview() {
     local tmp; tmp="$(mktemp -d)"
     trap 'rm -rf "$tmp"' RETURN
-    compose live exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --databases ace_auth ace_shard' > "$tmp/live.sql"
+    if live_remote live; then
+        remote_live_dump "ace_auth ace_shard" > "$tmp/live.sql"
+    else
+        compose live exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --databases ace_auth ace_shard' > "$tmp/live.sql"
+    fi
     compose preview stop server
     compose preview exec -T db sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD"' < "$tmp/live.sql"
     compose preview start server
     echo "preview now has Live's accounts and characters (world DB left as Preview's own)"
 }
+
+if [[ "${2:-}" == live ]] && live_remote live; then
+    case "$1" in
+        init)          die "Live is on $ACX_LIVE_SSH" ;;
+        up)            deploy_live; remote_acx up live; exit ;;
+        down|apply-content) remote_acx "$1" live; exit ;;
+        logs|console)  exec ssh -t "$ACX_LIVE_SSH" "$ACX_LIVE_TREE/acx/scripts/acx.sh $1 live" ;;
+    esac
+fi
 
 case "${1:-}" in
     init)    cmd_init "${2:?instance}" ;;
@@ -92,7 +139,11 @@ case "${1:-}" in
     down)    compose "${2:?instance}" down ;;
     logs)    compose "${2:?instance}" logs -f server ;;
     console) docker attach "$(compose "${2:?instance}" ps -q server)" ;;
-    status)  docker ps --filter name=acx- --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' ;;
+    status)  docker ps --filter name=acx- --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+             if live_remote live; then
+                 echo "on $ACX_LIVE_SSH:"
+                 ssh "$ACX_LIVE_SSH" "docker ps --filter name=acx- --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
+             fi ;;
     backup)  cmd_backup "${2:?instance}" ;;
     apply-content) cmd_apply_content "${2:?instance}" ;;
     clone-live-to-preview) cmd_clone_live_to_preview ;;

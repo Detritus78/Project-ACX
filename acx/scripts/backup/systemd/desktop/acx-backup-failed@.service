@@ -1,0 +1,7 @@
+# Project ACX (desktop, user unit): a critical desktop alert when a backup job fails (critical gets through Do Not Disturb)
+[Unit]
+Description=Project ACX: alert that %i failed
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/notify-send -u critical -a "Project ACX" "ACX backup failed" "%i did not finish. Details: journalctl --user -u %i"

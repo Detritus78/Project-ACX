@@ -20,7 +20,13 @@ WHERE k.parent_Guid IN (0x7018A0BA, 0x7018A119);
 DELETE FROM landblock_instance_link WHERE parent_Guid IN (0x7018A0BA, 0x7018A119);
 DELETE FROM landblock_instance WHERE guid IN (0x7018A0BA, 0x7018A119);
 
-UPDATE landblock_instance SET is_Link_Child = 0 WHERE guid IN (0x7018A0B6, 0x7018A10D, 0x7018A10E, 0x7018A10F);   -- Yado, Crier, Agent, Aun Xathurea
+UPDATE landblock_instance SET is_Link_Child = 0 WHERE guid IN (0x7018A10D, 0x7018A10E);   -- Town Crier, Agent of the Arcanum
+-- 2026-11-17, JJ on the hub: "I want them to go out to shop and sell": Jeeves goes (the developers' 236-item supply shop,
+-- quest keys included: "Jeeves get rid of"), Master Yado goes ("we are opting to do self buffs so he can go") and Aun
+-- Xathurea goes ("Go turn in your crafts the old school way"). The Pawn Shopkeep stays as the gambling hall's buyer, at a
+-- flat lower rate (acx_concordia_buy_rate, AcxVendorReputation); the Agent of the Arcanum stays.
+DELETE FROM landblock_instance_link WHERE child_Guid IN (0x7018A0B5, 0x7018A0B6, 0x7018A10F);
+DELETE FROM landblock_instance WHERE guid IN (0x7018A0B5, 0x7018A0B6, 0x7018A10F);   -- Jeeves, Master Yado, Aun Xathurea
 DELETE FROM landblock_instance_link WHERE parent_Guid IN (0x7018A0BB, 0x7018A10A);
 DELETE FROM landblock_instance WHERE guid IN (0x7018A0BB, 0x7018A10A);
 

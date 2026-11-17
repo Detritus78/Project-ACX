@@ -225,7 +225,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var launchTime = EnqueueMotionPersist(actionChain, aimLevel);
+            var launchTime = EnqueueMotionPersist(actionChain, aimLevel, AcxThrowSpeedMod(ammo));   // Project ACX: an Alchemist's bomb (acx_alchemist_throw_speed)
 
             // launch projectile
             actionChain.AddAction(this, () =>
@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // reload animation
-            var animSpeed = GetAnimSpeed();
+            var animSpeed = GetAnimSpeed() * AcxThrowSpeedMod(ammo);   // Project ACX: an Alchemist's bomb (acx_alchemist_throw_speed)
             var reloadTime = EnqueueMotionPersist(actionChain, stance, MotionCommand.Reload, animSpeed);
 
             // reset for next projectile

@@ -19,9 +19,9 @@
           "start": "Worcer", "where": "in the Holtburg tavern",
           "notes": "Worcer wants help recovering some items from the old Redoubt.",
           "flag": "HoltburgRedoubtCompleted_1111" },
-        { "id": "holtburg-game-hunt-easy", "name": "Rand's Tagged Game", "level": 15,
+        { "id": "holtburg-game-hunt-easy", "name": "Rand's Tagged Game", "level": 100,
           "start": "Rand, Game Hunter", "where": "in Holtburg",
-          "notes": "Rand has tagged creatures to test your skills. Kill them and he'll make it worth your while.",
+          "notes": "Rand has tagged creatures to test your skills: Voracious Eaters (levels 100 to 115). Kill them and he'll make it worth your while.",
           "flag": "MGHEasyCompleted" },
         { "id": "holtburg-cow-tipping", "name": "Cow Tipping", "level": 1,
           "start": "Dwennon", "where": "in Holtburg",
@@ -30,7 +30,31 @@
         { "id": "holtburg-chicken", "name": "Why Did the Chicken...", "level": 1,
           "start": "The Chicken", "where": "just south of Holtburg",
           "notes": "Find out why it crossed the road.",
-          "flag": "CrossedRoad" }
+          "flag": "CrossedRoad" },
+        { "id": "holtburg-mukkir-hunt", "name": "Fledgling Mukkir Hunt", "level": 30,
+          "start": "the Royal Guard", "where": "just southeast of Holtburg, by the knights' house",
+          "notes": "The Royal Guard wants 15 small fledgling mukkirs culled.",
+          "flag": "KillTaskSmallFledglingMukkirCompleted0806" },
+        { "id": "holtburg-regicide", "name": "Regicide", "level": 40,
+          "start": "Sir Rylanan", "where": "in a house just southeast of Holtburg",
+          "notes": "A plot against the Queen. It starts with a cryptic note carried by the hollow minions west of Holtburg; Sir Tenshin in Shoushi and Dame Tsaya in Yaraq hold the rest of it.",
+          "flag": "RegicideComplete" },
+        { "id": "holtburg-tursh-totem-weakened", "name": "The Tursh Totem (Weakened Vault)", "level": 40,
+          "start": "Tirenia", "where": "in Holtburg",
+          "notes": "Creatures have broken into one of the Queen's hidden vaults. Get in through the sewers and stop them. This vault is for level 40 and up.",
+          "flag": "TurshTotemLowComplete_0511" },
+        { "id": "holtburg-tursh-totem-secured", "name": "The Tursh Totem (Secured Vault)", "level": 60,
+          "start": "Tirenia", "where": "in Holtburg",
+          "notes": "The same job, in the vault for level 60 and up.",
+          "flag": "TurshTotemMidComplete_0511" },
+        { "id": "holtburg-tursh-totem-reinforced", "name": "The Tursh Totem (Reinforced Vault)", "level": 80,
+          "start": "Tirenia", "where": "in Holtburg",
+          "notes": "The same job, in the vault for level 80 and up.",
+          "flag": "TurshTotemHighComplete_0511" },
+        { "id": "holtburg-tursh-totem-fortified", "name": "The Tursh Totem (Fortified Vault)", "level": 100,
+          "start": "Tirenia", "where": "in Holtburg",
+          "notes": "The same job, in the vault for level 100 and up.",
+          "flag": "TurshTotemUberComplete_0511" }
       ]
     },
     {
@@ -55,7 +79,19 @@
         { "id": "shoushi-tanada-storms", "name": "The Tanada House of Storms", "level": 20,
           "start": "Sayuji Jina", "where": "in Shoushi",
           "notes": "The next of the Tanada clan's trials.",
-          "flag": "TanadaHouseofStormsCompleted" }
+          "flag": "TanadaHouseofStormsCompleted" },
+        { "id": "shoushi-blood-shreth", "name": "Blood Shreth Butcher", "level": 8,
+          "start": "San Ming", "where": "in Shoushi",
+          "notes": "San Ming wants ten blood shreths dead.",
+          "flag": "KilltaskBloodShrethWait" },
+        { "id": "shoushi-house-of-pancakes", "name": "The Tanada House of Pancakes", "level": 10,
+          "start": "Chow Doun", "where": "in Shoushi",
+          "notes": "Someone has stolen Chow Doun's baking supplies, and he has a name: Master Pon Mi.",
+          "flag": "IHOPwait" },
+        { "id": "shoushi-kilif-zefir", "name": "Kilif and Zefir Hunt", "level": 15,
+          "start": "Hadiya bint Anan", "where": "in a building in Shoushi",
+          "notes": "Hadiya wants 35 kilifs and zefirs cleared from the sites she marks for you.",
+          "flag": "KilltaskKilifZefirWait" }
       ]
     },
     {
@@ -93,7 +129,712 @@
         { "id": "sanamar-trade-alliance", "name": "The Trade Alliance", "level": 20,
           "start": "Anton Sillezi", "where": "in Sanamar",
           "notes": "Anton wants a trade alliance with the merchants of the other starter towns. Expect to travel.",
-          "flag": "TradeAllianceQuestCompleted" }
+          "flag": "TradeAllianceQuestCompleted" },
+        { "id": "sanamar-lorca-necklace", "name": "Lorca Sammel's Necklace", "level": 8,
+          "start": "Lorca Sammel", "where": "in Sanamar",
+          "notes": "Lorca lost his heirloom necklace to a colony of rabid penguins. For levels 1 to 20.",
+          "flag": "LorcaSammelNecklaceAcquired" },
+        { "id": "sanamar-thrungus-hovels", "name": "The Thrungus Hovels", "level": 10,
+          "start": "the Portal Guardian", "where": "at Sanamar's portal drop",
+          "notes": "Thrungum have robbed the Royal Hall. Bring back all eight stolen items from the four hovels on the island. For levels 1 to 20.",
+          "flag": "ThrungusHovels" }
+      ]
+    },
+    {
+      "name": "Cragstone",
+      "jobs": [
+        { "id": "cragstone-lanias-letters", "name": "Lania's Letters", "level": 20,
+          "start": "Glysander Cartoth", "where": "in a house in Cragstone",
+          "notes": "Glysander wants back the letters the Queen once wrote to his sister Lania. They're scattered far and wide.",
+          "flag": "GAVELETTERTHORSTENARMOR5" },
+        { "id": "cragstone-drudge-lurkers", "name": "Drudge Lurker Hunt", "level": 40,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "Jarvis wants 100 drudge lurkers killed.",
+          "flag": "KillTaskDrudgeLurkersWait_0507" },
+        { "id": "cragstone-drudge-stalkers", "name": "Drudge Stalker Hunt", "level": 50,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "Jarvis wants 100 drudge stalkers killed.",
+          "flag": "KillTaskDrudgeStalkersWait_0507" },
+        { "id": "cragstone-drudge-raveners", "name": "Drudge Ravener Hunt", "level": 80,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "Jarvis wants 50 drudge raveners killed.",
+          "flag": "KillTaskDrudgeRavenersWait_0507" },
+        { "id": "cragstone-altered-drudges", "name": "Altered Drudge Hunt", "level": 80,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "Jarvis wants 40 altered drudges killed.",
+          "flag": "KillTaskAlteredDrudgesWait_0507" },
+        { "id": "cragstone-augmented-drudges", "name": "Augmented Drudge Hunt", "level": 80,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "Jarvis wants 40 augmented drudges killed.",
+          "flag": "KillTaskAugmentedDrudgesWait_0507" },
+        { "id": "cragstone-asherons-departure", "name": "Asheron's Departure Journal", "level": 80,
+          "start": "Shan Zhen", "where": "just east of Cragstone",
+          "notes": "Shan Zhen is looking for the journal Asheron left behind.",
+          "flag": "AsheronsDepartureJournal" },
+        { "id": "cragstone-prodigal-monouga", "name": "The Prodigal Monouga", "level": 80,
+          "start": "Corporal Liao Chen", "where": "just east of Cragstone",
+          "notes": "Liao Chen wants the experiment logs from the Monouga laboratory. The lab has versions for level 80, 120 and 150.",
+          "flag": "ProdigalMonougaCompleted0707" },
+        { "id": "cragstone-necklace-of-elements", "name": "Necklace of the Elemental Adepts", "level": 100,
+          "start": "Royal Guard Qumasha", "where": "just east of Cragstone",
+          "notes": "Qumasha is after the mine commanders' gems, and what Count Dardante was hiding.",
+          "flag": "NecklaceOfTheElementsComplete" },
+        { "id": "cragstone-bonecrunch", "name": "The Prodigal Drudge", "level": 115,
+          "start": "Jarvis Hammerstone", "where": "just east of Cragstone",
+          "notes": "The drudges have a new leader, Bonecrunch. Jarvis wants him beaten in his fort.",
+          "flag": "DefeatedProdigalDrudgeWait" },
+        { "id": "cragstone-gear-knight-excavation", "name": "The Gear Knight Excavation", "level": 150,
+          "start": "Felizio Calmasi", "where": "in Cragstone",
+          "notes": "The Apostate Virindi are digging at a site in the Direlands. Felizio wants to know what for.",
+          "flag": "GearKnightExcavationComplete0809" }
+      ]
+    },
+    {
+      "name": "Greenspire",
+      "jobs": [
+        { "id": "greenspire-littoral-siraluun", "name": "Littoral Siraluun Hunt", "level": 40,
+          "start": "Rico Cellini", "where": "in Greenspire",
+          "notes": "Rico wants 25 littoral siraluun killed.",
+          "flag": "LittoralSiraluunKillTask" },
+        { "id": "greenspire-enricos-betrayal", "name": "Enrico's Betrayal", "level": 80,
+          "start": "Enrico di Bellenesse", "where": "in a building in Greenspire",
+          "notes": "Three letters lie in royal chests in three dungeons. Enrico wants them all.",
+          "flag": "EnricosBetrayalComplete_0511" },
+        { "id": "greenspire-tentacles-of-tthuun", "name": "Tentacles of T'thuun", "level": 150,
+          "start": "Tamara du Cinghalle", "where": "in Greenspire",
+          "notes": "Tamara wants 50 of T'thuun's tentacles, tendrils and eyestalks cut down.",
+          "flag": "KillTaskTentacleofTthuunWait_0908" }
+      ]
+    },
+    {
+      "name": "Lytelthorpe",
+      "jobs": [
+        { "id": "lytelthorpe-dame-brinna", "name": "Dame Brinna's Case", "level": 20,
+          "start": "Dame Brinna O'Shea", "where": "in a house just west of Lytelthorpe",
+          "notes": "Dame Brinna has a case that needs a gumshoe. The clues are matched to your level.",
+          "flag": "FinishedNoir1" }
+      ]
+    },
+    {
+      "name": "Rithwic",
+      "jobs": [
+        { "id": "rithwic-tamian-wilmot", "name": "Where Is Tamian Wilmot?", "level": 15,
+          "start": "Astara Duskshield", "where": "just southwest of Rithwic",
+          "notes": "Astara has not seen Tamian in some time and is worried. Ask around Rithwic, and further afield.",
+          "flag": "GOTTAMIANJOURNALAWARD" }
+      ]
+    },
+    {
+      "name": "Kryst",
+      "jobs": [
+        { "id": "kryst-prodigal-mosswart", "name": "Aerbax's Prodigal Mosswart", "level": 80,
+          "start": "Sergeant Brigitta", "where": "just northeast of Kryst",
+          "notes": "Something has stirred the mosswarts up. Sergeant Brigitta wants it stopped.",
+          "flag": "AerbaxsProdigalMosswartCompleted" },
+        { "id": "kryst-mosswart-townsfolk", "name": "Mosswart Townsfolk Hunt", "level": 80,
+          "start": "Corporal Massein", "where": "just northeast of Kryst",
+          "notes": "Corporal Massein wants 40 mosswart townsfolk killed.",
+          "flag": "KilltaskMosswartTownsfolkWait_0507" }
+      ]
+    },
+    {
+      "name": "Nanto",
+      "jobs": [
+        { "id": "nanto-empty-soul", "name": "Empty Soul", "level": 50,
+          "start": "Han Rin-Jo, Jojii Adherent", "where": "in a building just southwest of Nanto",
+          "notes": "Follow Honshu Takeda's path: the shrines of the Unicorn, the Firebird and the Dragon. His journey ends near Kara.",
+          "flag": "EmptySoulComplete" }
+      ]
+    },
+    {
+      "name": "Yanshi",
+      "jobs": [
+        { "id": "yanshi-tunnels", "name": "The Yanshi Tunnels", "level": 125,
+          "start": "Royal Guard Adrana", "where": "just north of Yanshi",
+          "notes": "Something is breeding in the tunnels under Yanshi. Adrana wants the swarm matron dead.",
+          "flag": "YanshiTunnelsComplete1205" },
+        { "id": "yanshi-kidnapped-princess", "name": "The Kidnapped Princess", "level": 125,
+          "start": "Sir Draithon", "where": "just west of Yanshi",
+          "notes": "A princess has been taken. Sir Draithon wants her found.",
+          "flag": "KidnapPrincessComplete_0410" },
+        { "id": "yanshi-four-corners", "name": "The Four Corners", "level": 180,
+          "start": "El'Yst Maggann", "where": "just north of Yanshi",
+          "notes": "El'Yst Maggann sends you to the four corners of Dereth for the pieces of a signet.",
+          "flag": "FourCornersCompleted_1113" },
+        { "id": "yanshi-virindi-sentinel", "name": "The Virindi Sentinel's Message", "level": 180,
+          "start": "the Virindi Delegate", "where": "just north of Yanshi",
+          "notes": "The Virindi Delegate wants a Virindi Sentinel's message shard.",
+          "flag": "BTMCompleted_0513" }
+      ]
+    },
+    {
+      "name": "Bluespire",
+      "jobs": [
+        { "id": "bluespire-raeta-shrine", "name": "Aun Papileona's Amulet", "level": 8,
+          "start": "Aun Papileona", "where": "west of Bluespire",
+          "notes": "Aun Papileona's amulet lies in his shrine to Raeta.",
+          "flag": "BethelCompleted" },
+        { "id": "bluespire-caliginous-bethel", "name": "The Caliginous Bethel", "level": 90,
+          "start": "Aurten Rhell", "where": "in a building in Bluespire",
+          "notes": "Aurten needs a report on the strange happenings on the plateau.",
+          "flag": "CaliginousBethelComplete_0511" }
+      ]
+    },
+    {
+      "name": "Redspire",
+      "jobs": [
+        { "id": "redspire-moarsmen", "name": "The Moarsmen's Egg", "level": 15,
+          "start": "Guard Liaza", "where": "in a building in Redspire",
+          "notes": "Guard Liaza wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "RedspireMoarsmenComplete_0508" },
+        { "id": "redspire-hea-windreave", "name": "Hea Windreave Hunt", "level": 50,
+          "start": "Susana du Loc", "where": "in Redspire",
+          "notes": "Susana wants 25 hea windreaves killed.",
+          "flag": "HeaWindreaveKillTask" },
+        { "id": "redspire-ebon-gromnie", "name": "Ebon Gromnie Hunt", "level": 80,
+          "start": "Afra bint Abbas", "where": "in Redspire",
+          "notes": "Afra wants 25 ebon gromnies killed.",
+          "flag": "EbonGromnieTask" }
+      ]
+    },
+    {
+      "name": "Baishi",
+      "jobs": [
+        { "id": "baishi-dire-mattekar", "name": "Dire Mattekar Hunt", "level": 40,
+          "start": "Fergal the Dire", "where": "just west of Baishi",
+          "notes": "Fergal wants ten dire mattekars killed.",
+          "flag": "DireMattekarKillTask" }
+      ]
+    },
+    {
+      "name": "Eastham",
+      "jobs": [
+        { "id": "eastham-unleash-gear-knight", "name": "Unleash the Gear Knight", "level": 150,
+          "start": "Hei Shou", "where": "in a building just north of Eastham",
+          "notes": "The Apostates are building something with aetherium. Hei Shou wants a piece of its core.",
+          "flag": "UnleashGearKnightComplete0909" }
+      ]
+    },
+    {
+      "name": "Glenden Wood",
+      "jobs": [
+        { "id": "glendenwood-invaders", "name": "The Glenden Wood Invaders", "level": 80,
+          "start": "Londigul Ellic the Armorer", "where": "in a building just east of Glenden Wood",
+          "notes": "Viamontians and eaters are pressing on the town. Kill 20 of them and join the militia.",
+          "flag": "glendeninvaders" },
+        { "id": "glendenwood-portal-platform-80", "name": "The Portal Platforms (80)", "level": 80,
+          "start": "Captain Nyino", "where": "in a building just east of Glenden Wood",
+          "notes": "Investigate a Viamontian portal platform in the woods and put it out of action. The captain advises taking friends.",
+          "flag": "Completed_GWI80_1205" },
+        { "id": "glendenwood-portal-platform-100", "name": "The Portal Platforms (100)", "level": 100,
+          "start": "Captain Sovano", "where": "in a building just east of Glenden Wood",
+          "notes": "The level 100 version of the portal platform mission.",
+          "flag": "Completed_GWI100_1205" },
+        { "id": "glendenwood-portal-platform-130", "name": "The Portal Platforms (130)", "level": 130,
+          "start": "Captain Anrayl", "where": "in a building just east of Glenden Wood",
+          "notes": "The level 130 version of the portal platform mission.",
+          "flag": "Completed_GWI130_1205" }
+      ]
+    },
+    {
+      "name": "Lin",
+      "jobs": [
+        { "id": "lin-tusker-guards", "name": "Tusker Guard Hunt", "level": 80,
+          "start": "Shoichi", "where": "in a building west of Lin",
+          "notes": "Shoichi wants 500 tusker guards killed. A long hunt.",
+          "flag": "TuskerG" }
+      ]
+    },
+    {
+      "name": "Mayoi",
+      "jobs": [
+        { "id": "mayoi-moarsmen", "name": "The Moarsmen's Small Egg", "level": 30,
+          "start": "Guard Taizo", "where": "just north of Mayoi",
+          "notes": "Guard Taizo wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "MayoiMoarsmenComplete_0508" }
+      ]
+    },
+    {
+      "name": "Sawato",
+      "jobs": [
+        { "id": "sawato-soul-hunter", "name": "The Soul Hunter", "level": 60,
+          "start": "Hasin Lin", "where": "just northeast of Sawato",
+          "notes": "Hasin Lin wants the soul hunter's orders.",
+          "flag": "SoulHunterQuestWait_1106" },
+        { "id": "sawato-shroud-cabal-south", "name": "The Shroud Cabal: Ley-Leech", "level": 80,
+          "start": "Nomendar al-Rakh", "where": "just northeast of Sawato",
+          "notes": "Bring Nomendar the medallion of the Shroud Cabal's ley-leech.",
+          "flag": "SouthernShroudCabalComplete_0511" },
+        { "id": "sawato-shroud-cabal-north", "name": "The Shroud Cabal: Node-Leech", "level": 135,
+          "start": "Nomendar al-Rakh", "where": "just northeast of Sawato",
+          "notes": "Bring Nomendar the medallion of the Shroud Cabal's node-leech.",
+          "flag": "NorthernShroudCabalComplete_0511" },
+        { "id": "sawato-sawato-extortion", "name": "The Sawato Extortion", "level": 160,
+          "start": "Sergeant Huang", "where": "in a building just northeast of Sawato",
+          "notes": "Bandits are squeezing Sawato. Sergeant Huang wants their ledger.",
+          "flag": "SawatoExtortionComplete0806" },
+        { "id": "sawato-mosswart-cynics", "name": "Mosswart Cynic Hunt", "level": 240,
+          "start": "Osdryd", "where": "in Sawato",
+          "notes": "Osdryd wants 15 mosswart cynics killed.",
+          "flag": "KilltaskMosswartCynicWait_1121" }
+      ]
+    },
+    {
+      "name": "Tou-Tou",
+      "jobs": [
+        { "id": "toutou-grievvers", "name": "Tou-Tou: Grievver Shredders", "level": 200,
+          "start": "the Royal Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Kill 15 grievver shredders around Tou-Tou.",
+          "flag": "KillTaskTouTouGrievversCompleted0812" },
+        { "id": "toutou-marguls", "name": "Tou-Tou: Devourer Marguls", "level": 200,
+          "start": "the Umbral Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Kill 15 devourer marguls around Tou-Tou.",
+          "flag": "KillTaskTouTouMargulsCompleted0812" },
+        { "id": "toutou-flyers", "name": "Tou-Tou: Shadow Flyers", "level": 200,
+          "start": "the Umbral Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Kill 15 shadow flyers around Tou-Tou.",
+          "flag": "KillTaskTouTouFlyersCompleted0812" },
+        { "id": "toutou-pillars", "name": "Tou-Tou: Shadowy Pillars", "level": 200,
+          "start": "the Royal Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Destroy 4 shadowy pillars around Tou-Tou.",
+          "flag": "KillTaskTouTouPillarsCompleted0812" },
+        { "id": "toutou-void-lords", "name": "Tou-Tou: Void Lords", "level": 240,
+          "start": "the Royal Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Kill 15 void lords around Tou-Tou.",
+          "flag": "KillTaskTouTouKnightsCompleted0812" },
+        { "id": "toutou-panumbris-shadows", "name": "Tou-Tou: Panumbris Shadows", "level": 240,
+          "start": "the Royal Guard", "where": "just northeast of Tou-Tou",
+          "notes": "Kill 25 panumbris shadows around Tou-Tou.",
+          "flag": "KillTaskTouTouShadowsCompleted0812" }
+      ]
+    },
+    {
+      "name": "Xarabydun",
+      "jobs": [
+        { "id": "xarabydun-menhir-research", "name": "Menhir Research", "level": 50,
+          "start": "Cara the Apprentice", "where": "in a building just west of Xarabydun",
+          "notes": "Cara is studying the menhir rings. Visit twenty of them across Dereth and report back.",
+          "flag": "MehirResearchComplete0310" },
+        { "id": "xarabydun-energy-rock", "name": "The Energy-Infused Rock", "level": 100,
+          "start": "Fayza", "where": "in a building just west of Xarabydun",
+          "notes": "Fayza wants a sample of a strange, light, energy-infused rock.",
+          "flag": "DeewainCompleted0211" },
+        { "id": "xarabydun-nurino", "name": "Nurino's Gear Knight Parts", "level": 130,
+          "start": "Nurino", "where": "just northwest of Xarabydun",
+          "notes": "Nurino is studying the Gear Knights and needs parts and a mana gem.",
+          "flag": "NurinoPart3Done" },
+        { "id": "xarabydun-atamarr", "name": "Atamarr's Envoy", "level": 180,
+          "start": "Atamarr", "where": "just northwest of Xarabydun",
+          "notes": "Atamarr wants contact made with one of the Gauntlet Knight-Commanders.",
+          "flag": "AtamarrDone" },
+        { "id": "xarabydun-gurog-creation", "name": "The Gurog Creation", "level": 200,
+          "start": "Fayza", "where": "in a building just west of Xarabydun",
+          "notes": "Strange furred creatures are being seen in the icy north. Fayza wants to know where they came from.",
+          "flag": "GurogCreationCompleted_1110" }
+      ]
+    },
+    {
+      "name": "Zaikhal",
+      "jobs": [
+        { "id": "zaikhal-decrepit-tower", "name": "The Decrepit Tower", "level": 80,
+          "start": "Ufet, Prophet of Blades", "where": "in Zaikhal",
+          "notes": "Ufet wants the Zharalim foreman's journal from the decrepit tower.",
+          "flag": "DecrepitTowerComplete_0511" },
+        { "id": "zaikhal-sishalti", "name": "Sishalti Hunt", "level": 105,
+          "start": "Zava bint Laurma", "where": "in Zaikhal",
+          "notes": "Zava wants 150 of the sishalti's tentacles, tendrils and eyestalks cut down.",
+          "flag": "SishaltiSlithisKillTask" },
+        { "id": "zaikhal-crimson-night", "name": "The Silifi of Crimson Night", "level": 110,
+          "start": "Maqudh al Nishadina", "where": "just south of Zaikhal",
+          "notes": "Maqudh wants the Ruby of Crimson Night from Darayavaush the Red.",
+          "flag": "SilifiofCrimsonNightComplete" },
+        { "id": "zaikhal-uncover-renegades", "name": "Uncover the Renegades", "level": 150,
+          "start": "Aruq ibn Balthar", "where": "in Zaikhal",
+          "notes": "Aruq suspects renegade Apostates. Find their orders.",
+          "flag": "UncoverRenegadesComplete0309" },
+        { "id": "zaikhal-nexus-crawl", "name": "The Nexus Crawl", "level": 150,
+          "start": "Ned the Clever", "where": "in a building in Zaikhal",
+          "notes": "Ned has a resonator and a plan for the Apostate nexus.",
+          "flag": "NexusCrawlCompleted0509" },
+        { "id": "zaikhal-rytherans-journal", "name": "Rytheran's Journal", "level": 150,
+          "start": "Danira the Dusty", "where": "in a building just northwest of Zaikhal",
+          "notes": "Danira wants Lord Rytheran's journal from his library.",
+          "flag": "rythjournalrepeat" }
+      ]
+    },
+    {
+      "name": "Arwic",
+      "jobs": [
+        { "id": "arwic-first-contact", "name": "First Contact", "level": 50,
+          "start": "Translator Aun Laokhe", "where": "just northeast of Arwic",
+          "notes": "Bring the translator three of the strange fleshy journals the Burun carry, and learn where the dark magic comes from.",
+          "flag": "FirstContactComplete_0511" },
+        { "id": "arwic-queen-elysa-in-danger", "name": "Queen Elysa in Danger", "level": 100,
+          "start": "Lord Dargeth", "where": "in a building just northeast of Arwic",
+          "notes": "A stranger in Glenden Wood says the Queen is in danger. Lord Dargeth wants you to do whatever he asks.",
+          "flag": "QueenElysaInDangerCompleted" }
+      ]
+    },
+    {
+      "name": "Westwatch",
+      "jobs": [
+        { "id": "westwatch-deathcap-thrungus", "name": "Deathcap Thrungus Hunt", "level": 50,
+          "start": "Jiang Li", "where": "in a building in Westwatch",
+          "notes": "Jiang Li wants 25 deathcap thrungus killed.",
+          "flag": "DeathcapThrungusKillTask" }
+      ]
+    },
+    {
+      "name": "Freehold",
+      "jobs": [
+        { "id": "freehold-pet-penguin", "name": "Mr. P's Penguin", "level": 60,
+          "start": "Mr. P", "where": "east of Freehold",
+          "notes": "Mr. P has a sweet tooth and a soft spot for penguins. Find a penguin egg.",
+          "flag": "petpenguinwait" }
+      ]
+    },
+    {
+      "name": "Qalabar",
+      "jobs": [
+        { "id": "qalabar-faces-of-the-mukkir", "name": "Faces of the Mukkir", "level": 40,
+          "start": "Qath al-Haddash", "where": "just northwest of Qalabar",
+          "notes": "Qath wants the encoded notes of the mukkir researchers. The researcher you face is matched to your level (40 and up).",
+          "flag": "FacesMukkirComplete1005" },
+        { "id": "qalabar-prodigal-tumerok", "name": "Aerbax's Prodigal Tumerok", "level": 80,
+          "start": "Nomea ibn Makar", "where": "in a building just northwest of Qalabar",
+          "notes": "The tumeroks are stirring. Nomea needs it looked into.",
+          "flag": "aerbaxsprodigaltumerokwait" },
+        { "id": "qalabar-virindi-paradox", "name": "Virindi Paradox Hunt", "level": 220,
+          "start": "Guard Taziq", "where": "in a building just northwest of Qalabar",
+          "notes": "Guard Taziq wants 75 virindi paradoxes killed.",
+          "flag": "VirindiParadoxKillTask" }
+      ]
+    },
+    {
+      "name": "Ahurenga",
+      "jobs": [
+        { "id": "ahurenga-hea-bone", "name": "Hagra's Holdfast", "level": 75,
+          "start": "Hea Kassoka", "where": "north of Ahurenga",
+          "notes": "Mosswarts keep raiding Hea Kassoka's supplies. Deal with their chief, by treaty or by force.",
+          "flag": "HeaBoneFlagTimer" }
+      ]
+    },
+    {
+      "name": "Bandit Castle",
+      "jobs": [
+        { "id": "banditcastle-grael-island", "name": "Grael Island", "level": 150,
+          "start": "Kiriel Shadowborn", "where": "northeast of Bandit Castle",
+          "notes": "Kiriel wants the three temples of Grael's island opened, and what lies at their heart.",
+          "flag": "GraelIslandComplete0606" }
+      ]
+    },
+    {
+      "name": "Danby's Outpost",
+      "jobs": [
+        { "id": "danbys-moarsmen", "name": "The Moarsmen's Medium Egg", "level": 50,
+          "start": "Marcus Danby", "where": "at Danby's Outpost",
+          "notes": "Marcus wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "DanbyMoarsmenComplete_0508" },
+        { "id": "danbys-tug-of-war", "name": "Tug of War", "level": 50,
+          "start": "Jin Ghao", "where": "at Danby's Outpost",
+          "notes": "Sanamar is courting Fort Tethana. Jin Ghao wants the Queen's answer delivered, and Tethana's price brought back.",
+          "flag": "TugOfWar" },
+        { "id": "danbys-save-a-pet", "name": "Save a Pet", "level": 150,
+          "start": "Colton Reeyan", "where": "at Danby's Outpost",
+          "notes": "Colton has a sealed letter, some drugged meat and an animal to save.",
+          "flag": "SaveAPetFinished_1212" }
+      ]
+    },
+    {
+      "name": "Dryreach",
+      "jobs": [
+        { "id": "dryreach-prison-break", "name": "The Dryreach Prison Break", "level": 25,
+          "start": "Dansha-Ki", "where": "in the tumerok camp southeast of Dryreach",
+          "notes": "Dansha-Ki is locked up by the tumeroks. Find his belongings so he can teleport out.",
+          "flag": "DryreachPrisonBreakQuest" },
+        { "id": "dryreach-tumerok-gladiators", "name": "Tumerok Gladiator Hunt", "level": 75,
+          "start": "Lieutenant Rothe", "where": "in Dryreach",
+          "notes": "Lieutenant Rothe wants 25 tumerok gladiators killed.",
+          "flag": "KilltaskTumerokGladiatorWait" }
+      ]
+    },
+    {
+      "name": "Kara",
+      "jobs": [
+        { "id": "kara-graverobber", "name": "The Graverobber", "level": 100,
+          "start": "Grularr Wa'ydo", "where": "in a building just west of Kara",
+          "notes": "Grularr has designs on Count Phainor's tomb.",
+          "flag": "GraverobberCompleted_0213" }
+      ]
+    },
+    {
+      "name": "Linvak Tukal",
+      "jobs": [
+        { "id": "linvaktukal-falatacot-depot", "name": "The Falatacot Depot", "level": 150,
+          "start": "Neelic", "where": "in Linvak Tukal",
+          "notes": "Neelic has orders for a Falatacot named Zrikux that need translating, and a depot to raid.",
+          "flag": "FalatacotDepotQuest_Completed" }
+      ]
+    },
+    {
+      "name": "Neydisa",
+      "jobs": [
+        { "id": "neydisa-portalspace-stabilizer", "name": "The Empyrean Portalspace Stabilizer", "level": 100,
+          "start": "the Emissary of Asheron", "where": "just west of Neydisa",
+          "notes": "Kill 30 Apostate Virindi aggressors and bring the Emissary a glowing data crystal.",
+          "flag": "EmpyreanPortalspaceStabilizerLow_Completed" }
+      ]
+    },
+    {
+      "name": "Plateau",
+      "jobs": [
+        { "id": "plateau-zaikhal-defense-copper", "name": "Zaikhal Defense: Copper Legion", "level": 100,
+          "start": "Jun Sawashima", "where": "just southwest of the Plateau",
+          "notes": "The Viamontian fortresses still stand. Bring Jun the Copper Legion castellan's medallion.",
+          "flag": "ZaikhalDefenseCopperComplete_0511" },
+        { "id": "plateau-zaikhal-defense-silver", "name": "Zaikhal Defense: Silver Legion", "level": 115,
+          "start": "Jun Sawashima", "where": "just southwest of the Plateau",
+          "notes": "Bring Jun the Silver Legion castellan's medallion.",
+          "flag": "ZaikhalDefenseSilverComplete_0511" },
+        { "id": "plateau-zaikhal-defense-gold", "name": "Zaikhal Defense: Gold Legion", "level": 135,
+          "start": "Jun Sawashima", "where": "just southwest of the Plateau",
+          "notes": "Bring Jun the Gold Legion castellan's medallion.",
+          "flag": "ZaikhalDefenseGoldComplete_0511" },
+        { "id": "plateau-zaikhal-defense-platinum", "name": "Zaikhal Defense: Platinum Legion", "level": 185,
+          "start": "Jun Sawashima", "where": "just southwest of the Plateau",
+          "notes": "Bring Jun the Platinum Legion castellan's medallion.",
+          "flag": "ZaikhalDefensePlatinumComplete_0511" }
+      ]
+    },
+    {
+      "name": "Refuge",
+      "jobs": [
+        { "id": "refuge-iron-spined-chittick", "name": "Iron-Spined Chittick Hunt", "level": 115,
+          "start": "Aidene", "where": "just southeast of Refuge",
+          "notes": "Aidene wants 50 iron-spined chitticks killed.",
+          "flag": "IronSpinedChittickTask" }
+      ]
+    },
+    {
+      "name": "Silyun",
+      "jobs": [
+        { "id": "silyun-arctic-mattekar", "name": "Arctic Mattekar Hunt", "level": 80,
+          "start": "Enzo Ilario", "where": "just northeast of Silyun",
+          "notes": "Enzo wants 25 arctic mattekars killed.",
+          "flag": "ArcticMattekarKillTask" },
+        { "id": "silyun-fiun-healing-machine", "name": "The Fiun Healing Machine", "level": 80,
+          "start": "Scorus", "where": "in a building just east of Silyun",
+          "notes": "Scorus has a recipe for a healing machine. Its parts are scattered through vaults and icebergs.",
+          "flag": "FiunHealingMachineCompleted_0511" },
+        { "id": "silyun-camp-entemarre", "name": "Camp Entemarre", "level": 115,
+          "start": "Hashina", "where": "just east of Silyun",
+          "notes": "Hashina wants Baron Entemarre's head.",
+          "flag": "CampEntemarreCompleted" }
+      ]
+    },
+    {
+      "name": "Timaru",
+      "jobs": [
+        { "id": "timaru-voracious-eaters", "name": "Voracious Eater Hunt", "level": 100,
+          "start": "Aun Ruperea", "where": "just east of Timaru",
+          "notes": "Aun Ruperea wants 50 voracious eaters killed.",
+          "flag": "VoraciousEaterKillTask" },
+        { "id": "timaru-guardian-deru-trees", "name": "Guardian of the Deru Trees", "level": 150,
+          "start": "Aun Kimintari", "where": "in a building just east of Timaru",
+          "notes": "T'thuun's minions have gathered a corrupted shard under the Deru roots. Aun Kimintari has a trap in mind.",
+          "flag": "GuardianoftheDeruTrees_Completed" }
+      ]
+    },
+    {
+      "name": "Beach Fort",
+      "jobs": [
+        { "id": "beachfort-moarsmen", "name": "The Moarsmen's Large Egg", "level": 80,
+          "start": "Guard Al'Zira", "where": "in Beach Fort",
+          "notes": "Guard Al'Zira wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "BeachFortMoarsmenComplete_0508" },
+        { "id": "beachfort-suzuhara", "name": "Suzuhara's Care Package", "level": 100,
+          "start": "Suzuhara Sheshumi", "where": "in Beach Fort",
+          "notes": "Suzuhara caught a cough in a Burun pit and can't shake it. Her brother's care package never arrived.",
+          "flag": "SuzuharaComplete_0511" }
+      ]
+    },
+    {
+      "name": "Candeth Keep",
+      "jobs": [
+        { "id": "candethkeep-mottled-carenzi", "name": "Mottled Carenzi Hunt", "level": 135,
+          "start": "Grania the Bold", "where": "just west of Candeth Keep",
+          "notes": "Grania wants 50 mottled carenzi killed.",
+          "flag": "MottledCarenziKillTask" },
+        { "id": "candethkeep-magma-exarchs", "name": "Magma Golem Exarch Hunt", "level": 135,
+          "start": "Aun Autuorea", "where": "in a building in Candeth Keep",
+          "notes": "Aun Autuorea hunts the mightiest golems. Kill ten magma golem exarchs.",
+          "flag": "MagmaExarchCoolDown" },
+        { "id": "candethkeep-virindi-cage", "name": "The Virindi Cage", "level": 180,
+          "start": "the Virindi Delegate", "where": "just east of Candeth Keep",
+          "notes": "The Virindi Delegate has a task, and a cage, for the bold.",
+          "flag": "JTMCompleted_0613" },
+        { "id": "candethkeep-shadow-quidiox", "name": "Shadow-touched Quidiox Hunt", "level": 220,
+          "start": "Guard Alfric", "where": "just southwest of Candeth Keep",
+          "notes": "Guard Alfric wants 75 shadow-touched virindi quidiox killed.",
+          "flag": "ShadowTouchedVirindiQuidioxKillTask" }
+      ]
+    },
+    {
+      "name": "Fiun",
+      "jobs": [
+        { "id": "fiun-polar-ursuin", "name": "Polar Ursuin Hunt", "level": 100,
+          "start": "Mariabella Varanese", "where": "in a building just southeast of Fiun",
+          "notes": "Mariabella wants 25 polar ursuin killed.",
+          "flag": "polarursuin" },
+        { "id": "fiun-lunnums-return", "name": "Lunnum's Return", "level": 120,
+          "start": "Fiun Layeel", "where": "in Fiun",
+          "notes": "Fiun Layeel needs a face paint recipe and help with a temple.",
+          "flag": "LunnumsReturnComplete1006" },
+        { "id": "fiun-spellcasting-gloves", "name": "Abayar's Research Notes", "level": 135,
+          "start": "Senior Sage Shibak", "where": "in Fiun",
+          "notes": "Shibak wants the research notes of Fiun Abayar. For level 90 and up.",
+          "flag": "SpellCastingGloves" }
+      ]
+    },
+    {
+      "name": "Fort Tethana",
+      "jobs": [
+        { "id": "forttethana-lost-pet", "name": "The Lost Pet", "level": 100,
+          "start": "Xsao Lann", "where": "just southwest of Fort Tethana",
+          "notes": "Xsao Lann's pet Darling has gone missing in the Creepy Canyons.",
+          "flag": "LostPetQuestCompleted0805" },
+        { "id": "forttethana-plate-armoredillo", "name": "Plate Armoredillo Hunt", "level": 100,
+          "start": "Saqr", "where": "just west of Fort Tethana",
+          "notes": "Saqr wants 25 plate armoredillos killed.",
+          "flag": "PlateArmoredilloKillTask" }
+      ]
+    },
+    {
+      "name": "Stonehold",
+      "jobs": [
+        { "id": "stonehold-belinda-banished", "name": "Banished Creature Hunt", "level": 80,
+          "start": "Belinda du Loc", "where": "in a building just northeast of Stonehold",
+          "notes": "Belinda wants ten banished creatures killed.",
+          "flag": "KilltaskBanishedCreatureWait_0609" },
+        { "id": "stonehold-belinda-rare-game", "name": "Rare Game Hunt", "level": 80,
+          "start": "Belinda du Loc", "where": "in a building just northeast of Stonehold",
+          "notes": "Belinda wants 50 of Dereth's rarer creatures killed.",
+          "flag": "KilltaskRareGameWait_0609" },
+        { "id": "stonehold-elementals", "name": "Elemental Hunt", "level": 100,
+          "start": "Zahir", "where": "just east of Stonehold",
+          "notes": "Zahir wants 25 elementals killed.",
+          "flag": "KilltaskElementalWait_0609" },
+        { "id": "stonehold-banderling-haunt", "name": "The Banderling Haunt", "level": 100,
+          "start": "Cyphis Suldow", "where": "just east of Stonehold",
+          "notes": "Cyphis wants an oily stone from the spirit haunting the banderlings.",
+          "flag": "QuestBanderlingHauntCompleted0105" },
+        { "id": "stonehold-belinda-fallen", "name": "Fallen Creature Hunt", "level": 160,
+          "start": "Belinda du Loc", "where": "in a building just northeast of Stonehold",
+          "notes": "Belinda wants ten fallen creatures killed.",
+          "flag": "KilltaskFallenCreatureWait_0609" }
+      ]
+    },
+    {
+      "name": "Wai Jhou",
+      "jobs": [
+        { "id": "waijhou-prodigal-shadow", "name": "The Prodigal Shadow", "level": 150,
+          "start": "Riordin Nightbane", "where": "in a building just north of Wai Jhou",
+          "notes": "A shadow is rising. Riordin wants proof of its death.",
+          "flag": "ProdigalShadowRepeat" },
+        { "id": "waijhou-knath-andras", "name": "K'nath An'dras Hunt", "level": 160,
+          "start": "Nona", "where": "just northeast of Wai Jhou",
+          "notes": "Nona wants 25 k'nath an'dras killed.",
+          "flag": "KnathAndrasKillTask" },
+        { "id": "waijhou-shadow-paradox", "name": "Shadow-touched Paradox Hunt", "level": 220,
+          "start": "Guard Li", "where": "just northeast of Wai Jhou",
+          "notes": "Guard Li wants 75 shadow-touched virindi paradoxes killed.",
+          "flag": "ShadowTouchedVirindiParadoxKillTask" },
+        { "id": "waijhou-geraines-bodies", "name": "Geraine's Bodies", "level": 220,
+          "start": "the Mhoire Lieutenant", "where": "in a building just north of Wai Jhou",
+          "notes": "Bring the Mhoire Lieutenant Geraine's tome from the Charged Refuge.",
+          "flag": "GerainesBodiesCompleted0412" }
+      ]
+    },
+    {
+      "name": "Ayan Baqur",
+      "jobs": [
+        { "id": "ayanbaqur-split-grael-low", "name": "The Split of Grael: White Totem", "level": 95,
+          "start": "Lamorda Loschi", "where": "in a building just north of Ayan Baqur",
+          "notes": "Lamorda wants a shard of the White Totem. Only for characters under level 100.",
+          "flag": "SplitGraelLowComplete0806" },
+        { "id": "ayanbaqur-moarsmen", "name": "The Moarsmen's Extra Large Egg", "level": 100,
+          "start": "Guard Bey", "where": "just north of Ayan Baqur",
+          "notes": "Guard Bey wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "AyanBaqurMoarsmenComplete_0508" },
+        { "id": "ayanbaqur-reconnaissance", "name": "Reconnaissance", "level": 115,
+          "start": "Aludi al-Jaladh", "where": "just south of Ayan Baqur",
+          "notes": "The drudges are building something that flies. Aludi wants the plans from their war room.",
+          "flag": "QuestReconnaissanceCompleted0105" },
+        { "id": "ayanbaqur-blightfinger", "name": "Tentacles of T'thuun: Blightfinger", "level": 115,
+          "start": "Merwart Mundagurg", "where": "just north of Ayan Baqur",
+          "notes": "Merwart wants the hand of Blightfinger, from Blightfinger's Warrens.",
+          "flag": "TentaclesTthuunComplete0408" },
+        { "id": "ayanbaqur-portalspace-stabilizer", "name": "The Empyrean Portalspace Stabilizer (Mid)", "level": 135,
+          "start": "the Emissary of Asheron", "where": "just north of Ayan Baqur",
+          "notes": "Kill 30 Apostate Virindi aggressors and bring the Emissary a glowing data crystal.",
+          "flag": "EmpyreanPortalspaceStabilizerMid_Completed" },
+        { "id": "ayanbaqur-ishaqs-lost-key", "name": "Ishaq's Lost Key", "level": 135,
+          "start": "Tanami Kei", "where": "in a building just north of Ayan Baqur",
+          "notes": "A jealous rival has stolen Tanami's notes. Berkholt in the bar sells directions to his home.",
+          "flag": "IshaqsLostKeyComplete_0511" },
+        { "id": "ayanbaqur-split-grael-mid", "name": "The Split of Grael: Black Totem", "level": 140,
+          "start": "Soju Bo-Ki", "where": "in a building just north of Ayan Baqur",
+          "notes": "Soju wants a shard of the Black Totem. For levels 100 to 149, once only.",
+          "flag": "SplitGraelMidComplete0806" },
+        { "id": "ayanbaqur-split-grael-high", "name": "The Split of Grael: Abyssal Totem", "level": 200,
+          "start": "Hoshar ibn Jalaq", "where": "in a building just north of Ayan Baqur",
+          "notes": "Hoshar wants a shard of the Abyssal Totem. Level 150 and up.",
+          "flag": "SplitGraelHighComplete0806" },
+        { "id": "ayanbaqur-virindi-quidiox", "name": "Virindi Quidiox Hunt", "level": 200,
+          "start": "Guard Q'alia", "where": "just north of Ayan Baqur",
+          "notes": "Guard Q'alia wants 75 virindi quidiox killed.",
+          "flag": "VirindiQuidioxKillTask" }
+      ]
+    },
+    {
+      "name": "Eastwatch",
+      "jobs": [
+        { "id": "eastwatch-repugnant-eaters", "name": "Repugnant Eater Hunt", "level": 115,
+          "start": "Xun Yu", "where": "in a building in Eastwatch",
+          "notes": "Xun Yu wants 50 repugnant eaters killed.",
+          "flag": "RepugnantEaterKillTask" },
+        { "id": "eastwatch-moarsmen", "name": "The Moarsmen's Huge Egg", "level": 120,
+          "start": "Francisco the Hunter", "where": "just northeast of Eastwatch",
+          "notes": "Francisco wants to know what the moarsmen are hiding in their coral chests.",
+          "flag": "EastwatchMoarsmenComplete_0508" },
+        { "id": "eastwatch-naughty-skeletons", "name": "Naughty Skeleton Hunt", "level": 160,
+          "start": "Taku Yukio", "where": "in Eastwatch",
+          "notes": "Taku wants 100 naughty skeletons killed.",
+          "flag": "NaughtySkeletonKillTask" },
+        { "id": "eastwatch-wicked-skeletons", "name": "Wicked Skeleton Hunt", "level": 160,
+          "start": "Ruqaya al Mubarak", "where": "in Eastwatch",
+          "notes": "Ruqaya wants 100 wicked skeletons killed.",
+          "flag": "WickedSkeletonKillTask" },
+        { "id": "eastwatch-grievver-violators", "name": "Grievver Violator Hunt", "level": 160,
+          "start": "Moina", "where": "in Eastwatch",
+          "notes": "Moina wants 100 grievver violators killed.",
+          "flag": "grievverV" },
+        { "id": "eastwatch-floesharks", "name": "Floeshark Hunt", "level": 160,
+          "start": "Ryuichi Tai", "where": "in Eastwatch",
+          "notes": "Ryuichi wants 50 floesharks killed.",
+          "flag": "FloesharkKillTask" },
+        { "id": "eastwatch-tukora-lieutenants", "name": "Tukora Lieutenant Hunt", "level": 160,
+          "start": "Claire Artmad", "where": "in Eastwatch",
+          "notes": "Claire wants 250 tukora lieutenants killed.",
+          "flag": "TukoraLieutenantKillTask" },
+        { "id": "eastwatch-olthoi-rippers", "name": "Olthoi Ripper Hunt", "level": 185,
+          "start": "Marcello", "where": "in Eastwatch",
+          "notes": "Marcello wants 250 olthoi rippers killed.",
+          "flag": "OlthoiRipperKillTask" },
+        { "id": "eastwatch-mosswart-worshippers", "name": "Mosswart Worshipper Hunt", "level": 185,
+          "start": "Orfeo Orlando", "where": "in Eastwatch",
+          "notes": "Orfeo wants 175 mosswart worshippers killed.",
+          "flag": "MosswartWorshipperKillTask" }
       ]
     }
   ]

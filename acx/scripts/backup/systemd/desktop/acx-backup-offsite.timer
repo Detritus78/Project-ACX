@@ -1,0 +1,9 @@
+[Unit]
+Description=Project ACX: check daily at 6 AM whether the weekly GitHub backup is due
+
+[Timer]
+OnCalendar=*-*-* 06:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

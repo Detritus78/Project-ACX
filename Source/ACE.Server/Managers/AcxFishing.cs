@@ -45,7 +45,7 @@ namespace ACE.Server.Managers
                 return;
             }
             player.QuestManager.Stamp(quest);
-            AcxMarks.Give(player, "your catch");
+            AcxMarks.Give(player, "fishing", "your catch");
         }
 
         // salvage sacks and pearls by the fisher's level: under 50, 50-125, over 125

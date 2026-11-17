@@ -141,6 +141,21 @@ namespace ACE.Server.WorldObjects
             {
                 OnDamageTarget(target, damageEvent.CombatType, damageEvent.IsCritical);
 
+                // splatter effects
+                // Project ACX (from Thwargle's ACE, JJ 2026-11-16 "blood on killing blows yes"): played before the damage
+                // lands, so a killing blow shows blood too (they were only sent while the target lived), and nearby players
+                // see the blood and hit sound. The "You hit" line still skips the killing blow: no extra chat line per kill.
+                if (targetPlayer == null)
+                {
+                    var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
+                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f), new GameMessageScript(target.Guid, splatter));
+                    if (damageEvent.Damage >= target.Health.MaxValue * 0.25f)
+                    {
+                        var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + ThreadSafeRandom.Next(1, 3), true);
+                        Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
+                    }
+                }
+
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageEvent);
                 else
@@ -165,19 +180,6 @@ namespace ACE.Server.WorldObjects
 
                 if (!SquelchManager.Squelches.Contains(this, ChatMessageType.CombatSelf))
                     Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageEvent.DamageType, (float)intDamage / target.Health.MaxValue, intDamage, damageEvent.IsCritical, damageEvent.AttackConditions));
-
-                // splatter effects
-                if (targetPlayer == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
-                    if (damageEvent.Damage >= target.Health.MaxValue * 0.25f)
-                    {
-                        var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + ThreadSafeRandom.Next(1, 3), true);
-                        Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
-                    }
-                    var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
-                    Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
-                }
 
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
@@ -526,17 +528,10 @@ namespace ACE.Server.WorldObjects
             //if (Fellowship != null)
                 //Fellowship.OnVitalUpdate(this);
 
-            if (Health.Current <= 0)
-            {
-                OnDeath(new DamageHistoryInfo(source), damageType, crit);
-                Die();
-                return (int)damageTaken;
-            }
-
             if (!BodyParts.Indices.TryGetValue(bodyPart, out var iDamageLocation))
             {
                 log.Warn($"{Name}.TakeDamage({source.Name}, {damageType}, {amount}, {bodyPart}, {crit}): avoided crash for bad damage location");
-                return 0;
+                iDamageLocation = (int)DamageLocation.Chest;
             }
             var damageLocation = (DamageLocation)iDamageLocation;
 
@@ -549,6 +544,13 @@ namespace ACE.Server.WorldObjects
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
                 EnqueueBroadcast(hitSound, splatter);
+            }
+
+            if (Health.Current <= 0)
+            {
+                OnDeath(new DamageHistoryInfo(source), damageType, crit);
+                Die();
+                return (int)damageTaken;
             }
 
             if (percent >= 0.1f)

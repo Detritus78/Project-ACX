@@ -25,6 +25,16 @@ namespace ACE.Server.Managers
         {
             foreach (var dataId in recipe.RecipeMod.Select(m => (uint)m.DataId).Where(d => d != 0))
             {
+                // an Alchemist's bomb takes no imbue (2026-11-16): the vulnerability it leaves is its rend, and it comes free with
+                // every bomb, so an imbue on top is one damage special more than any other weapon gets. Benched (/acxsurvival
+                // bombimbue=, level 275): with Armor Rending a bomb did 1.8x its plain self and 1.2x the best class there, the
+                // mage; with Critical Strike or Crippling Blow 1.3x. (A special that loot rolled on it stays, as on any weapon.)
+                if (Factories.Tables.Wcids.AcxBombWcids.IsBomb(target.WeenieClassId) && (AcxRendingImbues.Contains(dataId) || AcxCriticalAndArmorImbues.Contains(dataId)))
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"A bomb's mixture is its imbue, so the {target.NameWithMaterial} can't take another.", ChatMessageType.Craft));
+                    return true;
+                }
+
                 if (target.IsAcxAtlanWeapon && AcxRendingImbues.Contains(dataId))
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Atlan weapons can't take rending, so the {target.NameWithMaterial} can't take this imbue.", ChatMessageType.Craft));
@@ -46,6 +56,9 @@ namespace ACE.Server.Managers
         {
             0x3800003E, 0x3800003C, 0x3800003A, 0x3800003D, 0x3800003B, 0x3800003F, 0x38000040, AcxDataIdBase + (uint)AcxTinker.ElementalRend,
         };
+
+        // Critical Strike (Black Opal), Crippling Blow (Fire Opal), Armor Rending (Sunstone)
+        private static readonly System.Collections.Generic.HashSet<uint> AcxCriticalAndArmorImbues = new System.Collections.Generic.HashSet<uint>() { 0x38000023, 0x38000024, 0x38000025 };
 
         private static string AcxPairReason(uint dataId, WorldObject target)
         {

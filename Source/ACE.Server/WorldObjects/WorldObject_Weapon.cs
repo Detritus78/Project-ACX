@@ -867,6 +867,7 @@ namespace ACE.Server.WorldObjects
                     return ImbuedSkillType.Melee;
 
                 case Skill.MissileWeapons:
+                case Skill.Alchemy:   // Project ACX: the Alchemist's bombs (AcxBombWcids)
 
                 // legacy
                 case Skill.Bow:

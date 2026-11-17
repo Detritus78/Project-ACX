@@ -27,11 +27,10 @@ VALUES (900727, 2, 0x018A02C2, 19.85433, -24.465927, 6.005, 0.003231, 0, 0, 0.99
 -- the portal where Jeeves and Master Yado stood, facing the way they did (JJ: "the portal will go in their spot")
 INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child)
 VALUES (0x7018AF00, 900727, 0x018A0225, 96.2, -79.06, 0.005, 0.707107, 0, 0, -0.707107, 0);
--- Jeeves and Master Yado move up to the hub (JJ: "we will move jeeves and yoda to the second floor"), either side of
--- where the portal lands, facing each other (they were at 0x018A0225 [96.26 -80.55 0] and [96.07 -77.57 0])
--- (JJ then moved Jeeves himself, in game)
-UPDATE landblock_instance SET obj_Cell_Id = 0x018A02B7, origin_X = 9.93061, origin_Y = -31.6262, origin_Z = 6.005, angles_W = 0.997109, angles_Z = 0.075983 WHERE guid = 0x7018A0B5;   -- Jeeves, where JJ put him
-UPDATE landblock_instance SET obj_Cell_Id = 0x018A02C2, origin_X = 22.5, origin_Y = -23.5, origin_Z = 6.01, angles_W = 0.707107, angles_Z = 0.707107 WHERE guid = 0x7018A0B6;    -- Master Yado, facing west
+-- Jeeves and Master Yado, who stood in the hub, are gone from Concordia (40-cleanup.sql, 2026-11-17).
+-- the Town Crier and the Agent of the Arcanum where JJ placed them in the hub (read from Preview 2026-11-17)
+UPDATE landblock_instance SET obj_Cell_Id = 0x018A02C8, origin_X = 18.75385, origin_Y = -35.20388, origin_Z = 6.005, angles_W = -0.004204, angles_X = 0, angles_Y = 0, angles_Z = -0.999991 WHERE guid = 0x7018A10D;   -- Town Crier
+UPDATE landblock_instance SET obj_Cell_Id = 0x018A029F, origin_X = 17.3676, origin_Y = -42.6008, origin_Z = 6.005, angles_W = 0.911639, angles_X = 0, angles_Y = 0, angles_Z = -0.410993 WHERE guid = 0x7018A10E;   -- Agent of the Arcanum
 
 -- First Floor: back to the arrival hall, where the town portals drop you
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT 900728, 'acx-concordia-first-floor-portal', type, NOW() FROM weenie WHERE class_Id = 43065;
