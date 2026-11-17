@@ -171,6 +171,40 @@ namespace ACE.Server.Managers
             actionChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Character creation (Factories/PlayerFactory.cs): Missile Weapons without Fletching opts for thrown weapons (JJ
+        /// 2026-11-17: "if you select missile but no fletching then you are opting for thrown so you get a thrown weapon"),
+        /// so the character gets a starter Eternal thrown weapon in place of its heritage's launcher and ammunition: one of
+        /// the heritage's own kind, as retail gives each heritage its own launcher, worthless to vendors like the trainer's
+        /// javelin, and it is the Thrown Weapons Trainer's gift. False when the character trained Fletching (a bow, then).
+        /// </summary>
+        public static bool GiveStarterThrownAtCreation(Player player, HeritageGroup heritage)
+        {
+            if (player.GetCreatureSkill(Skill.Fletching).AdvancementClass >= SkillAdvancementClass.Trained)
+                return false;
+
+            var wcid = heritage switch
+            {
+                HeritageGroup.Aluvian => 900816u,      // Throwing Axe
+                HeritageGroup.Gharundim => 900814u,    // Djarid
+                HeritageGroup.Sho => 900811u,          // Shouken
+                HeritageGroup.Viamontian => 900812u,   // Throwing Dagger
+                _ => StarterJavelin,
+            };
+            var item = WorldObjectFactory.CreateNewWorldObject(wcid);
+            if (item == null)
+                return false;
+
+            item.Value = 0;
+            if (!player.TryAddToInventory(item))
+            {
+                item.Destroy();
+                return false;
+            }
+            player.QuestManager.Stamp(StarterJavelinQuest);
+            return true;
+        }
+
         private static WorldObject CreateStarter(bool bomb)
         {
             var item = WorldObjectFactory.CreateNewWorldObject(bomb ? AcxBombWcids.Concussion : StarterJavelin);

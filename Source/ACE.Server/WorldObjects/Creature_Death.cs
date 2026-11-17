@@ -698,6 +698,21 @@ namespace ACE.Server.WorldObjects
                 if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
                     EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid));
 
+                // Project ACX: a wielded retail thrown stack drops as its Eternal copy (AcxThrownWcids.EternalDrops)
+                if (Factories.Tables.Wcids.AcxThrownWcids.TryGetEternalDrop(item.WeenieClassId, out var eternalWcid))
+                {
+                    var eternal = WorldObjectFactory.CreateNewWorldObject(eternalWcid);
+                    if (eternal != null)
+                    {
+                        item.Destroy();
+                        if (corpse != null)
+                            corpse.TryAddToInventory(eternal);
+                        else
+                            droppedItems.Add(eternal);
+                        continue;
+                    }
+                }
+
                 if (corpse != null)
                 {
                     corpse.TryAddToInventory(item);

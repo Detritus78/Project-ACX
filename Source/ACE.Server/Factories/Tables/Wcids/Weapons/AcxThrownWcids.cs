@@ -44,6 +44,37 @@ namespace ACE.Server.Factories.Tables.Wcids
         private const uint FirstPlain = 900810, FirstElemental = 900817, FirstNether = 900845;
         private const int Families = 7, Elements = 4;
 
+        // the Mite Warrior Princess's and Queen's Discus, Eternal (acx/Content/thrown/40-eternal-discus.sql; JJ 2026-11-17:
+        // "theres a quest disc too. that should be eternal also"): one of its own, with no elemental or nether versions and
+        // not in the loot pool
+        public const uint Discus = 900852;
+
+        // the other one-of-a-kind Eternal thrown weapons (acx/Content/thrown/45-eternal-unique.sql; JJ 2026-11-17: "I
+        // completely forgot about quest items like discus and items you can create with fletching called spikes ... Theres
+        // also the ebon harpoon. We need to adjust these also and I assume make them eternal?"): the Eternal copies of
+        // retail's quest, drop and crafted thrown weapons, 900910-900959, and retail's own two unlimited ones, which that
+        // file gives the same damage model. Like the Discus: fixed numbers, no versions, never rolled as loot.
+        private const uint FirstUnique = 900910, LastUnique = 900959, StormingPortalAxe = 52732, VortexThorn = 52733;
+
+        // of those, the quest rewards, boss drops and the Channeling Stone Hatchet (900935-900942), the Discus and retail's
+        // two: quest weapons, which take one imbue and two spell transfers (WorldObject.IsAcxQuestWeapon; JJ 2026-11-17: "We
+        // already have rules in place for quest weapons", then "yes build it that way"). The spikes, ordinary Fletching
+        // crafts, don't.
+        private const uint FirstQuestUnique = 900935;
+
+        public static bool IsQuestThrown(uint wcid) => IsUnique(wcid) && (wcid < FirstUnique || wcid >= FirstQuestUnique);
+
+        public static bool IsUnique(uint wcid) => wcid == Discus || wcid >= FirstUnique && wcid <= LastUnique || wcid == StormingPortalAxe || wcid == VortexThorn;
+
+        // a retail thrown weapon a monster wields and drops (create list: wield + treasure), and the Eternal copy its
+        // corpse gets (Creature_Death): the monster keeps throwing retail's
+        private static readonly System.Collections.Generic.Dictionary<uint, uint> EternalDrops = new()
+        {
+            { 23130, 900941 },   // Frost Throwing Club (Banderling Guard Champions)
+        };
+
+        public static bool TryGetEternalDrop(uint wcid, out uint eternal) => EternalDrops.TryGetValue(wcid, out eternal);
+
         private static ChanceTable<WeenieClassName> Plain()
         {
             var table = new ChanceTable<WeenieClassName>();
@@ -118,7 +149,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         {
             var id = (uint)wcid;
             weaponType = TreasureWeaponType.Atlatl;
-            return id >= FirstPlain && id < FirstNether + Families || AcxBombWcids.IsBomb(id);   // the Alchemist's bombs are Eternal thrown weapons too
+            return id >= FirstPlain && id < FirstNether + Families || IsUnique(id) || AcxBombWcids.IsBomb(id);   // the Alchemist's bombs are Eternal thrown weapons too
         }
 
         /// <summary>
@@ -155,7 +186,7 @@ namespace ACE.Server.Factories.Tables.Wcids
         public static bool TryGetVersion(uint wcid, DamageType damageType, out uint version)
         {
             version = 0;
-            if (!IsEternalThrown(wcid) || AcxBombWcids.IsBomb(wcid))
+            if (!IsEternalThrown(wcid) || IsUnique(wcid) || AcxBombWcids.IsBomb(wcid))
                 return false;
 
             var family = wcid < FirstElemental ? wcid - FirstPlain : wcid < FirstNether ? (wcid - FirstElemental) / Elements : wcid - FirstNether;

@@ -324,7 +324,10 @@ namespace ACE.Server.Command.Handlers
                 // type=slash|bludgeon: the missile classes' damage type (default pierce)
                 var missileType = parameters.Any(p => p.Equals("type=slash", StringComparison.OrdinalIgnoreCase)) ? DamageType.Slash
                     : parameters.Any(p => p.Equals("type=bludgeon", StringComparison.OrdinalIgnoreCase)) ? DamageType.Bludgeon : DamageType.Pierce;
-                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartClassBench(classLevel, classDebuff, missileType, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                // items=wcid,wcid: these weapons too, as they come
+                var classItems = parameters.Where(p => p.StartsWith("items=", StringComparison.OrdinalIgnoreCase))
+                    .SelectMany(p => p.Substring(6).Split(',')).Select(t => uint.TryParse(t, out var id) ? id : 0).Where(id => id != 0).ToList();
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartClassBench(classLevel, classDebuff, missileType, text => CommandHandlerHelper.WriteOutputInfo(session, text), classItems));
                 return;
             }
 

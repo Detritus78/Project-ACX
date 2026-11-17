@@ -22,6 +22,7 @@ services:
     build:
       context: ..
     image: acx-server:${ACX_INSTANCE}
+    # runs as the image's user app (1654, see the Dockerfile), not root; acx.sh up gives it the data folders first
     depends_on:
       db:
         condition: service_healthy

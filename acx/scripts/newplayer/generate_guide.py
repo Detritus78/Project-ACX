@@ -44,6 +44,8 @@ Javelins, darts, throwing axes, daggers and friends. They never run out: a throw
 
 They use Missile Weapons, and Strength puts the muscle behind them. Carry a shield if you like.
 
+Picked Missile Weapons without Fletching? Then you started with one already. Wanted a bow after all? Any bowyer sells them, and Fletching makes their best arrows.
+
 WARNING: A shield makes you throw slower.
 
 TIP: Mahogany salvage raises the Damage Modifier, just like on a bow.

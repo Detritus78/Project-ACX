@@ -798,7 +798,7 @@ namespace ACE.Server.Managers
         // Atlatl Dart, Prismatic, Deadly Prismatic (DartsByTier)
         private static readonly int[] NominalAmmoDamage = { 12, 12, 28, 28, 52, 52, 52, 52 };
 
-        public static string StartClassBench(int level, bool debuff, DamageType missileType, Action<string> reply)
+        public static string StartClassBench(int level, bool debuff, DamageType missileType, Action<string> reply, List<uint> items = null)
         {
             if (running)
                 return "A bench is already running.";
@@ -808,7 +808,7 @@ namespace ACE.Server.Managers
             {
                 try
                 {
-                    reply(RunClassBench(level, debuff, missileType));
+                    reply(RunClassBench(level, debuff, missileType, items));
                 }
                 catch (Exception e)
                 {
@@ -830,7 +830,7 @@ namespace ACE.Server.Managers
         /// launchers and thrown: rend + mahogany + transfers; no slayer), buffs cast, base skill at the wield requirement
         /// of the level's gear. Out: Logs/acxbench/acxclass-*.csv.
         /// </summary>
-        private static string RunClassBench(int level, bool debuff, DamageType missileType = DamageType.Pierce)
+        private static string RunClassBench(int level, bool debuff, DamageType missileType = DamageType.Pierce, List<uint> items = null)
         {
             var started = DateTime.Now;
             countMisses = false;
@@ -906,6 +906,54 @@ namespace ACE.Server.Managers
                     summary.AppendLine("  " + ThrownExamine(MakeWeapon(roll), level).Replace("\n", "\n  "));
             }
 
+            // items=: weapons benched as they come, no loot roll and no tinkering (JJ 2026-11-17, the quest, drop and crafted
+            // thrown weapons: "We definetly need to check and make sure they do not ruin balance"), beside the classes above;
+            // a quest weapon also with what the quest weapon rule allows (the rend of its damage type and two transfers).
+            // An elemental one is benched against the monsters weak to its element, and so is its reference: the tier's
+            // loot thrown weapon of that element, untinked and tinked (rows "Loot <element>").
+            var thrownWcid = classes.First(c => c.Name == "Thrown").Wcid;
+            var references = new HashSet<DamageType>();
+            foreach (var item in items ?? new List<uint>())
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(item);
+                if (weenie == null)
+                {
+                    summary.AppendLine($"  {item}: no such weenie");
+                    continue;
+                }
+                var weapon = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(WeaponGuid));
+                var element = (AttackDamageType(weapon) & Elements) != 0 ? AttackDamageType(weapon) : DamageType.Undef;
+                var against = element != DamageType.Undef ? $" vs {element}-weak" : "";
+
+                void Row(string className, WorldObject w, uint wcid, string state)
+                {
+                    var known = w.Biota.GetKnownSpellsIds(w.BiotaDatabaseLock).Select(id => (uint)id).ToList();
+                    var r = BenchGear(new List<(WorldObject, List<uint>)> { (w, known) }, level, false, skillBase, monsters, scale, real: true, swings: 30, debuff: debuff, weakTo: element);
+                    sb.AppendLine(string.Join(",", level, tier, className, Csv(w.Name), wcid, state + against, w.Damage ?? 0, F(w.DamageMod ?? 0, "0.###"),
+                        w.ElementalDamageBonus ?? 0, F(w.DamageVariance ?? 0, "0.###"), w.WieldDifficulty ?? 0, w.ItemWorkmanship ?? 0, F(r.Hits, "0.##"), F(r.AvgHit, "0.#"), F(r.Seconds, "0.#"), F(r.FailPct, "0.#")));
+                    summary.AppendLine($"  {w.Name} [{wcid}] {state}{against}: {r.Seconds:0.0}s, average hit {r.AvgHit:0.#}");
+                }
+
+                if (element != DamageType.Undef && references.Add(element) && AcxThrownWcids.TryGetVersion(thrownWcid, element, out var versionWcid))
+                {
+                    var referenceRoll = RollLootTier(versionWcid, tier);
+                    if (referenceRoll != null)
+                    {
+                        Row("Loot " + element, MakeWeapon(referenceRoll), versionWcid, "untinked");
+                        var tinkedReference = MakeWeapon(referenceRoll);
+                        TinkLauncherReal(tinkedReference, MissileAmmo(CreateAttacker(level, new Options()), tinkedReference, tier));
+                        Row("Loot " + element, tinkedReference, versionWcid, "tinked");
+                    }
+                }
+
+                Row("Item", weapon, item, "as it comes");
+                if (!weapon.IsAcxQuestWeapon)
+                    continue;
+                ImbueReal(weapon, ImbuedEffectType.Undef);
+                TransferReal(weapon, DamageTransfers(weapon, weapon.Biota.GetKnownSpellsIds(weapon.BiotaDatabaseLock).Select(id => (uint)id).ToList(), WorldObject.AcxQuestWeaponTransfers));
+                Row("Item", weapon, item, "rend + 2 transfers");
+            }
+
             var dir = Path.Combine("Logs", "acxbench");
             Directory.CreateDirectory(dir);
             var file = Path.Combine(dir, $"acxclass-L{level}{(missileType != DamageType.Pierce ? "-" + missileType.ToString().ToLowerInvariant() : "")}{(debuff ? "-debuff" : "")}-{started:yyyyMMdd-HHmmss}.csv");
@@ -944,7 +992,19 @@ namespace ACE.Server.Managers
         /// with the level's buffs, the attack skills' base at the given value, and optionally a slayer stone against each
         /// monster
         /// </summary>
-        private static GearRow BenchGear(List<(WorldObject Weapon, List<uint> Spells)> versions, int level, bool slayer, int skillBase, List<MonsterInfo> monsters, double scale, bool real = false, int swings = 10, bool debuff = false)
+        private static readonly DamageType[] BenchDamageTypes = { DamageType.Slash, DamageType.Pierce, DamageType.Bludgeon, DamageType.Cold, DamageType.Fire, DamageType.Acid, DamageType.Electric };
+
+        /// <summary>
+        /// A monster an elemental weapon is taken to: the element is the damage type it resists least, or one of them
+        /// (JJ 2026-11-17: "we have to tell it to use mobs weak against that element to make it accurate")
+        /// </summary>
+        private static bool IsWeakTo(Creature creature, DamageType element)
+        {
+            var own = creature.GetResistanceMod(Creature.GetResistanceType(element));
+            return BenchDamageTypes.All(type => creature.GetResistanceMod(Creature.GetResistanceType(type)) <= own + 0.0001);
+        }
+
+        private static GearRow BenchGear(List<(WorldObject Weapon, List<uint> Spells)> versions, int level, bool slayer, int skillBase, List<MonsterInfo> monsters, double scale, bool real = false, int swings = 10, bool debuff = false, DamageType weakTo = DamageType.Undef)
         {
             var buff = BuffLevelFor(level);
             var row = new GearRow { Damage = versions[0].Weapon.Damage ?? 0, Variance = versions[0].Weapon.DamageVariance ?? 0 };
@@ -1000,6 +1060,8 @@ namespace ACE.Server.Managers
                     continue;
                 }
                 if (creature == null || creature.Invincible)
+                    continue;
+                if (weakTo != DamageType.Undef && !IsWeakTo(creature, weakTo))
                     continue;
                 creature.Location = new Position(BenchCell, 50.0f, 51.0f, 0.0f, 0, 0, 1, 0);
                 var health = (double)creature.Health.MaxValue;

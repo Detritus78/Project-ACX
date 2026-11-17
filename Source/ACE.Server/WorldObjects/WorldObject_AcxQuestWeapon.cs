@@ -14,8 +14,11 @@ namespace ACE.Server.WorldObjects
         /// acx_quest_imbue_failure_destroys is on. /acxgear benched it: such a weapon comes out about level with a fully
         /// tinked one-handed loot weapon of its wield requirement, the end-game ones ahead.
         /// </summary>
-        public bool IsAcxQuestWeapon => (WeenieType == WeenieType.MeleeWeapon || WeenieType == WeenieType.MissileLauncher || WeenieType == WeenieType.Caster)
-            && Workmanship == null && (WieldDifficulty != null || (Biota.PropertiesSpellBook?.Count ?? 0) > 0);
+        public bool IsAcxQuestWeapon => Workmanship == null
+            && ((WeenieType == WeenieType.MeleeWeapon || WeenieType == WeenieType.MissileLauncher || WeenieType == WeenieType.Caster)
+                    && (WieldDifficulty != null || (Biota.PropertiesSpellBook?.Count ?? 0) > 0)
+                // the quest and boss thrown weapons, by name: a thrown weapon is neither a melee weapon nor a launcher
+                || Factories.Tables.Wcids.AcxThrownWcids.IsQuestThrown(WeenieClassId));
 
         public const int AcxQuestWeaponTransfers = 2;
 
