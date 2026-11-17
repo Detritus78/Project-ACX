@@ -66,9 +66,16 @@ namespace ACE.Server.WorldObjects
 
             vendor.MoneyIncome += (int)cost;
 
-            // Project ACX: reputation counts pyreals spent on goods, not trade notes or other currencies
+            // Project ACX: reputation counts pyreals spent on goods, not trade notes or other currencies; the economy log counts
+            // the same pyreals, and Marks spent (the Mark Trader)
             if (currencyWcid == coinStackWcid)
-                AcxVendorReputation.AddTrade(this, vendor, genericItems.Concat(uniqueItems).Where(i => i.ItemType != ItemType.PromissoryNote).Sum(i => (long)vendor.GetSellCost(i)));
+            {
+                var goods = genericItems.Concat(uniqueItems).Where(i => i.ItemType != ItemType.PromissoryNote).Sum(i => (long)vendor.GetSellCost(i));
+                AcxVendorReputation.AddTrade(this, vendor, goods);
+                AcxEconVendorBought(goods);
+            }
+            else if (currencyWcid == AcxMarks.Wcid)
+                AcxEconMarksSpent(cost);
 
             foreach (var item in genericItems)
             {
@@ -201,8 +208,10 @@ namespace ACE.Server.WorldObjects
 
             vendor.MoneyOutflow += payoutCoinAmount;
 
-            // Project ACX: reputation counts what was sold, not trade notes
-            AcxVendorReputation.AddTrade(this, vendor, vendor.CalculatePayoutCoinAmount(sellList.Where(kv => kv.Value.ItemType != ItemType.PromissoryNote).ToDictionary(kv => kv.Key, kv => kv.Value), this));
+            // Project ACX: reputation counts what was sold, not trade notes; so does the economy log
+            var goodsSold = vendor.CalculatePayoutCoinAmount(sellList.Where(kv => kv.Value.ItemType != ItemType.PromissoryNote).ToDictionary(kv => kv.Key, kv => kv.Value), this);
+            AcxVendorReputation.AddTrade(this, vendor, goodsSold);
+            AcxEconVendorSold(goodsSold);
 
             // remove sell items from player inventory
             foreach (var item in sellList.Values)

@@ -3,6 +3,7 @@ using System;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories.Tables.Wcids;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -36,7 +37,13 @@ namespace ACE.Server.WorldObjects
 
             if (targetCreature != null && targetCreature.IsAlive)
             {
-                if (sourcePlayer != null)
+                // Project ACX: an Alchemist's Healing bomb does no damage; it bursts (Player.AcxHealingBombImpact)
+                if (sourcePlayer != null && AcxBombWcids.IsHealingBomb(worldObject.WeenieClassId))
+                {
+                    if (AcxSameLandblockGroup(worldObject, sourceCreature, targetCreature))
+                        sourcePlayer.AcxHealingBombImpact(worldObject, targetCreature);
+                }
+                else if (sourcePlayer != null)
                 {
                     // player damage monster or player
                     damageEvent = sourcePlayer.DamageTarget(targetCreature, worldObject);
@@ -120,12 +127,29 @@ namespace ACE.Server.WorldObjects
                         // But, to keep it simple, we will just ignore it and not bother with TryProcEquippedItems for this particular impact.
                     }
                 }
+
+                // Project ACX: an Alchemist's bomb blasts the monsters around its target and debuffs what it hit, after the hit
+                // (hit or miss: each one in the blast rolls its own defense; Player.AcxBombImpact)
+                if (sourcePlayer != null && AcxBombWcids.IsDamageBomb(worldObject.WeenieClassId) && AcxSameLandblockGroup(worldObject, sourceCreature, targetCreature))
+                    sourcePlayer.AcxBombImpact(worldObject, targetCreature, damageEvent);
             }
 
             worldObject.CurrentLandblock?.RemoveWorldObject(worldObject.Guid, showError: !worldObject.PhysicsObj.entering_world);
             worldObject.PhysicsObj.set_active(false);
 
             worldObject.HitMsg = true;
+        }
+
+        /// <summary>
+        /// Project ACX: whether the projectile, its source and its target are safe to act on together (the proc check above)
+        /// </summary>
+        private static bool AcxSameLandblockGroup(WorldObject worldObject, Creature sourceCreature, Creature targetCreature)
+        {
+            if (!LandblockManager.CurrentlyTickingLandblockGroupsMultiThreaded)
+                return true;
+            return worldObject.CurrentLandblock != null && sourceCreature.CurrentLandblock != null && targetCreature.CurrentLandblock != null
+                && worldObject.CurrentLandblock.CurrentLandblockGroup == sourceCreature.CurrentLandblock.CurrentLandblockGroup
+                && sourceCreature.CurrentLandblock.CurrentLandblockGroup == targetCreature.CurrentLandblock.CurrentLandblockGroup;
         }
 
         public static void OnCollideEnvironment(WorldObject worldObject)

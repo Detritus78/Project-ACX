@@ -25,7 +25,8 @@ namespace ACE.Server.Managers
             Pierce, Slash, Bludgeon,                // change a weapon's damage type
             ArcaneLore5, ArcaneLore10,              // lower the Arcane Lore requirement (10 also doubles the mana cost)
             ElementalRend,                          // fire, cold, acid and lightning rending on a caster (an imbue)
-            MissileDefense, MagicDefense            // +1% to a melee weapon's missile / magic defense bonus
+            MissileDefense, MagicDefense,           // +1% to a melee weapon's missile / magic defense bonus
+            Potency                                 // +4% to an Alchemist's bomb's Potency (its damage multiplier), as Mahogany on a bow
         }
 
         /// <summary>
@@ -45,6 +46,9 @@ namespace ACE.Server.Managers
             { MaterialType.TigerEye,     (AcxTinker.ElementalRend,  9310, 0) },
             { MaterialType.Teak,         (AcxTinker.MissileDefense, 9311, 0) },
             { MaterialType.Ebony,        (AcxTinker.MagicDefense,   9312, 0) },
+            // JJ 2026-11-16: "what if we added potency and a new salvage" ... "its a modifier for the physical damage";
+            // Obsidian, which nothing used (acx/Content/alchemist/20-obsidian-potency.sql)
+            { MaterialType.Obsidian,     (AcxTinker.Potency,        9317, 0) },
         };
 
         /// <summary>
@@ -95,6 +99,10 @@ namespace ACE.Server.Managers
                     recipeId = target.WeenieType == WeenieType.MeleeWeapon ? entry.Recipe : 0;
                     break;
 
+                case AcxTinker.Potency:
+                    recipeId = AcxBombWcids.IsDamageBomb(target.WeenieClassId) ? entry.Recipe : 0;
+                    break;
+
                 default:
                     recipeId = entry.Recipe;   // Arcane Lore: any looted item; the recipe requires a lore requirement
                     break;
@@ -105,7 +113,7 @@ namespace ACE.Server.Managers
 
         private static bool IsAcxMutation(uint dataId)
         {
-            return dataId > AcxDataIdBase && dataId <= AcxDataIdBase + (uint)AcxTinker.MagicDefense;
+            return dataId > AcxDataIdBase && dataId <= AcxDataIdBase + (uint)AcxTinker.Potency;
         }
 
         private static bool TryAcxMutate(uint dataId, WorldObject target)
@@ -140,6 +148,10 @@ namespace ACE.Server.Managers
 
                 case AcxTinker.MagicDefense:
                     target.WeaponMagicDefense = (target.WeaponMagicDefense ?? 1.0) + 0.01;
+                    break;
+
+                case AcxTinker.Potency:
+                    target.DamageMod = (target.DamageMod ?? 1.0) + 0.04;   // Mahogany's step (recipe 3855)
                     break;
 
                 default:

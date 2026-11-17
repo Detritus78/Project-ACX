@@ -45,6 +45,35 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Project ACX: dual wield's follow-up (JJ 2026-11-16: "dual wield should technically logically kill faster than one
+        /// weapon?", "Lets test the double hit"). On every dual-wield attack the other hand's weapon also strikes the target
+        /// for acx_dual_wield_follow_up of a normal hit (0 = off), with its own damage type, crits (Biting Strike, Crushing Blow, Critical Strike, Crippling Blow), rend, armor cleaving and spells, so carrying two
+        /// damage types pays off. Once per attack (not per strike of a multi-strike weapon); no target procs, no cleave.
+        /// </summary>
+        public DamageEvent AcxDualWieldFollowUp(Creature target, WorldObject swinging)
+        {
+            var share = PropertyManager.GetDouble("acx_dual_wield_follow_up").Item;
+            if (share <= 0 || !IsDualWieldAttack || target == null || !target.IsAlive)
+                return null;
+
+            // the other hand swings for this hit: the damage roll (DamageEvent: crit chance, crit damage, rend, armor
+            // cleaving, damage type) reads the swinging hand's weapon, not the weapon passed in
+            DualWieldAlternate = !DualWieldAlternate;
+            try
+            {
+                var other = GetEquippedMeleeWeapon();
+                if (other == null || other == swinging)
+                    return null;
+
+                return DamageTarget(target, other, (float)share);
+            }
+            finally
+            {
+                DualWieldAlternate = !DualWieldAlternate;
+            }
+        }
+
+        /// <summary>
         /// Melee and missile defense with the single weapon style's bonus
         /// </summary>
         public uint ApplyAcxSingleWeaponDefense(uint defenseSkill)

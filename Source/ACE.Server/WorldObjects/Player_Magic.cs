@@ -622,7 +622,15 @@ namespace ACE.Server.WorldObjects
 
             var windupTime = 0.0f;
 
-            foreach (var windupGesture in spell.Formula.WindupGestures)
+            // Lead scarab Gesture is 0x80000000 (invalid) — skip it. L1 FastTick used to
+            // pack that into CommandList and briefly corrupt the cast ActionCommand.
+            var windups = spell.Formula.WindupGestures
+                .Where(g => g != MotionCommand.Invalid && (uint)g != 0x80000000u)
+                .ToList();
+            if (windups.Count == 0)
+                return;
+
+            foreach (var windupGesture in windups)
             {
                 if (RecordCast.Enabled)
                 {
@@ -644,7 +652,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (FastTick)
-                windupTime = EnqueueMotionAction(castChain, spell.Formula.WindupGestures, CastSpeed, MotionStance.Magic, checkCasting: true);
+                windupTime = EnqueueMotionAction(castChain, windups, CastSpeed, MotionStance.Magic, checkCasting: true);
         }
 
         public void DoCastGesture(Spell spell, WorldObject casterItem, ActionChain castChain)
@@ -1371,10 +1379,12 @@ namespace ACE.Server.WorldObjects
 
             if (MagicState.CastQueue != null)
             {
-                if (MagicState.CastQueue.Type == CastQueueType.Targeted)
-                    HandleActionCastTargetedSpell(MagicState.CastQueue.TargetGuid, MagicState.CastQueue.SpellId, MagicState.CastQueue.CasterItem);
+                var queued = MagicState.CastQueue;
+                MagicState.CastQueue = null;
+                if (queued.Type == CastQueueType.Targeted)
+                    HandleActionCastTargetedSpell(queued.TargetGuid, queued.SpellId, queued.CasterItem);
                 else
-                    HandleActionMagicCastUnTargetedSpell(MagicState.CastQueue.SpellId);
+                    HandleActionMagicCastUnTargetedSpell(queued.SpellId);
             }
         }
 

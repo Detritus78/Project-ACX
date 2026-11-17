@@ -70,6 +70,10 @@ namespace ACE.Server.WorldObjects
                 actionChain.EnqueueChain();
             }
 
+            AcxGrantTradeSkills();   // Project ACX: trade skills trained free, once per character
+            AcxGiveGuide();          // Project ACX: the ACX Guide book, once per character
+            AcxTrainers.OnLogin(this);   // Project ACX: an Alchemist's starter bomb, once per character
+
             HandlePreOrderItems();
 
             // SendSelf will trigger the entrance into portal space
@@ -134,6 +138,7 @@ namespace ACE.Server.WorldObjects
             AcxVitaeOnLogin();   // Project ACX: vitae that wore off while offline
             AcxRestoreDoTsAndHoTs();   // Project ACX: bleeds and heals from before logout
             AcxXphStart();   // Project ACX: /xph measures from login
+            AcxEconStart();   // Project ACX: the economy log measures from login
 
             if (ServerManager.ShutdownInitiated)
             {
@@ -332,7 +337,7 @@ namespace ACE.Server.WorldObjects
             else
                 CurrentMotionState.SetForwardCommand(MotionCommand.Ready);
 
-            if (state.CommandListLength > 0)
+            if (state.Commands.Count > 0)
             {
                 if (((uint)state.Commands[0].MotionCommand & (uint)CommandMask.SubState) != 0)
                     CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);

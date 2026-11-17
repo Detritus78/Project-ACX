@@ -1,0 +1,11 @@
+# Project ACX (Live laptop, /etc/systemd/system): Live's nightly full backup into ~jj_acx_cage/acx-backups. The script is
+# installed as /usr/local/bin/acx-live-nightly (from acx/scripts/backup/acx-live-nightly.sh), outside the tree that deploys replace
+[Unit]
+Description=Project ACX: nightly backup of Live
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=jj_acx_cage
+ExecStart=/usr/local/bin/acx-live-nightly

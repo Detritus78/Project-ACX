@@ -85,7 +85,7 @@ namespace ACE.Server.Managers
             player.GrantLevelProportionalXp(0.1, 0, (long)level * level * 200);
 
             player.SetProperty(PropertyInt.AcxDungeonsExplored, (player.GetProperty(PropertyInt.AcxDungeonsExplored) ?? 0) + 1);
-            AcxMarks.Give(player);   // one ACX Mark per marker (JJ 2026-11-13)
+            AcxMarks.Give(player, "marker");   // one ACX Mark per marker (JJ 2026-11-13)
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Dungeon explored: {name}! You've reached its deepest point and found an ACX Mark.", ChatMessageType.Broadcast));
             AcxLeaderboards.CheckLeader(AcxLeaderboards.Board.Explored);
         }

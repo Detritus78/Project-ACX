@@ -41,9 +41,9 @@ namespace ACE.Server.Managers
 
         /// <summary>
         /// Gives the player one ACX Mark (or more), at their feet if their pack is full. With forWhat, says so in chat;
-        /// without, the caller's own message mentions it.
+        /// without, the caller's own message mentions it. source names it in the economy log (Player_AcxEconomyLog).
         /// </summary>
-        public static void Give(Player player, string forWhat = null, int amount = 1)
+        public static void Give(Player player, string source, string forWhat = null, int amount = 1)
         {
             var marks = Create(amount);
             if (marks == null)
@@ -58,6 +58,7 @@ namespace ACE.Server.Managers
             }
             if (forWhat != null)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You receive {(amount == 1 ? "an" : amount.ToString())} {name} for {forWhat}.", ChatMessageType.Broadcast));
+            player.AcxEconMarksEarned(source, amount);
         }
 
         /// <summary>
@@ -91,6 +92,7 @@ namespace ACE.Server.Managers
                 session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, $"You have no room for the {stack.Name}."));
                 return true;
             }
+            player.AcxEconMarksEarned("invasion", 1);
 
             if ((stack.StackSize ?? 1) > 1)
             {

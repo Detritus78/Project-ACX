@@ -17,6 +17,11 @@ namespace ACE.Server.Managers
     /// 50% of value everywhere and rises with a character's reputation in that town, built from the pyreals they've traded
     /// (bought plus sold) with the town's vendors: 60% at 100,000, 70% at 1 million, 80% at 10 million, 90% at 100 million.
     /// It always stays below what vendors charge, so buying and selling back loses money. Trade notes stay outside it.
+    /// Vendors in Concordia (the Pawn Shopkeep in the gambling hall) pay a flat acx_concordia_buy_rate, under every town's
+    /// starting 50%, and trade there builds no reputation: a buyer for big spenders whose bags fill up, not the place to sell
+    /// (JJ 2026-11-17: "We have to have a buyer in a gambling hall for the big spenders. Otherwise their bags fill up and they
+    /// have to travel. Maybe we omit him from rep to buy higher and actually reduce his % a bit to discourage making him the
+    /// main").
     /// </summary>
     public static class AcxVendorReputation
     {
@@ -100,11 +105,16 @@ namespace ACE.Server.Managers
 
         private static double RateFor(long traded) => Tiers.First(t => traded >= t.Traded).Rate;
 
+        // Concordia is the landblock the vaults stand in (acx_vault_landblock)
+        private static bool InConcordia(Vendor vendor) => vendor.Location != null && (vendor.Location.LandblockId.Raw >> 16) == (uint)PropertyManager.GetLong("acx_vault_landblock").Item;
+
         /// <summary>
         /// What this vendor pays this player, as a share of an item's value
         /// </summary>
         public static double GetBuyRate(Player player, Vendor vendor)
         {
+            if (InConcordia(vendor))
+                return PropertyManager.GetDouble("acx_concordia_buy_rate").Item;
             if (player == null)
                 return RateFor(0);
             return GetTrade(player).TryGetValue(GetTown(vendor), out var traded) ? RateFor(traded) : RateFor(0);
@@ -115,7 +125,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddTrade(Player player, Vendor vendor, long pyreals)
         {
-            if (pyreals <= 0)
+            if (pyreals <= 0 || InConcordia(vendor))
                 return;
 
             var town = GetTown(vendor);

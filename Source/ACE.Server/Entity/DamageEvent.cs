@@ -383,8 +383,8 @@ namespace ACE.Server.Entity
             if (defender is Player && attacker is not Player)   // Project ACX: monster melee/missile damage scale (setting)
                 Damage *= (float)PropertyManager.GetDouble("acx_mob_damage_scale").Item;
 
-            if (attacker.IsAcxElite)   // Project ACX: elites hit twice as hard (ClassicACE)
-                Damage *= (float)PropertyManager.GetDouble("acx_elite_damage_mod").Item;
+            if (attacker.IsAcxElite)   // Project ACX: elites hit twice as hard (ClassicACE), times their town's damageScale
+                Damage *= (float)(PropertyManager.GetDouble("acx_elite_damage_mod").Item * attacker.AcxEliteDamageScale);
             if (defender.AcxEliteWardBlocks(CombatType))   // Project ACX: a Warded elite's ward
                 Damage = 0;
 

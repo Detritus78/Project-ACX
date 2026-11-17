@@ -7,7 +7,7 @@ namespace ACE.Server.WorldObjects
 {
     /// <summary>
     /// Project ACX: Alchemy heal-over-time (JJ 2026-11-11, ported from bDekaru's ClassicACE Healer.TryProcAlchemyHoT).
-    /// When a healer with trained Alchemy heals with a kit, an Alchemy skill check against the heal's difficulty can add
+    /// When a healer with specialized Alchemy (trained before 2026-11-16) heals with a kit, an Alchemy skill check against the heal's difficulty can add
     /// a heal over time of 4x the heal (ticking every 2.5 s, Creature_AcxDoTHoT). At most one try per kit every 2 minutes.
     /// </summary>
     partial class Healer
@@ -24,8 +24,9 @@ namespace ACE.Server.WorldObjects
             if (acxNextAlchemyTry > now)
                 return;
 
+            // Project ACX: specialized Alchemy only (JJ 2026-11-16: "Yes of course"), it's part of the Alchemist's kit
             var skill = healer.GetCreatureSkill(Skill.Alchemy);
-            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+            if (skill.AdvancementClass < SkillAdvancementClass.Specialized)
                 return;
 
             acxNextAlchemyTry = now + AcxAlchemyTryInterval;

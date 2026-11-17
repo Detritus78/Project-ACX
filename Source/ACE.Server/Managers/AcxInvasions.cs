@@ -53,7 +53,31 @@ namespace ACE.Server.Managers
             public float Radius { get; set; } = 100;
             public bool Invasions { get; set; } = true;
 
+            /// <summary>
+            /// The town's own elite strength, on top of the elite settings (JJ 2026-11-16: "per town settings"; each town
+            /// invades with a different creature, so one global setting can't make every elite a two-player fight)
+            /// </summary>
+            public float HealthScale { get; set; } = 1;
+            public float DamageScale { get; set; } = 1;
+
             public Position Centre => new Position(Convert.ToUInt32(Cell, 16), X, Y, Z, 0, 0, 0, 1);
+        }
+
+        /// <summary>
+        /// The town's healthScale and damageScale (towns.json) on an invader just made elite. Public for the /acxsurvival bench.
+        /// </summary>
+        public static void ApplyTownStrength(Creature creature, Town t)
+        {
+            if (t.HealthScale > 0 && t.HealthScale != 1)
+            {
+                var max = (long)creature.Health.MaxValue;
+                var change = (long)Math.Round(max * t.HealthScale) - max;
+                creature.Health.StartingValue = (uint)Math.Clamp(creature.Health.StartingValue + change, 1, uint.MaxValue);
+                creature.Health.Current = creature.Health.MaxValue;
+            }
+
+            if (t.DamageScale > 0)
+                creature.AcxEliteDamageScale = t.DamageScale;
         }
 
         private class TownFile
@@ -258,6 +282,7 @@ namespace ACE.Server.Managers
                 creature.Location.Rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, angle + MathF.PI / 2);   // facing the town
                 creature.SetPosition(PositionType.Home, new Position(creature.Location));
                 creature.AcxMakeElite();
+                ApplyTownStrength(creature, t);
                 creature.AcxEliteLootTier = t.Tier;
                 creature.Attackable = true;
                 creature.HomeRadius = t.Radius * 1.5f;

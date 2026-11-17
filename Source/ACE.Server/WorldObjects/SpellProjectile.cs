@@ -226,6 +226,10 @@ namespace ACE.Server.WorldObjects
                 WorldEntryCollision = true;
             }
 
+            // Stop visual prediction at the authoritative contact before playing
+            // Explode. Otherwise a fast bolt's burst appears beyond its victim.
+            Location = PhysicsObj.Position.ACEPosition();
+            EnqueueBroadcast(new GameMessageUpdatePosition(this));
             EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
             EnqueueBroadcast(new GameMessageScript(Guid, PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
 
@@ -565,6 +569,9 @@ namespace ACE.Server.WorldObjects
 
             if (target.AcxEliteWardBlocks(CombatType.Magic))   // Project ACX: a Warded elite's ward
                 finalDamage = 0;
+
+            if (sourceCreature != null && sourceCreature.IsAcxElite)   // Project ACX: an elite's spells, times its town's damageScale
+                finalDamage *= (float)sourceCreature.AcxEliteDamageScale;
 
             // show debug info
             if (sourceCreature != null && sourceCreature.DebugDamage.HasFlag(Creature.DebugDamageType.Attacker))

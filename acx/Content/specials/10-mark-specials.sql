@@ -26,13 +26,14 @@
 -- The Eternal Pack (900711, 20-mark-vendor.sql) holds 102 like a character's main pack.
 -- Re-runnable. Restart the server after applying.
 
--- retail items: price
-UPDATE weenie_properties_int SET value = 15 WHERE type = 19 AND object_Id IN (30247, 30248, 30249, 30254);
-UPDATE weenie_properties_int SET value = 10 WHERE type = 19 AND object_Id IN (30253, 30151, 30165);
+-- retail items: price. The retail eternal rares above keep retail's Value 0 (ACE-World-16PY-Patches): since 2026-11-16 the
+-- Trader sells attuned copies of them instead (20-attuned-goods.sql), and the rares themselves drop and trade, so this
+-- file no longer prices them (it set 15 / 10, which vendors and appraisal then showed). The dyes are still sold as they are.
+UPDATE weenie_properties_int SET value = 0 WHERE type = 19 AND object_Id IN (30247, 30248, 30249, 30254, 30253, 30151, 30165);
 UPDATE weenie_properties_int SET value = 5 WHERE type = 19 AND object_Id BETWEEN 30082 AND 30091 AND object_Id <> 30084;
 INSERT INTO weenie_properties_int (object_Id, type, value)
-SELECT w.class_Id, 19, IF(w.class_Id IN (30247, 30248, 30249, 30254), 15, IF(w.class_Id IN (30253, 30151, 30165), 10, 5))
-FROM weenie w WHERE (w.class_Id IN (30247, 30248, 30249, 30254, 30253, 30151, 30165) OR (w.class_Id BETWEEN 30082 AND 30091 AND w.class_Id <> 30084))
+SELECT w.class_Id, 19, 5
+FROM weenie w WHERE w.class_Id BETWEEN 30082 AND 30091 AND w.class_Id <> 30084
   AND NOT EXISTS (SELECT 1 FROM weenie_properties_int p WHERE p.object_Id = w.class_Id AND p.type = 19);
 
 -- new items: copies of a retail weenie

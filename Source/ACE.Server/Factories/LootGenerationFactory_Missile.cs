@@ -43,16 +43,31 @@ namespace ACE.Server.Factories
 
             mutationFilter.TryMutate(wo, profile.Tier);
 
+            // Project ACX: an Alchemist's bomb may roll its damage a tier lower (AcxBombWcids.DamageTier: a tier 4 bomb's damage as tier
+            // 3's), its multiplier from that tier's roll; the wield requirement stays its own tier's, as everything else does
+            var damageTier = AcxBombWcids.DamageTier(wo.WeenieClassId, profile.Tier);
+            if (damageTier != profile.Tier)
+            {
+                var (wieldRequirements, wieldSkillType, wieldDifficulty) = (wo.WieldRequirements, wo.WieldSkillType, wo.WieldDifficulty);
+                MutationCache.GetMutation(GetMissileScript(TreasureWeaponType.Atlatl, damageTier >= 5)).TryMutate(wo, damageTier);
+                (wo.WieldRequirements, wo.WieldSkillType, wo.WieldDifficulty) = (wieldRequirements, wieldSkillType, wieldDifficulty);
+            }
+
             // Project ACX: an Eternal thrown weapon is a launcher and its own ammunition (AcxThrownWcids). It keeps the
             // multiplier the script rolled, as an atlatl does; its own damage is the tier's dart with the rolled elemental
             // bonus (on an atlatl, flat damage on its dart), with a damage range of its own (the projectile carries both:
             // CarryRoll)
             if (isEternalThrown && wo.DamageMod != null)
             {
-                wo.Damage = AcxThrownWcids.RollOwnDamage(profile.Tier, wo.ElementalDamageBonus);
+                wo.Damage = AcxThrownWcids.RollOwnDamage(damageTier, wo.ElementalDamageBonus);
                 wo.ElementalDamageBonus = null;
                 wo.DamageVariance = AcxThrownWcids.RollVariance();
             }
+
+            // Project ACX: an Alchemist's bomb needs specialized Alchemy (its wield level an Alchemy level) and carries its
+            // tier's debuff (AcxBombWcids)
+            if (AcxBombWcids.IsBomb(wo.WeenieClassId))
+                AcxBombWcids.MutateLoot(wo, damageTier);
 
             // mutate WeaponDefense
             mutationFilter = MutationCache.GetMutation("MissileWeapons.weapon_defense.txt");

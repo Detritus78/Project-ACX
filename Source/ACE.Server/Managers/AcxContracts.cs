@@ -178,9 +178,12 @@ namespace ACE.Server.Managers
             var busy = active.Select(c => c.Landblock).ToHashSet();
             var pool = Dungeons.Where(d => !busy.Contains(d.Landblock)).ToList();
 
-            var matched = pool.Where(d => d.Level >= level - 10 && d.Level <= level + 5).ToList();
+            // Project ACX: down to 20 levels under the player, so contracts keep sending people to dungeons they haven't
+            // explored (JJ 2026-11-16: "lets open that up to some to places that are 10 or 20 levels below.. So they can
+            // keep exploring"; was 10 under)
+            var matched = pool.Where(d => d.Level >= level - 20 && d.Level <= level + 5).ToList();
             if (matched.Count < count)
-                matched = pool.Where(d => d.Level >= level - 20 && d.Level <= level + 10).ToList();
+                matched = pool.Where(d => d.Level >= level - 30 && d.Level <= level + 10).ToList();
             if (matched.Count < count)
                 matched = pool.OrderBy(d => Math.Abs(d.Level - level)).Take(10).ToList();
 
@@ -600,8 +603,12 @@ namespace ACE.Server.Managers
                     salvage.Destroy();
             }
 
-            AcxMarks.Give(player);   // one ACX Mark per contract (JJ 2026-11-13)
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Contract complete: {contract.Task}! You're paid {pyreals:N0} pyreals, a full bag of salvage, an ACX Mark and some experience.", ChatMessageType.Broadcast));
+            // ACX Marks per contract: acx_contract_marks (JJ 2026-11-16: "Maybe for contracts we can bump them to two marks per run"; was one)
+            var marks = (int)Math.Max(0, PropertyManager.GetLong("acx_contract_marks").Item);
+            if (marks > 0)
+                AcxMarks.Give(player, "contract", null, marks);
+            var markText = marks == 1 ? "an ACX Mark" : $"{marks} ACX Marks";
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Contract complete: {contract.Task}! You're paid {pyreals:N0} pyreals, a full bag of salvage, {markText} and some experience.", ChatMessageType.Broadcast));
         }
     }
 }

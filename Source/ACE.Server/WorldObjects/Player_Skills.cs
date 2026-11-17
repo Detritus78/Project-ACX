@@ -596,7 +596,15 @@ namespace ACE.Server.WorldObjects
             Skill.Loyalty,
             Skill.MagicDefense,
             Skill.Run,
-            Skill.Salvaging
+            Skill.Salvaging,
+
+            // Project ACX: the trade skills are trained free for every character (AcxGrantTradeSkills), so they can't be
+            // untrained for skill credits either (not Alchemy, 2026-11-16, nor Fletching, 2026-11-17: they cost credits)
+            Skill.Cooking,
+            Skill.ArmorTinkering,
+            Skill.WeaponTinkering,
+            Skill.ItemTinkering,
+            Skill.MagicItemTinkering
         };
 
         public static List<Skill> AugSpecSkills = new List<Skill>()

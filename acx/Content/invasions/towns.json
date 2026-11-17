@@ -3,7 +3,9 @@
   "Project ACX: towns for elite invasions (Managers/AcxInvasions.cs) and the town rule for headstones.",
   "cell/x/y/z: the town's portal drop (points_of_interest), its centre. radius (m, default 100): how far the town reaches.",
   "invader: the weenie that invades as an elite (the town's boss from the 2026-11-12 elite draft; Uziz, Dryreach and Kara",
-  "had none, so an area-level monster). invasions: false keeps a town out of the draw. /acxinvasion reload reads this again."
+  "had none, so an area-level monster). invasions: false keeps a town out of the draw. /acxinvasion reload reads this again.",
+  "healthScale / damageScale (default 1): this town's elite only, on top of the acx_elite_* settings: its health, and its melee,",
+  "missile and spell damage (JJ 2026-11-16: per town, so every elite is a two-player fight; tuned with /acxsurvival duo)."
  ],
  "towns": [
   {
@@ -15,7 +17,9 @@
    "z": 54.005,
    "invader": 210,
    "invaderName": "Mosswart Chief",
-   "invaderLevel": 30
+   "invaderLevel": 30,
+   "healthScale": 0.5,
+   "damageScale": 0.8
   },
   {
    "name": "Holtburg",
@@ -26,7 +30,8 @@
    "z": 94.0,
    "invader": 30490,
    "invaderName": "Drudge Robber Baron",
-   "invaderLevel": 15
+   "invaderLevel": 15,
+   "damageScale": 1.8
   },
   {
    "name": "Sanamar",
@@ -37,7 +42,9 @@
    "z": 52.005,
    "invader": 70000,
    "invaderName": "Aggressive Penguin",
-   "invaderLevel": 8
+   "invaderLevel": 8,
+   "healthScale": 0.57,
+   "damageScale": 4
   },
   {
    "name": "Shoushi",
@@ -48,7 +55,9 @@
    "z": 20.0,
    "invader": 14431,
    "invaderName": "Hollow Minion",
-   "invaderLevel": 29
+   "invaderLevel": 29,
+   "healthScale": 0.3,
+   "damageScale": 0.83
   },
   {
    "name": "Yaraq",
@@ -59,7 +68,9 @@
    "z": 11.9,
    "invader": 30507,
    "invaderName": "Mad Star Marionette",
-   "invaderLevel": 26
+   "invaderLevel": 26,
+   "healthScale": 0.45,
+   "damageScale": 4
   },
   {
    "name": "Greenspire",
@@ -70,7 +81,9 @@
    "z": 0.005,
    "invader": 218,
    "invaderName": "Black Rat",
-   "invaderLevel": 15
+   "invaderLevel": 15,
+   "healthScale": 3.05,
+   "damageScale": 4
   },
   {
    "name": "Lytelthorpe",
@@ -81,7 +94,9 @@
    "z": 33.028,
    "invader": 940,
    "invaderName": "Drudge Sneaker",
-   "invaderLevel": 8
+   "invaderLevel": 8,
+   "healthScale": 0.8,
+   "damageScale": 4
   },
   {
    "name": "Rithwic",
@@ -92,7 +107,9 @@
    "z": 22.005,
    "invader": 204,
    "invaderName": "Lich",
-   "invaderLevel": 20
+   "invaderLevel": 20,
+   "healthScale": 0.35,
+   "damageScale": 0.85
   },
   {
    "name": "Al-Arqas",
@@ -103,7 +120,9 @@
    "z": 9.326,
    "invader": 210,
    "invaderName": "Mosswart Chief",
-   "invaderLevel": 30
+   "invaderLevel": 30,
+   "healthScale": 0.5,
+   "damageScale": 0.8
   },
   {
    "name": "Hebian-to",
@@ -114,7 +133,9 @@
    "z": 20.04,
    "invader": 204,
    "invaderName": "Lich",
-   "invaderLevel": 20
+   "invaderLevel": 20,
+   "healthScale": 0.35,
+   "damageScale": 0.85
   },
   {
    "name": "Kryst",
@@ -125,7 +146,9 @@
    "z": 20.1,
    "invader": 1757,
    "invaderName": "Shadow Lieutenant",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "healthScale": 0.28,
+   "damageScale": 3.64
   },
   {
    "name": "Nanto",
@@ -136,7 +159,9 @@
    "z": 74.542,
    "invader": 8430,
    "invaderName": "Mosswart Soul Trapper",
-   "invaderLevel": 50
+   "invaderLevel": 50,
+   "healthScale": 0.25,
+   "damageScale": 4
   },
   {
    "name": "Samsur",
@@ -147,7 +172,9 @@
    "z": 0.005,
    "invader": 1631,
    "invaderName": "Drudge Servant",
-   "invaderLevel": 15
+   "invaderLevel": 15,
+   "damageScale": 4,
+   "healthScale": 0.8
   },
   {
    "name": "Tufa",
@@ -158,7 +185,9 @@
    "z": 18.0,
    "invader": 9255,
    "invaderName": "Dread Mu-miyah",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "damageScale": 4,
+   "healthScale": 0.37
   },
   {
    "name": "Yanshi",
@@ -169,7 +198,9 @@
    "z": 34.69,
    "invader": 26018,
    "invaderName": "Burun Ruuk Scamp",
-   "invaderLevel": 40
+   "invaderLevel": 40,
+   "healthScale": 0.22,
+   "damageScale": 2.9
   },
   {
    "name": "Bluespire",
@@ -180,7 +211,9 @@
    "z": 0.005,
    "invader": 22010,
    "invaderName": "Olthoi Servant",
-   "invaderLevel": 50
+   "invaderLevel": 50,
+   "healthScale": 0.48,
+   "damageScale": 2.11
   },
   {
    "name": "Redspire",
@@ -191,7 +224,9 @@
    "z": 44.005,
    "invader": 38146,
    "invaderName": "Ves the Mad",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 1.8,
+   "healthScale": 1.8
   },
   {
    "name": "Baishi",
@@ -202,7 +237,9 @@
    "z": 55.1,
    "invader": 7607,
    "invaderName": "Ember",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 3.32,
+   "healthScale": 0.45
   },
   {
    "name": "Eastham",
@@ -213,7 +250,9 @@
    "z": 17.417,
    "invader": 201,
    "invaderName": "Obsidian Golem",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "healthScale": 0.23,
+   "damageScale": 1.94
   },
   {
    "name": "Glenden Wood",
@@ -224,7 +263,9 @@
    "z": 59.955,
    "invader": 1630,
    "invaderName": "Lich Lord",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "healthScale": 0.26,
+   "damageScale": 2.29
   },
   {
    "name": "Khayyaban",
@@ -235,7 +276,9 @@
    "z": 31.885,
    "invader": 619,
    "invaderName": "Revenant",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "healthScale": 0.16,
+   "damageScale": 1.91
   },
   {
    "name": "Lin",
@@ -246,7 +289,9 @@
    "z": 18.958,
    "invader": 619,
    "invaderName": "Revenant",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "healthScale": 0.16,
+   "damageScale": 1.91
   },
   {
    "name": "Mayoi",
@@ -257,7 +302,9 @@
    "z": 29.908,
    "invader": 38147,
    "invaderName": "Inkitan the Crazed",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.21,
+   "damageScale": 0.43
   },
   {
    "name": "Sawato",
@@ -268,7 +315,9 @@
    "z": 12.0,
    "invader": 14517,
    "invaderName": "Frost",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 3.24,
+   "healthScale": 0.47
   },
   {
    "name": "Tou-Tou",
@@ -279,7 +328,9 @@
    "z": 20.005,
    "invader": 7987,
    "invaderName": "Opor Niffis",
-   "invaderLevel": 61
+   "invaderLevel": 61,
+   "healthScale": 0.26,
+   "damageScale": 2.28
   },
   {
    "name": "Uziz",
@@ -290,7 +341,9 @@
    "z": 20.005,
    "invader": 9255,
    "invaderName": "Dread Mu-miyah",
-   "invaderLevel": 60
+   "invaderLevel": 60,
+   "damageScale": 4,
+   "healthScale": 0.37
   },
   {
    "name": "Xarabydun",
@@ -301,7 +354,9 @@
    "z": 18.1,
    "invader": 9146,
    "invaderName": "Tumerok South Vanguard Leader",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.3,
+   "damageScale": 0.7
   },
   {
    "name": "Zaikhal",
@@ -312,7 +367,9 @@
    "z": 124.005,
    "invader": 5921,
    "invaderName": "Impious Lichen High Priest",
-   "invaderLevel": 53
+   "invaderLevel": 53,
+   "healthScale": 0.27,
+   "damageScale": 0.5
   },
   {
    "name": "Al-Jalima",
@@ -323,7 +380,9 @@
    "z": 90.049,
    "invader": 15299,
    "invaderName": "Martinate Simulacrum",
-   "invaderLevel": 50
+   "invaderLevel": 50,
+   "damageScale": 3.38,
+   "healthScale": 0.44
   },
   {
    "name": "Arwic",
@@ -334,7 +393,9 @@
    "z": 42.005,
    "invader": 212,
    "invaderName": "Olthoi Noble",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 2.83,
+   "healthScale": 0.52
   },
   {
    "name": "Westwatch",
@@ -345,7 +406,9 @@
    "z": 2.005,
    "invader": 28651,
    "invaderName": "Viamontian Mercenary",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "healthScale": 0.23,
+   "damageScale": 3.37
   },
   {
    "name": "Freehold",
@@ -356,7 +419,9 @@
    "z": 0.0,
    "invader": 4247,
    "invaderName": "Foul Moarsman",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "healthScale": 1.47,
+   "damageScale": 2.5
   },
   {
    "name": "Qalabar",
@@ -365,9 +430,11 @@
    "x": 168.354,
    "y": 24.618,
    "z": 102.005,
-   "invader": 25753,
-   "invaderName": "Scold",
-   "invaderLevel": 80
+   "invader": 7121,
+   "invaderName": "Skeleton Bone Lord",
+   "invaderLevel": 60,
+   "healthScale": 0.28,
+   "damageScale": 2.0
   },
   {
    "name": "Ahurenga",
@@ -378,7 +445,9 @@
    "z": 0.005,
    "invader": 23482,
    "invaderName": "Olthoi Warrior",
-   "invaderLevel": 115
+   "invaderLevel": 115,
+   "healthScale": 0.35,
+   "damageScale": 0.57
   },
   {
    "name": "Bandit Castle",
@@ -389,7 +458,9 @@
    "z": 115.1,
    "invader": 24326,
    "invaderName": "Risen Lord",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.47,
+   "damageScale": 1.72
   },
   {
    "name": "Danby's Outpost",
@@ -400,7 +471,9 @@
    "z": 6.0,
    "invader": 38148,
    "invaderName": "Cloywer the Unstable",
-   "invaderLevel": 115
+   "invaderLevel": 115,
+   "healthScale": 0.22,
+   "damageScale": 0.45
   },
   {
    "name": "Dryreach",
@@ -411,7 +484,9 @@
    "z": 18.005,
    "invader": 212,
    "invaderName": "Olthoi Noble",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 2.83,
+   "healthScale": 0.52
   },
   {
    "name": "Kara",
@@ -422,7 +497,9 @@
    "z": 167.7,
    "invader": 14517,
    "invaderName": "Frost",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "damageScale": 3.24,
+   "healthScale": 0.47
   },
   {
    "name": "Linvak Tukal",
@@ -433,7 +510,9 @@
    "z": 560.4,
    "invader": 8138,
    "invaderName": "Extas Raider",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.28,
+   "damageScale": 0.63
   },
   {
    "name": "Neydisa",
@@ -444,7 +523,9 @@
    "z": 99.8,
    "invader": 5868,
    "invaderName": "Gelidite Lord",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.16,
+   "damageScale": 0.68
   },
   {
    "name": "Plateau",
@@ -455,7 +536,9 @@
    "z": 238.6,
    "invader": 8431,
    "invaderName": "Nomad Mu-miyah",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.34,
+   "damageScale": 0.57
   },
   {
    "name": "Refuge",
@@ -466,7 +549,9 @@
    "z": 58.005,
    "invader": 11540,
    "invaderName": "Armored Tusker",
-   "invaderLevel": 100
+   "invaderLevel": 100,
+   "healthScale": 0.58,
+   "damageScale": 1.2
   },
   {
    "name": "Silyun",
@@ -477,7 +562,9 @@
    "z": 80.005,
    "invader": 32689,
    "invaderName": "Whispering Blade Guard",
-   "invaderLevel": 115
+   "invaderLevel": 115,
+   "healthScale": 1.2,
+   "damageScale": 1.2
   },
   {
    "name": "Timaru",
@@ -488,7 +575,9 @@
    "z": 90.005,
    "invader": 11504,
    "invaderName": "Mercenary",
-   "invaderLevel": 80
+   "invaderLevel": 80,
+   "healthScale": 1.94,
+   "damageScale": 4
   },
   {
    "name": "Beach Fort",
@@ -499,7 +588,9 @@
    "z": 0.005,
    "invader": 38149,
    "invaderName": "Despe the Insane",
-   "invaderLevel": 160
+   "invaderLevel": 160,
+   "healthScale": 0.17,
+   "damageScale": 0.4
   },
   {
    "name": "Candeth Keep",
@@ -510,7 +601,9 @@
    "z": 10.112,
    "invader": 1210,
    "invaderName": "Mercenary",
-   "invaderLevel": 115
+   "invaderLevel": 115,
+   "damageScale": 4,
+   "healthScale": 0.76
   },
   {
    "name": "Fiun",
@@ -521,7 +614,9 @@
    "z": -0.095,
    "invader": 73154,
    "invaderName": "Algid Warrior",
-   "invaderLevel": 165
+   "invaderLevel": 165,
+   "healthScale": 0.1,
+   "damageScale": 0.4
   },
   {
    "name": "Fort Tethana",
@@ -530,9 +625,11 @@
    "x": 77.7,
    "y": 108.1,
    "z": 240.0,
-   "invader": 24285,
-   "invaderName": "Raider Juggernaut",
-   "invaderLevel": 135
+   "invader": 25753,
+   "invaderName": "Scold",
+   "invaderLevel": 135,
+   "healthScale": 0.027,
+   "damageScale": 1.8
   },
   {
    "name": "Stonehold",
@@ -543,7 +640,9 @@
    "z": 78.0,
    "invader": 72803,
    "invaderName": "Sclavus Sentinel",
-   "invaderLevel": 225
+   "invaderLevel": 225,
+   "healthScale": 1.125,
+   "damageScale": 1.44
   },
   {
    "name": "Wai Jhou",
@@ -554,7 +653,9 @@
    "z": -0.1,
    "invader": 48774,
    "invaderName": "Spirit of Protection",
-   "invaderLevel": 250
+   "invaderLevel": 250,
+   "healthScale": 0.486,
+   "damageScale": 1.9
   },
   {
    "name": "Ayan Baqur",
@@ -565,7 +666,9 @@
    "z": 64.8,
    "invader": 38144,
    "invaderName": "Siabot the Deranged",
-   "invaderLevel": 160
+   "invaderLevel": 160,
+   "healthScale": 0.17,
+   "damageScale": 0.4
   },
   {
    "name": "Eastwatch",
@@ -576,7 +679,9 @@
    "z": 170.005,
    "invader": 28652,
    "invaderName": "Viamontian Tribune",
-   "invaderLevel": 135
+   "invaderLevel": 135,
+   "healthScale": 0.1,
+   "damageScale": 0.44
   }
  ]
 }

@@ -128,6 +128,11 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// How many of a currency (e.g. ACX Marks) the player has in the bank (the economy log)
+        /// </summary>
+        public static long GetBankedCurrency(IPlayer player, uint wcid) => GetCurrencies(player).TryGetValue(wcid, out var count) ? count : 0;
+
         private static Dictionary<uint, long> GetCurrencies(IPlayer player)
         {
             var banked = new Dictionary<uint, long>();

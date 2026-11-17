@@ -228,5 +228,6 @@ namespace ACE.Entity.Enum.Properties
         AcxLastHeadstone               = 30003,
         AcxAttacksCauseBleedChance     = 30004,
         AcxPortalTriggerRadius         = 30005,
+        AcxEliteDamageScale            = 30006,
     }
 }

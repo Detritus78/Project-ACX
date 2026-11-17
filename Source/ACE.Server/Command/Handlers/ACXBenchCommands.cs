@@ -128,6 +128,189 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"XP tables written to {file} ({rows} rows).");
         }
 
+        [CommandHandler("acxsurvival", AccessLevel.Admin, CommandHandlerFlag.None, 0,
+            "End-game survival bench: realistic characters (XP spent per build) in median tinked loot, fully buffed, fight the top spawning monsters toe to toe through the server's combat code, without and with healing kits. Writes CSVs to Logs/acxbench.",
+            "[levels=200,240,275] [builds=melee,meleeshield,archer,mage] [fights=20] [max=600 (seconds)] [healat=0.55] [mobs=<wcid,wcid,...> (replaces the default list)] [elites=0] [pets=0] [lum=<0-100> (luminance auras in percent; default by level)] [profiles=fresh,veteran] [gear=base|sets|aetheria|full] [set=Soldiers|Defenders|Archers|Adepts|Hearty|Wise|...] [aeth=defense|offense] [trinket=scarab|diamond|gromnie|ruby|amber|sapphire] | dummy items=0x...,0x... [levels=275] [builds=melee] [seconds=60] [transfers=1] [runs=10] [variants=0] [profile=veteran]")]
+        public static void HandleAcxSurvival(Session session, params string[] parameters)
+        {
+            // /acxsurvival dummy items=0x...,0x... [levels=275] [builds=melee] [seconds=60] [transfers=0|1] [runs=10] [variants=0|1]:
+            // shard items worn by the realistic build against the Training Dummy (AcxBench_SurvivalDummy.cs)
+            // /acxsurvival duo [fights=10] [towns=0]: duos (and each build solo) against the invasion elites (AcxBench_Survival.RunDuo)
+            if (parameters.Length > 0 && parameters[0].Equals("duo", StringComparison.OrdinalIgnoreCase))
+            {
+                var duo = new AcxBench.DuoOptions();
+                foreach (var p in parameters.Skip(1).Where(p => p.Contains('=')))
+                {
+                    var kv = p.Split('=', 2);
+                    if (kv[0].Equals("fights", StringComparison.OrdinalIgnoreCase) && int.TryParse(kv[1], out var n)) duo.Fights = Math.Clamp(n, 1, 100);
+                    if (kv[0].Equals("towns", StringComparison.OrdinalIgnoreCase)) duo.Towns = kv[1] != "0";
+                    if (kv[0].Equals("top", StringComparison.OrdinalIgnoreCase)) duo.Top = kv[1] != "0";
+                    if (kv[0].Equals("only", StringComparison.OrdinalIgnoreCase)) duo.Only = kv[1].Split(',').ToList();
+                    if (kv[0].Equals("party", StringComparison.OrdinalIgnoreCase)) duo.Parties = kv[1] != "0";
+                }
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartDuo(duo, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                return;
+            }
+
+            // /acxsurvival pack [size=4] [levels=275] [builds=alchemist,archer,...] [profiles=veteran] [fights=10] [mobs=<wcid,...>] [gear=full]: one
+            // player against a pack of a monster, so the Alchemist's blast counts (AcxBench_SurvivalAlchemist.cs)
+            if (parameters.Length > 0 && parameters[0].Equals("pack", StringComparison.OrdinalIgnoreCase))
+            {
+                var pack = new AcxBench.PackOptions();
+                foreach (var p in parameters.Skip(1).Where(p => p.Contains('=')))
+                {
+                    var kv = p.Split('=', 2);
+                    var value = kv[1];
+                    switch (kv[0].ToLowerInvariant())
+                    {
+                        case "size": if (int.TryParse(value, out var size)) pack.Size = Math.Clamp(size, 1, 8); break;
+                        case "levels": pack.Levels = value.Split(',').Select(v => int.TryParse(v, out var l) ? Math.Clamp(l, 1, 275) : 0).Where(l => l > 0).ToList(); break;
+                        case "builds": pack.Builds = value.ToLowerInvariant().Split(',').ToList(); break;
+                        case "profiles": pack.Profiles = value.ToLowerInvariant().Split(',').ToList(); break;
+                        case "fights": if (int.TryParse(value, out var fights)) pack.Fights = Math.Clamp(fights, 1, 100); break;
+                        case "mobs": pack.Monsters = value.Split(',').Select(v => uint.TryParse(v, out var w) ? w : 0).Where(w => w != 0).ToList(); break;
+                        case "gear": pack.Gear = value.ToLowerInvariant() switch { "base" => 0, "sets" => 1, "aetheria" => 2, "full" => 3, _ => int.TryParse(value, out var g) ? Math.Clamp(g, 0, 3) : 3 }; break;
+                        case "bombimbue": pack.BombImbue = value.ToLowerInvariant(); break;
+                        case "shield": pack.ThrownShield = value != "0"; break;
+                    }
+                }
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartPack(pack, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                return;
+            }
+
+            // /acxsurvival atlans [runs=20] [gear=full]: each Atlan grade vs loot of its wield on the Training Dummy (AcxBench_SurvivalDummy.cs)
+            if (parameters.Length > 0 && parameters[0].Equals("atlans", StringComparison.OrdinalIgnoreCase))
+            {
+                var atlanRuns = 20;
+                var atlanGear = 3;
+                foreach (var p in parameters.Skip(1).Where(p => p.Contains('=')))
+                {
+                    var kv = p.Split('=', 2);
+                    if (kv[0].Equals("runs", StringComparison.OrdinalIgnoreCase) && int.TryParse(kv[1], out var r)) atlanRuns = Math.Clamp(r, 1, 100);
+                    if (kv[0].Equals("gear", StringComparison.OrdinalIgnoreCase))
+                        atlanGear = kv[1].ToLowerInvariant() switch { "base" => 0, "sets" => 1, "aetheria" => 2, "full" => 3, _ => int.TryParse(kv[1], out var g) ? Math.Clamp(g, 0, 3) : 3 };
+                }
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartAtlans(atlanRuns, atlanGear, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                return;
+            }
+
+            if (parameters.Length > 0 && parameters[0].Equals("dummy", StringComparison.OrdinalIgnoreCase))
+            {
+                static uint Hex(string v) => uint.TryParse(v.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? v[2..] : v, System.Globalization.NumberStyles.HexNumber, null, out var g) ? g : 0;
+                var dummy = new AcxBench.DummyOptions();
+                foreach (var p in parameters.Skip(1).Where(p => p.Contains('=')))
+                {
+                    var kv = p.Split('=', 2);
+                    var value = kv[1];
+                    switch (kv[0].ToLowerInvariant())
+                    {
+                        case "items":
+                            dummy.Items = value.Split(',').Select(Hex).Where(g => g != 0).ToList();
+                            break;
+                        case "levels":
+                            dummy.Levels = value.Split(',').Select(v => int.TryParse(v, out var l) ? Math.Clamp(l, 1, 275) : 0).Where(l => l > 0).ToList();
+                            break;
+                        case "builds":
+                            dummy.Builds = value.ToLowerInvariant().Split(',').ToList();
+                            break;
+                        case "seconds":
+                            if (double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var seconds)) dummy.Seconds = Math.Clamp(seconds, 5, 600);
+                            break;
+                        case "transfers":
+                            dummy.Transfers = value != "0";
+                            break;
+                        case "runs":
+                            if (int.TryParse(value, out var runs)) dummy.Runs = Math.Clamp(runs, 1, 100);
+                            break;
+                        case "variants":
+                            dummy.Variants = value != "0";
+                            break;
+                        case "profile":
+                            dummy.Veteran = value.Equals("veteran", StringComparison.OrdinalIgnoreCase);
+                            break;
+                    }
+                }
+                if (dummy.Items.Count == 0 && !dummy.Variants)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxsurvival dummy items=0x800003A5,0x800007DA [levels=275] [builds=melee] [seconds=60] [transfers=1] [runs=10] [variants=0]");
+                    return;
+                }
+                CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartDummy(dummy, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+                return;
+            }
+
+            var options = new AcxBench.SurvivalOptions();
+            foreach (var p in parameters.Where(p => p.Contains('=')))
+            {
+                var kv = p.Split('=', 2);
+                var value = kv[1];
+                switch (kv[0].ToLowerInvariant())
+                {
+                    case "levels":
+                        options.Levels = value.Split(',').Select(v => int.TryParse(v, out var l) ? Math.Clamp(l, 1, 275) : 0).Where(l => l > 0).ToList();
+                        break;
+                    case "builds":
+                        options.Builds = value.ToLowerInvariant().Split(',').ToList();
+                        break;
+                    case "fights":
+                        if (int.TryParse(value, out var fights)) options.Fights = Math.Clamp(fights, 1, 200);
+                        break;
+                    case "max":
+                        if (double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var max)) options.MaxSeconds = Math.Clamp(max, 10, 3600);
+                        break;
+                    case "healat":
+                        if (double.TryParse(value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var healAt)) options.HealAt = Math.Clamp(healAt, 0.05, 0.95);
+                        break;
+                    case "mobs":
+                        options.Monsters = value.Split(',').Select(v => uint.TryParse(v, out var w) ? w : 0).Where(w => w != 0).ToList();
+                        break;
+                    case "tier":   // another loot tier's gear at these levels (2026-11-16: the Alchemist's low-tier rules)
+                        if (int.TryParse(value, out var lootTier)) options.LootTier = Math.Clamp(lootTier, 0, 8);
+                        break;
+                    case "elites":
+                        options.Elites = value != "0";
+                        break;
+                    case "pets":
+                        options.Pets = value != "0";
+                        break;
+                    case "lum":
+                        if (int.TryParse(value, out var lum)) options.LumLevel = Math.Clamp(lum, 0, 100);
+                        break;
+                    case "profiles":
+                        options.Profiles = value.ToLowerInvariant().Split(',').Where(v => v == "fresh" || v == "veteran").ToList();
+                        break;
+                    case "gear":
+                        // base | sets | aetheria | full (each adds to the one before)
+                        options.Gear = value.ToLowerInvariant() switch { "sets" => 1, "aetheria" => 2, "full" => 3, _ => int.TryParse(value, out var g) ? Math.Clamp(g, 0, 3) : 0 };
+                        break;
+                    case "set":
+                        options.ArmorSet = value;
+                        break;
+                    case "aeth":
+                        options.Aetheria = value.ToLowerInvariant() == "offense" ? "offense" : "defense";
+                        break;
+                    case "trinket":
+                        options.Trinket = value.ToLowerInvariant();
+                        break;
+                    case "wtable":
+                        options.MeleeKind = value;   // e.g. Heavy.Schlagers, Light.Daggers, Finesse.Rapiers
+                        break;
+                    case "bombimbue":   // cs | cb | ar | rend: an imbue on the Alchemist's bombs (none by default, as the game allows)
+                        options.BombImbue = value.ToLowerInvariant();
+                        break;
+                    case "shield":   // 1: the Alchemist and the thrown build carry a shield
+                        options.ThrownShield = value != "0";
+                        break;
+                }
+            }
+            if (options.Levels.Count == 0 || options.Builds.Count == 0 || options.Profiles.Count == 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: /acxsurvival [levels=200,240,275] [builds=melee,meleeshield,archer,mage] [fights=20]");
+                return;
+            }
+            CommandHandlerHelper.WriteOutputInfo(session, AcxBench.StartSurvival(options, text => CommandHandlerHelper.WriteOutputInfo(session, text)));
+        }
+
         [CommandHandler("acxgear", AccessLevel.Admin, CommandHandlerFlag.None, 1,
             "Gear bench: a quest weapon against loot of its weapon type in every class at the same wield requirement, untinked and tinked. Writes a CSV to Logs/acxbench.",
             "<quest weapon wcid | class> [character level, default: where loot of that wield requirement drops] [kinds=all: every loot kind, not one per class] [check=1: each row the bench's way and the game's way, 30 swings] [debuff=1: Imperil and the matching vulnerability on each monster] [wield=N: compare against loot of this wield requirement] [single=1: just this weapon, not its element versions]")]

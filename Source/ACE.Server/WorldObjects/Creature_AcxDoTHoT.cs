@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
     /// - Bleeds: a hit with a dagger, or a sword swung with a multi-strike attack, bleeds for its damage plus 5 over the
     ///   next ticks, scaled by acx_bleed_damage_scale (0.5 by default, Pourkarutide's live value; ClassicACE's is 1.0).
     ///   One hit in 10 instead cashes in that attacker's bleeds of that type at once: a hemorrhage.
-    /// - Alchemy: a trained alchemist's healing kit can add a heal over time worth 4x the heal (Healer_AcxAlchemy).
+    /// - Alchemy: a specialized alchemist's healing kit can add a heal over time worth 4x the heal (Healer_AcxAlchemy).
     /// </summary>
     partial class Creature
     {
@@ -41,6 +41,7 @@ namespace ACE.Server.WorldObjects
             public int TickAmount, TotalAmount;
             public DamageType VitalType;
             public WorldObject Source;
+            public bool Bomb;   // an Alchemist's Healing bomb: the next one refreshes it (AcxRefreshBombHoT)
 
             public AcxHoT(int tick, int total, DamageType vitalType, WorldObject source)
             {
@@ -76,6 +77,23 @@ namespace ACE.Server.WorldObjects
             sourcePlayer?.SendMessage($"You infuse {(source == this ? "yourself" : Name)} with {totalAmount:N0} points of periodic {what}.", ChatMessageType.Magic);
             if (this is Player targetPlayer && targetPlayer != sourcePlayer && source != null)
                 targetPlayer.SendMessage($"{source.Name} infuses you with {totalAmount:N0} points of periodic {what}.", ChatMessageType.Magic);
+        }
+
+        /// <summary>
+        /// An Alchemist's Healing bomb (Player.AcxHealingBombImpact): health over the next five ticks (12.5 s), replacing any
+        /// Healing bomb heal still running, so bombs refresh and don't stack (JJ 2026-11-16). No chat line: the health bar
+        /// and the burst's effect show it.
+        /// </summary>
+        public void AcxRefreshBombHoT(int totalAmount, WorldObject source)
+        {
+            if (totalAmount <= 0 || IsDead)
+                return;
+
+            lock (acxDoTHoTLock)
+            {
+                acxHoTs.RemoveAll(h => h.Bomb);
+                acxHoTs.Add(new AcxHoT(Math.Max(1, totalAmount / 5), totalAmount, DamageType.Health, source) { Bomb = true });
+            }
         }
 
         public void AcxApplyDoT(int tickAmount, int totalAmount, bool isCritical, CombatType combatType, DamageType damageType, WorldObject source)
@@ -133,7 +151,7 @@ namespace ACE.Server.WorldObjects
                 dots = acxDoTs;
                 hots = acxHoTs;
                 acxDoTs = dots.Where(d => d.TotalAmount > d.TickAmount).Select(d => new AcxDoT(d.TickAmount, d.TotalAmount - d.TickAmount, d.CombatType, d.DamageType, d.Source)).ToList();
-                acxHoTs = hots.Where(h => h.TotalAmount > h.TickAmount).Select(h => new AcxHoT(h.TickAmount, h.TotalAmount - h.TickAmount, h.VitalType, h.Source)).ToList();
+                acxHoTs = hots.Where(h => h.TotalAmount > h.TickAmount).Select(h => new AcxHoT(h.TickAmount, h.TotalAmount - h.TickAmount, h.VitalType, h.Source) { Bomb = h.Bomb }).ToList();
             }
 
             // damage, one hit per damage type, credited to each source; an invincible target's bleeds run out without

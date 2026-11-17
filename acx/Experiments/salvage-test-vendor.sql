@@ -92,16 +92,9 @@ INSERT INTO weenie_properties_int (object_Id, type, value) SELECT bag, 92, 100 F
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT bag, 105, 10 FROM acx_bags;    -- ItemWorkmanship
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT bag, 170, 1 FROM acx_bags;     -- NumItemsInMaterial
 INSERT INTO cook_book (recipe_Id, source_W_C_I_D, target_W_C_I_D, last_Modified) SELECT c.recipe_Id, b.bag, c.target_W_C_I_D, NOW() FROM acx_bags b JOIN cook_book c ON c.source_W_C_I_D = b.original;
--- the imbue gems: the server finds their recipe by item number in code (RecipeManager_New SourceToRecipe), not by
--- cook_book row, so a bag has no row for a weapon that isn't in retail's cook book, such as ACX's Eternal thrown
--- weapons (900810-900851); give it one (2026-11-15, JJ testing Pierce Rend on a thrown weapon)
-INSERT INTO cook_book (recipe_Id, source_W_C_I_D, target_W_C_I_D, last_Modified)
-SELECT g.recipe, g.bag, w.class_Id, NOW()
-FROM (SELECT 900208 bag, 4436 recipe UNION ALL SELECT 900210, 4449 UNION ALL SELECT 900211, 3863 UNION ALL SELECT 900216, 4450
-      UNION ALL SELECT 900217, 3864 UNION ALL SELECT 900220, 4454 UNION ALL SELECT 900221, 4451 UNION ALL SELECT 900228, 4452
-      UNION ALL SELECT 900234, 3865 UNION ALL SELECT 900235, 4453) g
-JOIN weenie w ON w.class_Id BETWEEN 900810 AND 900851
-WHERE NOT EXISTS (SELECT 1 FROM cook_book c WHERE c.source_W_C_I_D = g.bag AND c.target_W_C_I_D = w.class_Id);
+-- Salvage whose recipe the server finds in code by item number (imbue gems, iron, granite, velvet, armor and jewelry
+-- salvage, ...) has no cook_book row for most items; the server looks a test bag up as its original
+-- (RecipeManager_New.AcxTestBagOriginal, 2026-11-16), so the bags need only the copied rows above.
 
 -- the vendor: the Grocer's body, clothes and settings, a shop of bags, free
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT 900020, 'acx-test-salvage-vendor', type, NOW() FROM weenie WHERE class_Id = 22724;

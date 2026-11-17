@@ -1,0 +1,9 @@
+[Unit]
+Description=Project ACX: copy Live's nightly backups to the HDD, daily at 5 AM
+
+[Timer]
+OnCalendar=*-*-* 05:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

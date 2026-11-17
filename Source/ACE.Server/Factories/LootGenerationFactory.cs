@@ -111,7 +111,33 @@ namespace ACE.Server.Factories
 
             var wo = CreateAndMutateWcid(treasureDeath, treasureRoll, category == TreasureItemCategory.MagicItem);
 
+            AcxScaleLootValue(wo);   // Project ACX: loot is worth a fraction of retail
+
             return wo;
+        }
+
+        /// <summary>
+        /// Project ACX: what new loot is worth (JJ 2026-11-17: "loot drop value needs to drop significantly. I saw some things valued
+        /// at over 2k", then "Actually its easier to raise then lower lets start at 90%"). Monsters drop no coins
+        /// (LootGenerationFactory_AcxCoins), so selling loot is where pyreals come from, and retail's values would flood the
+        /// economy. Every new loot item's value is scaled by acx_loot_value_mod (0.1: 90% less; coins left alone), a live setting
+        /// to raise as the economy log (Logs/acx-economy.csv) shows. Items already dropped keep their value.
+        /// </summary>
+        private static void AcxScaleLootValue(WorldObject wo)
+        {
+            if (wo == null || wo.WeenieType == WeenieType.Coin || wo.ItemType == ItemType.PromissoryNote)
+                return;
+
+            var mod = PropertyManager.GetDouble("acx_loot_value_mod").Item;
+            if (mod == 1.0)
+                return;
+
+            static int Scale(int value, double mod) => value > 0 ? Math.Max(1, (int)Math.Round(value * mod)) : value;
+
+            if (wo.StackUnitValue != null)
+                wo.StackUnitValue = Scale(wo.StackUnitValue.Value, mod);
+            if (wo.Value != null)
+                wo.Value = Scale(wo.Value.Value, mod);
         }
 
         private static TreasureRoll RollWcid(TreasureDeath treasureDeath, TreasureItemCategory category, TreasureItemType treasureItemType = TreasureItemType.Undef)
@@ -1051,6 +1077,8 @@ namespace ACE.Server.Factories
             // and only returns true if the item has been mutated.
             else
                 return false;
+
+            AcxScaleLootValue(item);   // Project ACX: as real loot is (/lootgen)
 
             return true;
         }
