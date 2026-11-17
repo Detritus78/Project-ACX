@@ -38,6 +38,13 @@ RUN apt-get update && \
 # add app from build
 COPY --from=build /ace .
 
+# Project ACX: run as the image's own non-root user (app, APP_UID 1654), which has no account on the host (JJ 2026-11-17:
+# "lets do the non root container fix"). The only writes in /ace itself: at start ACE copies Config/Config.js and
+# Config/log4net.config over these two, and keeps applied_updates.txt under DatabaseSetupScripts/Updates/<db> (the rest goes to
+# the mounted folders; an admin's /recordcast log would also land in /ace, and fails).
+RUN touch Config.js log4net.config && chown -R $APP_UID:$APP_UID Config.js log4net.config DatabaseSetupScripts/Updates
+USER $APP_UID
+
 # run app
 ENTRYPOINT ["dotnet", "ACE.Server.dll"]
 

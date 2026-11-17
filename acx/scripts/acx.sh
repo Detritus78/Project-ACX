@@ -92,6 +92,14 @@ dump() {
     compose "$name" exec -T db sh -c 'exec mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" --single-transaction --routines --databases ace_auth ace_shard ace_world' > "$out"
 }
 
+# the server runs as the image's user app, 1654 (Dockerfile), so its folders must be app's (the server ran as root until
+# 2026-11-17 and left root's files there). The host reads them as before; writing needs docker or sudo.
+own_data() {
+    local env dir; env="$(instance_env "$1")"; dir="$(env_value "$env" ACX_DATA_DIR)"
+    docker run --rm -v "$dir:/d" --entrypoint sh mysql:8.0 -c \
+        "cd /d && mkdir -p Config Logs Mods Pathfinding content-sql && chown -R 1654:1654 Config Logs Mods Pathfinding content-sql"
+}
+
 cmd_backup() {
     local name="$1"
     mkdir -p "$ACX_BACKUP_DIR" 2>/dev/null || die "can't create $ACX_BACKUP_DIR (is the HDD mounted? udisksctl mount -b /dev/disk/by-label/HDDStorage)"
@@ -135,7 +143,7 @@ fi
 
 case "${1:-}" in
     init)    cmd_init "${2:?instance}" ;;
-    up)      compose "${2:?instance}" up -d --build ;;
+    up)      own_data "${2:?instance}"; compose "$2" up -d --build ;;
     down)    compose "${2:?instance}" down ;;
     logs)    compose "${2:?instance}" logs -f server ;;
     console) docker attach "$(compose "${2:?instance}" ps -q server)" ;;

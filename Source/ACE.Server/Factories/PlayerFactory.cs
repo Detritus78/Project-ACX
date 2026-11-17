@@ -233,6 +233,10 @@ namespace ACE.Server.Factories
 
                     if (charSkill.AdvancementClass == SkillAdvancementClass.Trained || charSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                     {
+                        // Project ACX: Missile Weapons without Fletching starts with a thrown weapon, not the heritage's launcher
+                        if (skillGear.SkillId == (ushort)Skill.MissileWeapons && AcxTrainers.GiveStarterThrownAtCreation(player, (HeritageGroup)characterCreateInfo.Heritage))
+                            continue;
+
                         foreach (var item in skillGear.Gear)
                         {
                             if (grantedWeenies.Contains(item.WeenieId))

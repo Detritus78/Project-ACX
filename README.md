@@ -1,3 +1,18 @@
+# Project ACX
+
+Project ACX is a slow-roll Asheron's Call server built on [ACEmulator](https://github.com/ACEmulator/ACE). Leveling and
+making money take work, two new classes (the Alchemist and Thrown Weapons) are balanced alongside the retail ones, and a
+good bit has changed for quality of life.
+
+- **Play:** [how to join](https://detritus78.github.io/join/)
+- **Where the changes are:** ACX code is in files named `Acx*` and in lines marked "Project ACX"; content (NPCs, items,
+  placements) is SQL in [`acx/Content`](acx/Content), and the server's tools are in [`acx/scripts`](acx/scripts).
+- **License:** AGPL-3.0, as ACE's. The `main` branch is the code the live server runs.
+
+The rest of this file is ACEmulator's own README.
+
+***
+
 # ACEmulator Core Server
 
 [![Discord](https://img.shields.io/discord/261242462972936192.svg?label=play+now!&style=for-the-badge&logo=discord)](https://discord.gg/C2WzhP9)
