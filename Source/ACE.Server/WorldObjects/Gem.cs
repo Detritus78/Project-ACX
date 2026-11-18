@@ -139,6 +139,10 @@ namespace ACE.Server.WorldObjects
                     return;
             }
 
+            // Project ACX: a gem whose spell your gear already gives you, at its level or higher, is refused and kept
+            if (AcxSpellCoveredByGear(player))
+                return;
+
             if (RareUsesTimer)
             {
                 var currentTime = Time.GetUnixTime();
@@ -186,6 +190,34 @@ namespace ACE.Server.WorldObjects
 
             if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
                 player.TryConsumeFromInventoryWithNetworking(this, 1);
+        }
+
+        /// <summary>
+        /// Project ACX (JJ 2026-11-17: "if I use a gem and its the same level as a spell thats on me and not timed. It should
+        /// reject it totally"): a beneficial enchantment on yourself that an item you wear already gives you (no timer) at
+        /// its level or higher would only add a timed copy beside it, and such a copy expiring crashed Live's expiry message
+        /// that day. The gem is refused and not used up. Recasting your own timed spells still refreshes them as before.
+        /// </summary>
+        private bool AcxSpellCoveredByGear(Player player)
+        {
+            if (SpellDID == null)
+                return false;
+            var spell = new Spell(SpellDID.Value);
+            if (spell.NotFound || spell.MetaSpellType != SpellType.Enchantment || !spell.IsBeneficial || spell.IsImpenBaneType || spell.IsItemRedirectableType)
+                return false;
+
+            foreach (var entry in player.EnchantmentManager.GetEnchantments(spell.Category))
+            {
+                if (entry.Duration >= 0 || entry.PowerLevel < spell.Power)
+                    continue;
+                var source = player.FindObject(entry.CasterObjectId, Player.SearchLocations.MyEquippedItems | Player.SearchLocations.MyInventory);
+                var have = new Spell(entry.SpellId);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(
+                    $"{(source != null ? "Your " + source.Name : "Something you wear")} already gives you {(have.NotFound ? spell.Name : have.Name)}. The {Name} would add nothing, so you keep it.",
+                    ChatMessageType.Magic));
+                return true;
+            }
+            return false;
         }
 
         public bool HandleUseCreateItem(Player player)
