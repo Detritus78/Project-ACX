@@ -200,5 +200,6 @@ namespace ACE.Entity.Enum.Properties
         AcxConcordiaRecall               = 30014,
         AcxTradeSkillsGranted            = 30015,
         AcxGuideGiven                    = 30016,
+        AcxExactPlacement                = 30017,   // Project ACX: placed exactly where it stands, never slid off things it overlaps (PhysicsObj)
     }
 }

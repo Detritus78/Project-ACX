@@ -127,6 +127,9 @@ namespace ACE.Server.WorldObjects
 
             if (GetProperty(PropertyString.AcxContractId) != null) { ACE.Server.Managers.AcxContracts.UseGem(this, player); return; }   // Project ACX: contract portal gem
             if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.Wcid) { ACE.Server.Managers.AcxEntranceTest.Use(player); return; }   // Project ACX: Entrance Tester (Preview)
+            if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.FixWcid) { ACE.Server.Managers.AcxEntranceTest.UseFix(player); return; }   // Project ACX: Entrance Fixer (Preview)
+            if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.CheckWcid) { ACE.Server.Managers.AcxEntranceTest.UseCheck(player); return; }   // Project ACX: Portal Checker (Preview)
+            if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.TourWcid) { ACE.Server.Managers.AcxEntranceTest.UseTour(player); return; }   // Project ACX: Town Tour (Preview)
             if (ACE.Server.Managers.AcxSalvageSack.IsSack(this)) { ACE.Server.Managers.AcxSalvageSack.Open(this, player); return; }   // Project ACX: salvage sack
             if (GetProperty(PropertyBool.AcxConcordiaRecall) ?? false) { player.AcxConcordiaRecall(); return; }   // Project ACX: Eternal Concordia Portal Gem
 

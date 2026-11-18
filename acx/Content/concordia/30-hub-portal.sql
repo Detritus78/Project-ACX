@@ -26,7 +26,7 @@ VALUES (900727, 2, 0x018A02C2, 19.85433, -24.465927, 6.005, 0.003231, 0, 0, 0.99
 
 -- the portal where Jeeves and Master Yado stood, facing the way they did (JJ: "the portal will go in their spot")
 INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child)
-VALUES (0x7018AF00, 900727, 0x018A0225, 96.2, -79.06, 0.005, 0.707107, 0, 0, -0.707107, 0);
+VALUES (0x7018AF00, 900727, 0x018A0249, 97.276, -79.0332, 0.005, 0.707107, 0, 0, 0.707107, 0);   -- JJ moved it nearer the wall and turned it, 2026-11-18
 -- Jeeves and Master Yado, who stood in the hub, are gone from Concordia (40-cleanup.sql, 2026-11-17).
 -- the Town Crier and the Agent of the Arcanum where JJ placed them in the hub (read from Preview 2026-11-17)
 UPDATE landblock_instance SET obj_Cell_Id = 0x018A02C8, origin_X = 18.75385, origin_Y = -35.20388, origin_Z = 6.005, angles_W = -0.004204, angles_X = 0, angles_Y = 0, angles_Z = -0.999991 WHERE guid = 0x7018A10D;   -- Town Crier

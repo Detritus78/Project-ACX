@@ -1292,6 +1292,11 @@ namespace ACE.Server.Physics
             if (WeenieObj != null && (WeenieObj.IsStorage || WeenieObj.IsCorpse))
                 return ForceIntoCell(newCell, pos);
 
+            // Project ACX: objects placed by hand stand exactly there (the crossed Concordia portals in the towns' obelisk
+            // circles were slid 3 m out of them on load, JJ 2026-11-18)
+            if (WeenieObj?.WorldObject?.GetProperty(ACE.Entity.Enum.Properties.PropertyBool.AcxExactPlacement) == true)
+                return ForceIntoCell(newCell, pos);
+
             //if (setPos.Flags.HasFlag(SetPositionFlags.DontCreateCells))
                 //transition.CellArray.DoNotLoadCells = true;
 
