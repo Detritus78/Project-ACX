@@ -1,0 +1,625 @@
+[
+ {
+  "name": "Niffis Fighting Pits",
+  "cell": 197020,
+  "x": 112.0,
+  "y": -0.8,
+  "z": 0.5
+ },
+ {
+  "name": "Weakened Vault Sewers",
+  "cell": 787182,
+  "x": 110.0,
+  "y": 0.0,
+  "z": 0.005
+ },
+ {
+  "name": "White Totem Temple",
+  "cell": 10093263,
+  "x": 40.0,
+  "y": -500.0,
+  "z": 0.005
+ },
+ {
+  "name": "Asuger Temple Portal",
+  "cell": 17498521,
+  "x": 0.0,
+  "y": 0.0,
+  "z": 0.0
+ },
+ {
+  "name": "Virindi Fort Portal",
+  "cell": 20972041,
+  "x": 50.0,
+  "y": -10.0,
+  "z": 0.0
+ },
+ {
+  "name": "Sea Temple Catacombs",
+  "cell": 22413714,
+  "x": 49.1,
+  "y": -61.9,
+  "z": 0.0
+ },
+ {
+  "name": "Abandoned Shops Portal",
+  "cell": 22610323,
+  "x": 180.2,
+  "y": -51.2,
+  "z": 0.0
+ },
+ {
+  "name": "Impious Temple Portal",
+  "cell": 22937959,
+  "x": 80.0,
+  "y": -170.0,
+  "z": 0.0
+ },
+ {
+  "name": "Hotel Swank! Portal",
+  "cell": 25821811,
+  "x": 120.0,
+  "y": -79.9,
+  "z": 0.0
+ },
+ {
+  "name": "Braid Mansion Ruin",
+  "cell": 28770726,
+  "x": -0.6,
+  "y": -12.77,
+  "z": 0.0
+ },
+ {
+  "name": "Small Complex",
+  "cell": 29360428,
+  "x": 6.29,
+  "y": -56.63,
+  "z": 0.0
+ },
+ {
+  "name": "Moss Chamber",
+  "cell": 31130079,
+  "x": 60.0,
+  "y": -60.0,
+  "z": 0.0
+ },
+ {
+  "name": "Bandit Castle Prison",
+  "cell": 31588921,
+  "x": 71.894,
+  "y": -20.0,
+  "z": 24.005
+ },
+ {
+  "name": "Dungeon Manor Portal",
+  "cell": 31981930,
+  "x": -0.6,
+  "y": -38.5,
+  "z": 0.0
+ },
+ {
+  "name": "Lugian Emmisary One / Lugian Emmisary Three / Lugian Emmisary Two / Tomb of The Dead",
+  "cell": 32702913,
+  "x": 130.0,
+  "y": -90.0,
+  "z": 0.0
+ },
+ {
+  "name": "Royal Hive Portal",
+  "cell": 42467942,
+  "x": 40.0,
+  "y": -70.0,
+  "z": -12.0
+ },
+ {
+  "name": "Royal Hive Portal",
+  "cell": 42467962,
+  "x": 90.0,
+  "y": -20.0,
+  "z": -12.0
+ },
+ {
+  "name": "Royal Hive Portal",
+  "cell": 42468004,
+  "x": 140.0,
+  "y": -70.0,
+  "z": -12.0
+ },
+ {
+  "name": "Singularity Bore",
+  "cell": 43058002,
+  "x": 210.0,
+  "y": -120.0,
+  "z": 6.0
+ },
+ {
+  "name": "Virindi Habitat Portal",
+  "cell": 43188736,
+  "x": 1.7,
+  "y": -87.7,
+  "z": -12.0
+ },
+ {
+  "name": "Linvak Tukal Entryway",
+  "cell": 43778319,
+  "x": 10.0,
+  "y": -300.0,
+  "z": 0.0
+ },
+ {
+  "name": "Beyond the Mines of Despair / Strange Tunnel",
+  "cell": 44761442,
+  "x": 110.0,
+  "y": -10.0,
+  "z": 0.0
+ },
+ {
+  "name": "Chakron Flux Portal",
+  "cell": 45024079,
+  "x": 180.0,
+  "y": 0.0,
+  "z": 0.0
+ },
+ {
+  "name": "The Floating City",
+  "cell": 46858520,
+  "x": 10.0,
+  "y": -10.0,
+  "z": 0.0
+ },
+ {
+  "name": "The Floating City",
+  "cell": 47251969,
+  "x": 100.0,
+  "y": -50.0,
+  "z": 0.0
+ },
+ {
+  "name": "Fenmalain Menhir Ring Portal",
+  "cell": 47776756,
+  "x": 110.0,
+  "y": -120.0,
+  "z": 0.0
+ },
+ {
+  "name": "Fenmalain Portal",
+  "cell": 47842101,
+  "x": 218.454,
+  "y": -388.76,
+  "z": 0.0
+ },
+ {
+  "name": "Lugian Quarry Portal",
+  "cell": 48759349,
+  "x": 80.0,
+  "y": -530.0,
+  "z": 0.0
+ },
+ {
+  "name": "Domino's Lodge, Hebian-to",
+  "cell": 48955980,
+  "x": 40.0,
+  "y": 0.0,
+  "z": 0.0
+ },
+ {
+  "name": "Soul-Fearing Vestry Dungeon (Area 2)",
+  "cell": 49218117,
+  "x": 160.0,
+  "y": -150.0,
+  "z": -6.0
+ },
+ {
+  "name": "Soul-Fearing Vestry Dungeon (Area 3)",
+  "cell": 49218133,
+  "x": 180.0,
+  "y": -110.0,
+  "z": -6.0
+ },
+ {
+  "name": "Soul-Fearing Vestry Dungeon",
+  "cell": 49218159,
+  "x": 210.0,
+  "y": -150.0,
+  "z": -6.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382745128,
+  "x": 80.0,
+  "y": -100.0,
+  "z": -6.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382745145,
+  "x": 100.0,
+  "y": -80.0,
+  "z": -6.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382745167,
+  "x": 120.0,
+  "y": -100.0,
+  "z": -6.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382745178,
+  "x": 100.0,
+  "y": -80.0,
+  "z": 0.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382810090,
+  "x": 40.0,
+  "y": -90.0,
+  "z": -18.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382810205,
+  "x": 120.0,
+  "y": -170.0,
+  "z": -18.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382810209,
+  "x": 130.0,
+  "y": -40.0,
+  "z": -18.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382810282,
+  "x": 170.0,
+  "y": -160.0,
+  "z": -18.0
+ },
+ {
+  "name": "Portal Space",
+  "cell": 1382810632,
+  "x": 100.0,
+  "y": -120.0,
+  "z": 0.0
+ },
+ {
+  "name": "Lower Empyrean Acid Cistern",
+  "cell": 1382875726,
+  "x": 150.0,
+  "y": -120.0,
+  "z": 0.0
+ },
+ {
+  "name": "Lower Empyrean Fire Cistern",
+  "cell": 1383006718,
+  "x": 60.0,
+  "y": -126.0,
+  "z": 0.0
+ },
+ {
+  "name": "Lower Empyrean Ice Cistern",
+  "cell": 1383137791,
+  "x": 60.0,
+  "y": -126.0,
+  "z": 0.0
+ },
+ {
+  "name": "Hall of Hollows Portal",
+  "cell": 1383465425,
+  "x": 30.0,
+  "y": -220.0,
+  "z": 12.0
+ },
+ {
+  "name": "Alvan Court",
+  "cell": 1398800857,
+  "x": 83.74,
+  "y": -93.75,
+  "z": 0.0
+ },
+ {
+  "name": "Malignant Tabernacle",
+  "cell": 1399587459,
+  "x": 70.0,
+  "y": -60.0,
+  "z": 0.0
+ },
+ {
+  "name": "Arcanum Storehouse Middle Level",
+  "cell": 1415316347,
+  "x": 40.0,
+  "y": -291.682,
+  "z": -11.995
+ },
+ {
+  "name": "Arcanum Storehouse Lower Level",
+  "cell": 1415317020,
+  "x": 50.0,
+  "y": -110.0,
+  "z": 0.005
+ },
+ {
+  "name": "Arcanum Storehouse",
+  "cell": 1415317118,
+  "x": 90.0,
+  "y": -260.0,
+  "z": 0.005
+ },
+ {
+  "name": "Arcanum Storehouse Upper Level",
+  "cell": 1415317124,
+  "x": 220.0,
+  "y": -310.0,
+  "z": 0.005
+ },
+ {
+  "name": "Gromnie Clan Training Camp",
+  "cell": 1447232469,
+  "x": 30.2209,
+  "y": -71.2641,
+  "z": 6.005
+ },
+ {
+  "name": "Martine's Study",
+  "cell": 1449132364,
+  "x": 40.0,
+  "y": -70.0,
+  "z": 0.0
+ },
+ {
+  "name": "Martine's Throne Room",
+  "cell": 1449132521,
+  "x": 149.661,
+  "y": -94.0258,
+  "z": 12.0
+ },
+ {
+  "name": "Proving Grounds Low",
+  "cell": 1464074655,
+  "x": 30.0,
+  "y": -108.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Low",
+  "cell": 1464074714,
+  "x": 110.0,
+  "y": -130.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Low",
+  "cell": 1464074740,
+  "x": 20.0,
+  "y": -33.2,
+  "z": 6.7
+ },
+ {
+  "name": "Catacombs",
+  "cell": 1465123512,
+  "x": 110.0,
+  "y": -112.5,
+  "z": 0.006
+ },
+ {
+  "name": "Proving Grounds Mid",
+  "cell": 1480851871,
+  "x": 30.0,
+  "y": -108.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Mid",
+  "cell": 1480851930,
+  "x": 110.0,
+  "y": -130.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Mid",
+  "cell": 1480851956,
+  "x": 20.0,
+  "y": -33.2,
+  "z": 6.7
+ },
+ {
+  "name": "Spirited Halls",
+  "cell": 1484260110,
+  "x": 260.0,
+  "y": -500.0,
+  "z": 0.05
+ },
+ {
+  "name": "Path of Torment",
+  "cell": 1484326186,
+  "x": 130.0,
+  "y": -110.381,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds High",
+  "cell": 1497629087,
+  "x": 30.0,
+  "y": -108.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds High",
+  "cell": 1497629146,
+  "x": 110.0,
+  "y": -130.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds High",
+  "cell": 1497629172,
+  "x": 20.0,
+  "y": -33.2,
+  "z": 6.7
+ },
+ {
+  "name": "Catacombs of Torment",
+  "cell": 1498679318,
+  "x": 360.0,
+  "y": -170.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Extreme",
+  "cell": 1514406300,
+  "x": 20.0,
+  "y": -108.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Extreme",
+  "cell": 1514406362,
+  "x": 110.0,
+  "y": -130.0,
+  "z": 0.005
+ },
+ {
+  "name": "Proving Grounds Extreme",
+  "cell": 1514406388,
+  "x": 20.0,
+  "y": -33.2,
+  "z": 6.7
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249030,
+  "x": 60.0,
+  "y": -230.0,
+  "z": -83.995
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249062,
+  "x": 130.0,
+  "y": -230.0,
+  "z": -83.995
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249080,
+  "x": 170.0,
+  "y": -260.0,
+  "z": -83.9
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249097,
+  "x": 200.0,
+  "y": -170.0,
+  "z": -83.995
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249099,
+  "x": 200.0,
+  "y": -230.0,
+  "z": -83.995
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249197,
+  "x": 200.0,
+  "y": -100.0,
+  "z": -77.995
+ },
+ {
+  "name": "Portal",
+  "cell": 1531249217,
+  "x": 220.0,
+  "y": -200.0,
+  "z": -77.995
+ },
+ {
+  "name": "Nest",
+  "cell": 1548551499,
+  "x": 20.0,
+  "y": -39.9847,
+  "z": 0.075568
+ },
+ {
+  "name": "Nest",
+  "cell": 1548617035,
+  "x": 20.0,
+  "y": -39.9847,
+  "z": 0.075568
+ },
+ {
+  "name": "Nest",
+  "cell": 1548682571,
+  "x": 20.0,
+  "y": -39.9847,
+  "z": 0.075568
+ },
+ {
+  "name": "Catacombs of Opposition",
+  "cell": 1581647077,
+  "x": 210.0,
+  "y": -100.0,
+  "z": 0.005
+ },
+ {
+  "name": "Olthoi Brood Hive",
+  "cell": 1581843501,
+  "x": 18.8143,
+  "y": -12.6949,
+  "z": 0.005
+ },
+ {
+  "name": "Olthoi Brood Hive",
+  "cell": 1581974573,
+  "x": 18.8143,
+  "y": -12.6949,
+  "z": 0.005
+ },
+ {
+  "name": "Caul Sanatorium",
+  "cell": 1615266564,
+  "x": 72.7422,
+  "y": -51.8616,
+  "z": 6.005
+ },
+ {
+  "name": "Resting Place",
+  "cell": 1632371359,
+  "x": 110.0,
+  "y": -170.0,
+  "z": 0.0
+ },
+ {
+  "name": "Forge Conveyance",
+  "cell": 1682243995,
+  "x": 50.0,
+  "y": -10.0,
+  "z": 0.005
+ },
+ {
+  "name": "Enchanted Mnemosyne Portal 2",
+  "cell": 1699481259,
+  "x": 160.0,
+  "y": -230.0,
+  "z": 0.005
+ },
+ {
+  "name": "Surface",
+  "cell": 1742602496,
+  "x": 106.609,
+  "y": 60.0225,
+  "z": 70.0
+ },
+ {
+  "name": "Regicide Basement Exit Portal",
+  "cell": 3713007872,
+  "x": 153.5,
+  "y": 134.0,
+  "z": 22.0
+ }
+]

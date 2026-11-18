@@ -86,6 +86,7 @@ UPDATE weenie_properties_string s JOIN acx_job_objects o ON s.object_Id = o.clas
 INSERT INTO weenie_properties_string (object_Id, type, value) SELECT class_Id, 30003, town FROM acx_job_objects;   -- AcxJobTown
 
 -- Holtburg: just east of the town's portal drop (A9B40019 [84 7.1 94]), facing west toward it
+-- 2026-11-18: Neydisa, Nanto, Eastham, Cragstone, Kara, Plateau and Baishi's boards set onto the ground (they floated 0.1-0.4 m or sank up to 1.2 m; JJ: "fix any job boards those are ours")
 INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child) VALUES
     (0x7A9B4F00, 900300, 0xA9B40019, 88.0,  9.0, 94.0, 0.7071068, 0, 0, 0.7071068, 0),
     (0x7A9B4F01, 900350, 0xA9B40019, 88.0, 11.5, 94.0, 0.7071068, 0, 0, 0.7071068, 0),
@@ -99,17 +100,17 @@ INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, or
 
 -- The 41 towns added 2026-11-16 (board only; the board pays). Cell, spot and facing per town:
 INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, origin_Y, origin_Z, angles_W, angles_X, angles_Y, angles_Z, is_Link_Child) VALUES
-    (0x7BB9FF00, 900304, 0xBB9F003F, 173.5, 159.96, 55.068, 0.8733272, 0, 0, 0.4871341, 0),   -- Cragstone: 2 m to the right of the Town Crier (via, 8 m from the drop), facing the way he faces
+    (0x7BB9FF00, 900304, 0xBB9F003F, 173.5, 159.96, 55.345, 0.8733272, 0, 0, 0.4871341, 0),   -- Cragstone: 2 m to the right of the Town Crier (via, 8 m from the drop), facing the way he faces
     (0x72BB5F00, 900305, 0x2BB5003C, 183.0, 81.77, 0.005, 0.2377911, 0, 0, -0.9713163, 0),   -- Greenspire: 2 m to the right of the Town Crier (instance, 6 m from the drop), facing the way he faces
     (0x7C080F00, 900306, 0xC0800007, 4.88, 152.38, 33.65, 0.5913979, 0, 0, 0.8063799, 0),   -- Lytelthorpe: 2 m to the right of the Town Crier (via, 8 m from the drop), facing the way he faces
     (0x7C98CF00, 900307, 0xC98C0028, 102.4, 184.74, 22.005, 0.715616, 0, 0, 0.698494, 0),   -- Rithwic: 2 m to the right of the Town Crier (via, 12 m from the drop), facing the way he faces
     (0x7E822F00, 900308, 0xE8220027, 115.35, 146.98, 0.005, 0.416783, 0, 0, -0.909006, 0),   -- Kryst: 2 m to the right of the Town Crier (via, 109 m from the drop), facing the way he faces
-    (0x7E63EF00, 900309, 0xE63E0022, 99.94, 31.83, 76.333, 1.0, 0, 0, 0.0, 0),   -- Nanto: 2 m to the right of the Town Crier (via, 8 m from the drop), facing the way he faces
+    (0x7E63EF00, 900309, 0xE63E0022, 99.94, 31.83, 76.048, 1.0, 0, 0, 0.0, 0),   -- Nanto: 2 m to the right of the Town Crier (via, 8 m from the drop), facing the way he faces
     (0x7B470F00, 900310, 0xB4700021, 110.0, 10.0, 42.0, 1.0, 0, 0, 0.0, 0),   -- Yanshi: 2 m to the right of the Town Crier (via, 86 m from the drop), facing the way he faces
     (0x721B0F00, 900311, 0x21B0000E, 41.73, 138.64, 0.005, 0.20683, 0, 0, 0.9783769, 0),   -- Bluespire: 2 m to the right of the Town Crier (instance, 28 m from the drop), facing the way he faces
     (0x717B2F00, 900312, 0x17B2002A, 133.53, 33.94, 44.005, 0.9803446, 0, 0, -0.1972929, 0),   -- Redspire: 2 m to the right of the Town Crier (instance, 8 m from the drop), facing the way he faces
-    (0x7CE42F00, 900313, 0xCE420001, 7.92, 21.38, 52.779, 0.9238798, 0, 0, -0.3826829, 0),   -- Baishi: 2 m to the right of the Town Crier (via, 59 m from the drop), facing the way he faces
-    (0x7CE94F00, 900314, 0xCE940036, 148.99, 123.48, 18.489, 0.2381501, 0, 0, -0.9712284, 0),   -- Eastham: 2 m to the right of the Town Crier (via, 11 m from the drop), facing the way he faces
+    (0x7CE42F00, 900313, 0xCE420001, 7.92, 21.38, 52.665, 0.9238798, 0, 0, -0.3826829, 0),   -- Baishi: 2 m to the right of the Town Crier (via, 59 m from the drop), facing the way he faces
+    (0x7CE94F00, 900314, 0xCE940036, 148.99, 123.48, 18.711, 0.2381501, 0, 0, -0.9712284, 0),   -- Eastham: 2 m to the right of the Town Crier (via, 11 m from the drop), facing the way he faces
     (0x7A0A4F00, 900315, 0xA0A40025, 106.84, 112.85, 58.127, 0.7849033, 0, 0, 0.6196183, 0),   -- Glenden Wood: 2 m to the right of the Town Crier (via, 12 m from the drop), facing the way he faces
     (0x7DC3BF00, 900316, 0xDC3B0010, 43.1, 182.03, 20.0, 0.936989, 0, 0, -0.349359, 0),   -- Lin: 2 m to the right of the Town Crier (via, 27 m from the drop), facing the way he faces
     (0x7E632F00, 900317, 0xE6320019, 92.73, 6.25, 28.0, 0.3826829, 0, 0, -0.9238798, 0),   -- Mayoi: 2 m to the right of the Town Crier (via, 17 m from the drop), facing the way he faces
@@ -125,10 +126,10 @@ INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, or
     (0x7BDD0F00, 900327, 0xBDD00006, 20.9, 120.5, 115.1, 0.7071068, 0, 0, -0.7071068, 0),   -- Bandit Castle: no Town Crier: 4 m east of the town's portal drop, facing west toward it
     (0x75B9CF00, 900328, 0x5B9C0025, 106.74, 107.13, 14.005, 0.0, 0, 0, 1.0, 0),   -- Danby's Outpost: 2 m to the right of the Town Crier (via, 275 m from the drop), facing the way he faces
     (0x7DA75F00, 900329, 0xDA75002B, 134.69, 56.75, 18.005, 0.7071068, 0, 0, 0.7071068, 0),   -- Dryreach: 2 m to the right of the Town Crier (via, 3 m from the drop), facing the way he faces
-    (0x7BA17F00, 900330, 0xBA170039, 185.2, 3.2, 167.7, 0.7071068, 0, 0, -0.7071068, 0),   -- Kara: no Town Crier: 4 m east of the town's portal drop, facing west toward it
+    (0x7BA17F00, 900330, 0xBA170039, 185.2, 3.2, 168.938, 0.7071068, 0, 0, -0.7071068, 0),   -- Kara: no Town Crier: 4 m east of the town's portal drop, facing west toward it
     (0x7A21EF00, 900331, 0xA21E001A, 87.0, 38.0, 560.4, 0.7071068, 0, 0, -0.7071068, 0),   -- Linvak Tukal: no Town Crier: 4 m east of the town's portal drop, facing west toward it
-    (0x795D6F00, 900332, 0x95D60033, 150.9, 71.3, 99.8, 0.7071068, 0, 0, -0.7071068, 0),   -- Neydisa: no Town Crier: 4 m east of the town's portal drop, facing west toward it
-    (0x749B7F00, 900333, 0x49B70021, 104.1, 20.8, 238.6, 0.7071068, 0, 0, -0.7071068, 0),   -- Plateau: no Town Crier: 4 m east of the town's portal drop, facing west toward it
+    (0x795D6F00, 900332, 0x95D60033, 150.9, 71.3, 99.43, 0.7071068, 0, 0, -0.7071068, 0),   -- Neydisa: no Town Crier: 4 m east of the town's portal drop, facing west toward it
+    (0x749B7F00, 900333, 0x49B70021, 104.1, 20.8, 238.947, 0.7071068, 0, 0, -0.7071068, 0),   -- Plateau: no Town Crier: 4 m east of the town's portal drop, facing west toward it
     (0x7F681F00, 900334, 0xF6810017, 65.16, 162.28, 51.591, 0.8704221, 0, 0, -0.4923061, 0),   -- Refuge: 2 m to the right of the Town Crier (instance, 114 m from the drop), facing the way he faces
     (0x726ECF00, 900335, 0x26EC003D, 179.93, 110.33, 80.005, 0.7071068, 0, 0, -0.7071068, 0),   -- Silyun: no Town Crier: 4 m east of the town's portal drop, facing west toward it
     (0x71DB6F00, 900336, 0x1DB6001E, 75.39, 134.29, 90.005, 0.7071068, 0, 0, -0.7071068, 0),   -- Timaru: no Town Crier: 4 m east of the town's portal drop, facing west toward it
