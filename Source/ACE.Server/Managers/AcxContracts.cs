@@ -106,6 +106,11 @@ namespace ACE.Server.Managers
 
         private static List<Dungeon> dungeons;
 
+        /// <summary>
+        /// Every contract dungeon, in markers.json's order (AcxEntranceTest walks them)
+        /// </summary>
+        public static IReadOnlyList<Dungeon> AllDungeons => Dungeons;
+
         private static List<Dungeon> Dungeons
         {
             get
