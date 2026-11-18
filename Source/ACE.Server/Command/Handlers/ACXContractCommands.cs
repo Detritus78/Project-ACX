@@ -9,6 +9,14 @@ namespace ACE.Server.Command.Handlers
     /// </summary>
     public static class ACXContractCommands
     {
+        // Project ACX: the Entrance Tester's progress (Managers/AcxEntranceTest.cs; a Preview test tool)
+        [CommandHandler("acxentrance", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "Entrance Tester: how many contract entrances are tried, make entrance n the next one, or report the last one.", "[n | bad <what's wrong>]")]
+        public static void HandleAcxEntrance(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, AcxEntranceTest.Command(session.Player, string.Join(" ", parameters)));
+        }
+
         [CommandHandler("contract", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
             "Dungeon contracts matched to your level: list yours, or drop one. Talk to a Town Crier to fill your free contract slots.",
             "(nothing: yours) | drop <number>")]

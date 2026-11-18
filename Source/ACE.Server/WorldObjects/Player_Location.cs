@@ -684,6 +684,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            AcxOnTeleportStart();   // Project ACX: where to go back to if the arrival never finishes (Player_AcxPortalSafety)
+
             Teleporting = true;
             LastTeleportTime = DateTime.UtcNow;
             LastTeleportStartTimestamp = Time.GetUnixTime();
@@ -766,6 +768,7 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = false;
             Hidden = false;
             Teleporting = false;
+            AcxOnTeleportComplete();   // Project ACX: arrived (Player_AcxPortalSafety)
             
             CheckMonsters();
             CheckHouse();

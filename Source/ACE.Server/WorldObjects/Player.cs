@@ -655,6 +655,7 @@ namespace ACE.Server.WorldObjects
         {
             PlayerManager.RemovePlayerFromFinalLogoffQueue(this);
             CurrentLandblock?.RemoveWorldObject(Guid, false);
+            AcxPortalSafetyAtLogout();   // Project ACX: never saved inside portal space (Player_AcxPortalSafety)
             SetPropertiesAtLogOut();
             AcxSaveDoTsAndHoTs();   // Project ACX: bleeds and heals carry over through logout
             AcxXphWriteLog("logout");   // Project ACX: /xph session line in Logs/acx-xph.csv
