@@ -7,7 +7,9 @@ set -euo pipefail
 hdd=/run/media/jj/HDDStorage/acx-backups
 dest="$hdd/nightly"
 
-[[ -d "$hdd" ]] || { echo "acx-backup-pull: the HDD isn't mounted (udisksctl mount -b /dev/disk/by-label/HDDStorage)" >&2; exit 1; }
+# the HDD often isn't mounted after a reboot (2026-11-18): mount it, as the desktop user may without a password
+[[ -d "$hdd" ]] || udisksctl mount -b /dev/disk/by-label/HDDStorage >/dev/null 2>&1 || true
+[[ -d "$hdd" ]] || { echo "acx-backup-pull: the HDD isn't mounted and couldn't be mounted" >&2; exit 1; }
 mkdir -p "$dest"
 rsync -a --ignore-existing acx-live:acx-backups/ "$dest/"
 

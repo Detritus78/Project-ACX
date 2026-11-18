@@ -13,7 +13,9 @@ keep=12
 hdd=/run/media/jj/HDDStorage/acx-backups
 passphrase="$HOME/.config/acx/backup-passphrase"
 
-[[ -d "$hdd" ]] || { echo "acx-backup-offsite: the HDD isn't mounted" >&2; exit 1; }
+# the HDD often isn't mounted after a reboot (2026-11-18): mount it, as the desktop user may without a password
+[[ -d "$hdd" ]] || udisksctl mount -b /dev/disk/by-label/HDDStorage >/dev/null 2>&1 || true
+[[ -d "$hdd" ]] || { echo "acx-backup-offsite: the HDD isn't mounted and couldn't be mounted" >&2; exit 1; }
 [[ -s "$passphrase" ]] || { echo "acx-backup-offsite: $passphrase missing" >&2; exit 1; }
 
 last=$(gh release list -R "$repo" --limit 1 --json createdAt -q '.[0].createdAt // empty')
