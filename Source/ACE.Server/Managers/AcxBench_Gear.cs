@@ -146,8 +146,10 @@ namespace ACE.Server.Managers
         private static List<uint> TransferReal(WorldObject weapon, IEnumerable<uint> spellIds)
         {
             var added = new List<uint>();
-            foreach (var spellId in spellIds.Select(BandCantrip))   // the survival bench's gear band: Major / Epic below level 181
+            foreach (var spellId in spellIds.Select(BandCantrip))   // the survival bench's gear band: Major / Epic below level 181; the class bench's: none / Minor lower
             {
+                if (spellId == 0)
+                    continue;
                 if (SpellTransferScroll.InjectSpell(weapon, (SpellId)spellId).Result == SpellTransferScroll.InjectSpellResult.Success)
                     added.Add(spellId);
                 else
@@ -808,6 +810,7 @@ namespace ACE.Server.Managers
             {
                 try
                 {
+                    classBandLevel = level;   // transfers of the level's grade on both sides (BandCantrip)
                     reply(RunClassBench(level, debuff, missileType, items));
                 }
                 catch (Exception e)
@@ -817,6 +820,7 @@ namespace ACE.Server.Managers
                 }
                 finally
                 {
+                    classBandLevel = 0;   // a pool thread: the next bench on it has no band
                     running = false;
                 }
             });
@@ -912,7 +916,10 @@ namespace ACE.Server.Managers
             // An elemental one is benched against the monsters weak to its element, and so is its reference: the tier's
             // loot thrown weapon of that element, untinked and tinked (rows "Loot <element>").
             var thrownWcid = classes.First(c => c.Name == "Thrown").Wcid;
-            var references = new HashSet<DamageType>();
+            // each item row is also given as a percentage of its reference's average hit (JJ 2026-11-19: "for now on we give it in
+            // %. The Benched item is +% better than or -% worse than?"): as it comes against the untinked loot weapon, upgraded
+            // against the tinked one
+            var references = new Dictionary<DamageType, (double Untinked, double Tinked)>();
             foreach (var item in items ?? new List<uint>())
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(item);
@@ -925,40 +932,46 @@ namespace ACE.Server.Managers
                 var element = (AttackDamageType(weapon) & Elements) != 0 ? AttackDamageType(weapon) : DamageType.Undef;
                 var against = element != DamageType.Undef ? $" vs {element}-weak" : "";
 
-                void Row(string className, WorldObject w, uint wcid, string state)
+                double Row(string className, WorldObject w, uint wcid, string state, double reference = 0)
                 {
                     var known = w.Biota.GetKnownSpellsIds(w.BiotaDatabaseLock).Select(id => (uint)id).ToList();
                     var r = BenchGear(new List<(WorldObject, List<uint>)> { (w, known) }, level, false, skillBase, monsters, scale, real: true, swings: 30, debuff: debuff, weakTo: element);
                     sb.AppendLine(string.Join(",", level, tier, className, Csv(w.Name), wcid, state + against, w.Damage ?? 0, F(w.DamageMod ?? 0, "0.###"),
                         w.ElementalDamageBonus ?? 0, F(w.DamageVariance ?? 0, "0.###"), w.WieldDifficulty ?? 0, w.ItemWorkmanship ?? 0, F(r.Hits, "0.##"), F(r.AvgHit, "0.#"), F(r.Seconds, "0.#"), F(r.FailPct, "0.#")));
-                    summary.AppendLine($"  {w.Name} [{wcid}] {state}{against}: {r.Seconds:0.0}s, average hit {r.AvgHit:0.#}");
+                    var percent = reference > 0 ? $" ({(r.AvgHit / reference - 1) * 100:+0;-0;0}% vs loot)" : "";
+                    summary.AppendLine($"  {w.Name} [{wcid}] {state}{against}: {r.Seconds:0.0}s, average hit {r.AvgHit:0.#}{percent}");
+                    return r.AvgHit;
                 }
 
-                if (element != DamageType.Undef && references.Add(element) && AcxThrownWcids.TryGetVersion(thrownWcid, element, out var versionWcid))
+                // the reference: the tier's loot thrown weapon of the item's element (a physical item: the class row's piercing one)
+                var versionWcid = thrownWcid;
+                if (!references.ContainsKey(element) && (element == DamageType.Undef || AcxThrownWcids.TryGetVersion(thrownWcid, element, out versionWcid)))
                 {
                     var referenceRoll = RollLootTier(versionWcid, tier);
                     if (referenceRoll != null)
                     {
-                        Row("Loot " + element, MakeWeapon(referenceRoll), versionWcid, "untinked");
+                        var name = "Loot " + (element != DamageType.Undef ? element.ToString() : "physical");
+                        var untinkedHit = Row(name, MakeWeapon(referenceRoll), versionWcid, "untinked");
                         var tinkedReference = MakeWeapon(referenceRoll);
-                        TinkLauncherReal(tinkedReference, MissileAmmo(CreateAttacker(level, new Options()), tinkedReference, tier));
-                        Row("Loot " + element, tinkedReference, versionWcid, "tinked");
+                        var loot = TinkLauncherReal(tinkedReference, MissileAmmo(CreateAttacker(level, new Options()), tinkedReference, tier));
+                        references[element] = (untinkedHit, Row(name, tinkedReference, versionWcid, loot.Count > 0 ? $"tinked (rend + mahogany + {string.Join(" + ", loot.Select(id => new ACE.Server.Entity.Spell(id).Name))})" : "tinked (rend + mahogany, no transfers)"));
                     }
                 }
+                references.TryGetValue(element, out var refHits);
 
-                Row("Item", weapon, item, "as it comes");
+                Row("Item", weapon, item, "as it comes", refHits.Untinked);
                 if (!weapon.IsAcxQuestWeapon)
                     continue;
                 ImbueReal(weapon, ImbuedEffectType.Undef);
-                TransferReal(weapon, DamageTransfers(weapon, weapon.Biota.GetKnownSpellsIds(weapon.BiotaDatabaseLock).Select(id => (uint)id).ToList(), WorldObject.AcxQuestWeaponTransfers));
-                Row("Item", weapon, item, "rend + 2 transfers");
+                var added = TransferReal(weapon, DamageTransfers(weapon, weapon.Biota.GetKnownSpellsIds(weapon.BiotaDatabaseLock).Select(id => (uint)id).ToList(), WorldObject.AcxQuestWeaponTransfers));
+                Row("Item", weapon, item, added.Count > 0 ? $"rend + {string.Join(" + ", added.Select(id => new ACE.Server.Entity.Spell(id).Name))}" : "rend, no transfers", refHits.Tinked);
             }
 
             var dir = Path.Combine("Logs", "acxbench");
             Directory.CreateDirectory(dir);
             var file = Path.Combine(dir, $"acxclass-L{level}{(missileType != DamageType.Pierce ? "-" + missileType.ToString().ToLowerInvariant() : "")}{(debuff ? "-debuff" : "")}-{started:yyyyMMdd-HHmmss}.csv");
             File.WriteAllText(file, sb.ToString());
-            return $"Class bench done in {(DateTime.Now - started).TotalSeconds:0}s at L{level} (T{tier}){(debuff ? " with Imperil and vulns" : "")}, written to {file}.\n" + summary.ToString().TrimEnd();
+            return $"Class bench done in {(DateTime.Now - started).TotalSeconds:0}s at L{level} (T{tier}){(debuff ? " with Imperil and vulns" : "")}, transfers {BandTransferGrade(level)}, written to {file}.\n" + summary.ToString().TrimEnd();
         }
 
         // the element words of the stone-upgraded lines, one weapon per element
