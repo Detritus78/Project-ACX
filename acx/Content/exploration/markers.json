@@ -3669,11 +3669,6 @@
     "count": 31
    },
    {
-    "wcid": 26685,
-    "name": "Carrion Shrethlet",
-    "count": 31
-   },
-   {
     "wcid": 192,
     "name": "Drudge Prowler",
     "count": 9
@@ -3895,11 +3890,6 @@
    {
     "wcid": 4110,
     "name": "Blood Shreth",
-    "count": 17
-   },
-   {
-    "wcid": 26684,
-    "name": "Blood Shrethlet",
     "count": 17
    }
   ]
@@ -4951,11 +4941,6 @@
     "wcid": 180,
     "name": "Sandy Armoredillo",
     "count": 7
-   },
-   {
-    "wcid": 26672,
-    "name": "Sandy Armoredillo Pup",
-    "count": 7
    }
   ]
  },
@@ -5609,11 +5594,6 @@
    {
     "wcid": 4111,
     "name": "Hunter Shreth",
-    "count": 18
-   },
-   {
-    "wcid": 26687,
-    "name": "Hunter Shrethlet",
     "count": 18
    },
    {
@@ -6342,8 +6322,8 @@
     "count": 6
    },
    {
-    "wcid": 26687,
-    "name": "Hunter Shrethlet",
+    "wcid": 218,
+    "name": "Black Rat",
     "count": 6
    }
   ]
@@ -6434,9 +6414,9 @@
     "count": 11
    },
    {
-    "wcid": 26687,
-    "name": "Hunter Shrethlet",
-    "count": 11
+    "wcid": 1624,
+    "name": "Swamp Rat",
+    "count": 6
    }
   ]
  },
@@ -9776,28 +9756,7 @@
    "y": -40.0,
    "z": -5.99
   },
-  "monsters": [
-   {
-    "wcid": 45700,
-    "name": "Caustic Guard",
-    "count": 20
-   },
-   {
-    "wcid": 45706,
-    "name": "Glacial Guard",
-    "count": 20
-   },
-   {
-    "wcid": 45698,
-    "name": "Galvanic Guard",
-    "count": 20
-   },
-   {
-    "wcid": 45691,
-    "name": "Incendiary Guard",
-    "count": 20
-   }
-  ]
+  "monsters": []
  },
  {
   "landblock": "5770",

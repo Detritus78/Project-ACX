@@ -234,7 +234,6 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 CreateCorpse(topDamager, hadVitae);
-                AcxPrepareCorpse(lastDamager, topDamager, acxVitaeBefore);   // Project ACX: corpse vitae, headstone mark
 
                 if (!AcxBeginGhost(topDamager, acxVitaeBefore))   // Project ACX: wait at the corpse as a ghost
                     ThreadSafeTeleportOnDeath(); // enter portal space
@@ -691,8 +690,9 @@ namespace ACE.Server.WorldObjects
             var level = Level ?? 1;
             var coins = CoinValue ?? 0;
 
-            // Project ACX: from level 10 every death drops all carried pyreals onto the corpse; none below (JJ 2026-11-11; was half from level 6)
-            var numCoinsDropped = level >= 10 ? coins : 0;
+            // Project ACX: from level 10 a death drops half the carried pyreals onto the corpse, as retail does; none below
+            // (JJ 2026-11-18: "half is fine"; all of them from 2026-11-11, retail's half from level 6 before that)
+            var numCoinsDropped = level >= 10 ? coins / 2 : 0;
 
             return numCoinsDropped;
         }
