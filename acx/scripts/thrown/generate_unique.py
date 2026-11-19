@@ -40,9 +40,10 @@ add(900941, (23130,), (57, 2.5, 300, 335))      # Frost Throwing Club (Banderlin
 add(900942, (8525,), (69, 2.7, 300, 375))       # Asmolum's Throwing Dagger (Asmolum the Worm, level 277): end-game, see below
 # the Apprentices' gifts for a Skeleton's Skull or a Pumpkin Head (Alexander's, Janda's, Tsua's; 100 before), fire. JJ 2026-11-19:
 # "It needs a thrown conversion right?", "lets convert and bench as is and see where it lands in the t1-t4 range. I'm okay
-# with it being between 1 & 2 tiers like a tier 1.25". Retail's 25 x1.0 benched at 66% of a tier 1 loot fire dart (L15);
-# 12 x2.1 sits a quarter of the way from tier 1 (x2.0) to tier 2 (x2.37), no wield requirement like tier 1
-add(900943, (12218, 12217), (12, 2.1, 300, 0))  # Flaming Skull, Flaming Pumpkinhead
+# with it being between 1 & 2 tiers like a tier 1.25". Benched at L15 against a tier 1 loot fire dart: retail's 25 x1.0 -34%,
+# 12 x2.1 -13% (like-for-like bench, no transfers at that level); 12 x2.3 (JJ: "okay raise it"), still under tier 2's x2.37.
+# No wield requirement, like tier 1
+add(900943, (12218, 12217), (12, 2.3, 300, 0))  # Flaming Skull, Flaming Pumpkinhead
 
 # retail's own two unlimited thrown weapons (Missile Weapons 385, five spells, a critical strike bonus): the same model, in place
 # End-game quest weapons (these two and Asmolum's dagger; JJ 2026-11-17: "if its endgame which they are. It can come out over

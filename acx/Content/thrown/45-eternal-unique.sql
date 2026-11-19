@@ -49,8 +49,8 @@ INSERT INTO acx_unique VALUES
     (900940, 10997, 38, 2.45, 300, 270),
     (900941, 23130, 57, 2.5, 300, 335),
     (900942, 8525, 69, 2.7, 300, 375),
-    (900943, 12218, 12, 2.1, 300, 0),
-    (900944, 12217, 12, 2.1, 300, 0);
+    (900943, 12218, 12, 2.3, 300, 0),
+    (900944, 12217, 12, 2.3, 300, 0);
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT u.class_Id, CONCAT('acx-eternal-', w.class_Name), w.type, NOW() FROM acx_unique u JOIN weenie w ON w.class_Id = u.source;
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT u.class_Id, p.type, p.value FROM acx_unique u JOIN weenie_properties_int p ON p.object_Id = u.source WHERE p.type NOT IN (11, 12, 15, 19, 36, 44, 48, 158, 159, 160, 353);   -- not 15 StackUnitValue: a stackable's Value comes from it; not 36 ResistMagic: retail's
     -- Ebon Spine Harpoon and Asmolum's Throwing Dagger refuse enchantments, and Blood Drinker is a large part of a thrown weapon's hit here
