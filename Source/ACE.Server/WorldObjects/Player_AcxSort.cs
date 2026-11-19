@@ -15,13 +15,19 @@ namespace ACE.Server.WorldObjects
     /// PlacementPosition) and already tells the client "this item is in slot N" on every drag, so it sorts and sends that.
     /// The main pack and each side pack are sorted where they are: nothing changes packs, worn items and the order of the
     /// side packs themselves are left alone.
+    /// /sort burden, /sort value and /sort damage (JJ 2026-11-19) order each pack by weight or value (largest first), or
+    /// put the weapons first, strongest first: melee by average hit (damage x (1 - variance / 2)), thrown and bombs by that x their modifier (Potency), launchers
+    /// by elemental bonus x damage modifier (no bonus: last, by modifier), casters by elemental damage %, with the rest after in the usual
+    /// order. Spells on a weapon (Blood Drinker) don't count: they only work while it's wielded.
     /// </summary>
     partial class Player
     {
         /// <summary>
         /// Sorts every pack in place and returns the one line to tell the player
         /// </summary>
-        public string AcxSortPacks()
+        public enum AcxSortMode { Type, Burden, Value, Damage }
+
+        public string AcxSortPacks(AcxSortMode mode = AcxSortMode.Type)
         {
             if (IsTrading)
                 return "Close the trade window first.";
@@ -33,17 +39,24 @@ namespace ACE.Server.WorldObjects
 
             var sorted = 0;
             foreach (var pack in packs)
-                if (AcxSortPack(pack))
+                if (AcxSortPack(pack, mode))
                     sorted++;
 
             return sorted == 0 ? "Your packs are already in order." : "Packs sorted.";
         }
 
-        private bool AcxSortPack(Container pack)
+        private bool AcxSortPack(Container pack, AcxSortMode mode)
         {
             var current = pack.Inventory.Values.Where(i => !i.UseBackpackSlot).OrderBy(i => i.PlacementPosition).ToList();
-            var sorted = current
-                .OrderBy(AcxSortGroup)
+            IOrderedEnumerable<WorldObject> first = mode switch
+            {
+                AcxSortMode.Burden => current.OrderByDescending(i => i.EncumbranceVal ?? 0),
+                AcxSortMode.Value => current.OrderByDescending(i => i.Value ?? 0),
+                AcxSortMode.Damage => current.OrderBy(i => AcxIsWeapon(i) ? 0 : 1).ThenBy(i => AcxIsWeapon(i) ? AcxSortGroup(i) : 0).ThenByDescending(AcxDamageScore),
+                _ => current.OrderBy(_ => 0),
+            };
+            var sorted = first
+                .ThenBy(AcxSortGroup)
                 .ThenBy(AcxSortKind)
                 .ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
                 .ThenBy(i => (int)(i.MaterialType ?? 0))
@@ -63,6 +76,36 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, sorted[i], pack));
             }
             return true;
+        }
+
+        private static bool AcxIsWeapon(WorldObject item) =>
+            (item.ItemType & (ItemType.MeleeWeapon | ItemType.MissileWeapon | ItemType.Caster)) != 0 && item.WeenieType != WeenieType.Ammunition;
+
+        /// <summary>
+        /// /sort damage: how hard a weapon hits, comparable within its kind (melee, missile, caster)
+        /// </summary>
+        private static double AcxDamageScore(WorldObject item)
+        {
+            if (!AcxIsWeapon(item))
+                return 0;
+            if (Factories.Tables.Wcids.AcxBombWcids.IsHealingBomb(item.WeenieClassId))
+                return -1;   // no damage: after the other thrown weapons
+            if ((item.Damage ?? 0) > 0)
+            {
+                // the average hit; thrown weapons and Alchemist's bombs also carry a damage modifier (a bomb's Potency) that
+                // scales it (JJ: "and alchemy?")
+                var hit = (item.Damage ?? 0) * (1 - (item.DamageVariance ?? 0) / 2);
+                return (item.ItemType & ItemType.MissileWeapon) != 0 ? hit * (item.DamageMod ?? 1) : hit;
+            }
+            if ((item.ItemType & ItemType.MissileWeapon) != 0)
+            {
+                // launchers: the elemental bonus as the damage modifier boosts it; without one, by modifier alone, after the
+                // elemental ones (JJ: bonus and modifier both, "don't consider any ammo", "bows without elemental modifier
+                // would always be lower anyways")
+                var mod = item.DamageMod ?? 1;
+                return (item.ElementalDamageBonus ?? 0) * mod + mod / 1000;
+            }
+            return item.ElementalDamageMod ?? 1;   // casters
         }
 
         /// <summary>
