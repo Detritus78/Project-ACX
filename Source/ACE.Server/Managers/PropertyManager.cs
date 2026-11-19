@@ -664,7 +664,7 @@ namespace ACE.Server.Managers
                 ("acx_alchemist_splash_targets", new Property<long>(3, "Project ACX: the most other monsters a bomb's blast hits, the nearest to its target, each for acx_alchemist_splash_share of a hit (JJ 2026-11-16: \"I might end up putting a max of 3 monsters hit by splash damage\"). 0 = no limit. 3 x 0.43: a blast is worth at most 2.3 hits, as before (until 2026-11-16 night: 2 at 0.65, a bigger crowd sharing those 1.3 hits)")),
                 ("acx_contract_marks", new Property<long>(2, "Project ACX: ACX Marks paid for each finished contract (2 since 2026-11-16, JJ: \"bump them to two marks per run\"; was 1)")),
                 ("acx_fellowship_level_cap", new Property<long>(180, "Project ACX: fellowships count anyone above this level as this level (JJ 2026-11-14)")),
-                ("acx_fellowship_low_level", new Property<long>(25, "Project ACX: a fellowship with anyone below this level shares XP only by level (never evenly), and only within 10 levels (JJ 2026-11-14)")),
+                ("acx_fellowship_low_level", new Property<long>(25, "Project ACX: a fellowship with anyone below this level shares XP only within 10 levels, evenly (JJ 2026-11-18; by level only before)")),
                 ("acx_fellowship_even_share_max_level", new Property<long>(126, "Project ACX: fellowships whose members are all between fellowship_even_share_level and this level share XP evenly, whatever their level gap")),
                 ("acx_nether_weapon_min_tier", new Property<long>(1, "Project ACX: lowest loot tier that can drop nether versions of weapons")),
                 ("char_delete_time", new Property<long>(3600, "the amount of time in seconds a deleted character can be restored")),

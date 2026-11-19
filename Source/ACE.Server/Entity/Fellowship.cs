@@ -467,7 +467,8 @@ namespace ACE.Server.Entity
         /// shrinks as the gap grows):
         /// - anyone above acx_fellowship_level_cap (180) counts as 180
         /// - everyone between fellowship_even_share_level (50) and acx_fellowship_even_share_max_level (126): even, any gap
-        /// - anyone below acx_fellowship_low_level (25): by level only, within 10 levels
+        /// - anyone below acx_fellowship_low_level (25): even within 10 levels, no sharing further apart (was by level only
+        ///   until 2026-11-18; JJ, after a level 11 and a level 7 got 75%/25% of every kill: "lets open it up to level 25")
         /// - otherwise highest to lowest within 10 levels: even; within 20: by level; further apart: no sharing
         /// Also decides who may take a shared contract (AcxContracts).
         /// </summary>
@@ -485,7 +486,7 @@ namespace ACE.Server.Entity
                 return (true, true);
 
             if (lowest < PropertyManager.GetLong("acx_fellowship_low_level").Item)
-                return (gap <= 10, false);
+                return (gap <= 10, gap <= 10);
 
             if (gap <= 10)
                 return (true, true);
