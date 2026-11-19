@@ -365,15 +365,35 @@ namespace ACE.Server.Managers
             { 6104, (4226, 2573) }, { 6105, (3964, 2574) }, { 6106, (4019, 2575) }, { 6107, (3965, 2576) }, { 6125, (6124, 6126) },
         };
 
+        // The class bench's band (JJ 2026-11-19, a level 15 weapon benched with Legendary transfers: "No weapon at that range woudl
+        // have a legendary transfer. It actually wouldnt have any", "make sure the bench is comparing apples to apple"): the
+        // transfers on both sides, the item and its loot reference, are of the grade loot of the level carries (NumCantrips: tiers
+        // 1-2 seldom one and only Minor, Minor through tier 4): none below level 50, Minor 50-114, Major 115-125, then the band
+        // above. Set for the class bench's thread only (RunClassBench); the survival bench keeps its own band.
+        [ThreadStatic] private static int classBandLevel;
+        private const int MinorFromLevel = 50, MajorFromLevel = 115;
+
+        // a Legendary damage cantrip's Minor version: Blood Thirst, Strength, Coordination, Quickness
+        private static readonly Dictionary<uint, uint> MinorGrades = new() { { 6089, 2598 }, { 6107, 2583 }, { 6103, 2579 }, { 6106, 2582 } };
+
+        // 0: no transfer at this level (TransferReal skips it)
         private static uint BandCantrip(uint legendary)
         {
-            if (survivalBandLevel <= 0 || survivalBandLevel >= LegendaryFromLevel || !CantripGrades.TryGetValue(legendary, out var grade))
+            var band = survivalBandLevel > 0 ? survivalBandLevel : classBandLevel;
+            if (band <= 0 || band >= LegendaryFromLevel || !CantripGrades.TryGetValue(legendary, out var grade))
                 return legendary;
-            return survivalBandLevel >= EpicFromLevel ? grade.Epic : grade.Major;
+            if (survivalBandLevel <= 0 && band < MinorFromLevel)
+                return 0;
+            if (survivalBandLevel <= 0 && band < MajorFromLevel)
+                return MinorGrades.TryGetValue(legendary, out var minor) ? minor : grade.Major;
+            return band >= EpicFromLevel ? grade.Epic : grade.Major;
         }
 
-        // Blood Thirst's damage in the band: Legendary 10, Epic 7, Major 4
-        private static int BandBloodThirst => survivalBandLevel <= 0 || survivalBandLevel >= LegendaryFromLevel ? 10 : survivalBandLevel >= EpicFromLevel ? 7 : 4;
+        // Blood Thirst's damage in the band: Legendary 10, Epic 7, Major 4, Minor 2, none 0
+        private static int BandBloodThirst => BandCantrip(LegendaryBloodThirst) switch { 0 => 0, 2598 => 2, 2586 => 4, 4661 => 7, _ => 10 };
+
+        // what the band puts in a weapon's transfer slots, for the bench's output
+        private static string BandTransferGrade(int level) => level < MinorFromLevel ? "none" : level < MajorFromLevel ? "Minor" : level < EpicFromLevel ? "Major" : level < LegendaryFromLevel ? "Epic" : "Legendary";
 
         // a veteran's worn Legendary cantrips (+35 to a skill or attribute, +80 armor), as items' spells
         private static readonly uint[] VeteranCantripsAll = { 6055, 6054, 6063, 6104, 6053, 6102 };   // Invulnerability, Impregnability, Magic Resistance, Endurance, Healing Prowess, Armor

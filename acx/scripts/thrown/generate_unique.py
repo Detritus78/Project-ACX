@@ -38,6 +38,11 @@ add(900939, (3791,), (12, 2.6, 300, 250))       # Lightning Djarid (Impious unde
 add(900940, (10997,), (38, 2.45, 300, 270))     # Ebon Spine Harpoon (Aun Ralirea, level 80), frost, slow, a wide damage range: tier 4
 add(900941, (23130,), (57, 2.5, 300, 335))      # Frost Throwing Club (Banderling Guard Champions, level 165-170): tier 6; dropped by code (AcxThrownWcids.EternalDrops)
 add(900942, (8525,), (69, 2.7, 300, 375))       # Asmolum's Throwing Dagger (Asmolum the Worm, level 277): end-game, see below
+# the Apprentices' gifts for a Skeleton's Skull or a Pumpkin Head (Alexander's, Janda's, Tsua's; 100 before), fire. JJ 2026-11-19:
+# "It needs a thrown conversion right?", "lets convert and bench as is and see where it lands in the t1-t4 range. I'm okay
+# with it being between 1 & 2 tiers like a tier 1.25". Retail's 25 x1.0 benched at 66% of a tier 1 loot fire dart (L15);
+# 12 x2.1 sits a quarter of the way from tier 1 (x2.0) to tier 2 (x2.37), no wield requirement like tier 1
+add(900943, (12218, 12217), (12, 2.1, 300, 0))  # Flaming Skull, Flaming Pumpkinhead
 
 # retail's own two unlimited thrown weapons (Missile Weapons 385, five spells, a critical strike bonus): the same model, in place
 # End-game quest weapons (these two and Asmolum's dagger; JJ 2026-11-17: "if its endgame which they are. It can come out over
