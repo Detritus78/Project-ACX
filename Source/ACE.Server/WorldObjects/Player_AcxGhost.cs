@@ -169,8 +169,6 @@ namespace ACE.Server.WorldObjects
             if (!IsAcxGhost)
                 return;
 
-            acxGhostCorpse?.RemoveProperty(PropertyInt.AcxCorpseVitae);   // the revive gives it all back, nothing left to recover
-            acxGhostCorpse?.RemoveProperty(PropertyBool.AcxHeadstoneCorpse);   // and someone brought back to life gets no headstone
             AcxEndGhost();
 
             switch (tier)

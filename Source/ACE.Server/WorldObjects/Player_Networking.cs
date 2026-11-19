@@ -135,7 +135,6 @@ namespace ACE.Server.WorldObjects
             HandleDBUpdates();
 
             AcxGhostOnLogin();   // Project ACX: left as a ghost -> lifestone
-            AcxVitaeOnLogin();   // Project ACX: vitae that wore off while offline
             AcxRestoreDoTsAndHoTs();   // Project ACX: bleeds and heals from before logout
             AcxXphStart();   // Project ACX: /xph measures from login
             AcxEconStart();   // Project ACX: the economy log measures from login

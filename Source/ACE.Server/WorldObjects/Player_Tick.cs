@@ -125,7 +125,6 @@ namespace ACE.Server.WorldObjects
 
             AcxGhostTick();   // Project ACX
 
-            AcxVitaeTick(currentUnixTime);   // Project ACX: vitae wears off over time
 
             AcxCraftGuaranteeTick();   // Project ACX: crafting guarantee warnings
 

@@ -15,20 +15,18 @@ namespace ACE.Server.WorldObjects
     /// and 40% cap kept for the balance pass).
     /// - Vitae soaks up experience: while you have vitae, experience you earn pays it off first and only the rest is
     ///   yours (allegiance experience doesn't count).
-    /// - Vitae also wears off by itself, 1% every 5 minutes, counting time offline.
-    /// - The corpse remembers how much vitae its death added; the owner gets half back the first time they open it
-    ///   (a revive scroll gives it all back instead, Player_AcxGhost).
-    /// - Below level 10 a death gives no vitae and drops nothing; deaths to monsters drop no items (all carried pyreals
-    ///   still go on the corpse, Player_Death.GetNumCoinsDropped).
-    /// - The corpse stays while its owner has vitae, then gives way to a "Here lies" headstone (Corpse_AcxVitae).
+    /// - Vitae doesn't wear off by itself: you work it off (the 1%-per-5-minutes wear-off is gone, JJ 2026-11-18: "You
+    ///   have to work it off").
+    /// - A revive scroll gives a death's vitae back (Player_AcxGhost). Opening your own corpse used to give half of it
+    ///   back; gone 2026-11-18 (JJ: "We already don't drop anything so lets make vitae painful").
+    /// - Below level 10 a death gives no vitae and drops nothing; deaths to monsters drop no items (half the carried
+    ///   pyreals go on the corpse, all of them 2026-11-11 to 11-18, Player_Death.GetNumCoinsDropped).
+    /// - Corpses decay as in retail (2026-11-18; the vitae hold and its headstone are gone).
     /// </summary>
     partial class Player
     {
         public const int AcxDeathMinLevel = 10;
-        private const double AcxVitaeDecaySeconds = 300;
-        private static readonly TimeSpan AcxHeadstoneInterval = TimeSpan.FromHours(1);
 
-        private double acxVitaeNextDecay;
 
         /// <summary>
         /// Experience earned while carrying vitae pays it off first. Returns what's left for the player.
@@ -101,84 +99,6 @@ namespace ACE.Server.WorldObjects
             }
             EnchantmentManager.SendUpdateVitae();
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{reason}: your vitae penalty is now {Math.Round((1 - penalty) * 100)}%.", ChatMessageType.Magic));
-        }
-
-        /// <summary>
-        /// Called from Heartbeat: vitae wears off 1% every 5 minutes
-        /// </summary>
-        public void AcxVitaeTick(double now)
-        {
-            if (now < acxVitaeNextDecay)
-                return;
-            acxVitaeNextDecay = now + AcxVitaeDecaySeconds;
-
-            if (!HasVitae)
-            {
-                RemoveProperty(PropertyFloat.AcxVitaeDecayTimestamp);
-                return;
-            }
-
-            var last = GetProperty(PropertyFloat.AcxVitaeDecayTimestamp);
-            if (last == null)
-            {
-                SetProperty(PropertyFloat.AcxVitaeDecayTimestamp, now);
-                return;
-            }
-
-            var points = (int)Math.Floor((now - last.Value) / AcxVitaeDecaySeconds);
-            if (points <= 0)
-                return;
-
-            SetProperty(PropertyFloat.AcxVitaeDecayTimestamp, last.Value + points * AcxVitaeDecaySeconds);
-            AcxReduceVitae(points, "Time heals");
-        }
-
-        /// <summary>
-        /// Called from PlayerEnterWorld: catch up on vitae that wore off while offline (a few seconds after login)
-        /// </summary>
-        public void AcxVitaeOnLogin()
-        {
-            acxVitaeNextDecay = 0;
-            var chain = new ActionChain();
-            chain.AddDelaySeconds(10);
-            chain.AddAction(this, () => AcxVitaeTick(Time.GetUnixTime()));
-            chain.EnqueueChain();
-        }
-
-        /// <summary>
-        /// Called from Die once the corpse exists: marks what the corpse remembers about this death
-        /// </summary>
-        public void AcxPrepareCorpse(DamageHistoryInfo lastDamager, DamageHistoryInfo topDamager, float vitaeBefore)
-        {
-            var corpse = AcxLastCorpse;
-            if (corpse == null || corpse.IsDestroyed || (Level ?? 1) < AcxDeathMinLevel || corpse.IsOnNoDropLandblock
-                || IsPKDeath(topDamager) || IsPKLiteDeath(topDamager))
-                return;
-
-            var points = (int)Math.Round((vitaeBefore - AcxVitaeValue()) * 100);
-            if (points > 0)
-                corpse.SetProperty(PropertyInt.AcxCorpseVitae, points);
-
-            if (!HasVitae)
-                return;
-
-            if (GetProperty(PropertyFloat.AcxVitaeDecayTimestamp) == null)
-                SetProperty(PropertyFloat.AcxVitaeDecayTimestamp, Time.GetUnixTime());
-
-            // the corpse stays while its owner has vitae (Corpse_AcxVitae)
-            corpse.SetProperty(PropertyBool.AcxVitaeCorpse, true);
-
-            // a monster kill (not a suicide or a player) marks the corpse for a headstone, at most once an hour
-            var killer = lastDamager?.TryGetAttacker();
-            var lastHeadstone = GetProperty(PropertyFloat.AcxLastHeadstone) ?? 0;
-            if (killer is Creature && killer is not Player && killer != this && Time.GetUnixTime() - lastHeadstone >= AcxHeadstoneInterval.TotalSeconds)
-            {
-                corpse.SetProperty(PropertyBool.AcxHeadstoneCorpse, true);
-                SetProperty(PropertyFloat.AcxLastHeadstone, Time.GetUnixTime());
-            }
-
-            // kept across restarts even when empty: the corpse holds the vitae
-            corpse.SaveBiotaToDatabase();
         }
     }
 }

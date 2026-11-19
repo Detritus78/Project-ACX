@@ -134,9 +134,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (player.Guid.Full == VictimId)
-                AcxOnOwnerOpen(player);   // Project ACX: half this death's vitae back
-
             base.Open(player);
         }
 

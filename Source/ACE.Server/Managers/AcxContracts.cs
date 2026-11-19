@@ -76,7 +76,9 @@ namespace ACE.Server.Managers
             public bool Started { get; set; }   // used its gem or walked into its dungeon
 
             public bool IsKill => TargetWcid != 0;
-            public bool Untouched => Progress == 0 && !Started;
+            // a shared contract may replace one with no kills yet, even if its gem was used or its dungeon entered (JJ
+            // 2026-11-18, after a buddy couldn't take a share: both had only started contracts with 0 kills left)
+            public bool Untouched => Progress == 0;
             public string Task => IsKill ? $"kill {Needed} {TargetName} in {Name}" : $"reach the exploration marker deep in {Name}";
         }
 
@@ -155,7 +157,26 @@ namespace ACE.Server.Managers
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your contract has run out: {c.Task}.", ChatMessageType.Broadcast));
             }
 
-            if (state.Cooldowns.RemoveAll(t => t <= now) > 0 || expired.Count > 0)
+            // a kill contract for a monster its dungeon no longer lists (2026-11-18: event-only spawns such as Carrion
+            // Shrethlets, which never appear while their event is off) asks for one the dungeon does spawn, or becomes an
+            // exploration contract when it lists none
+            var retargeted = false;
+            foreach (var c in state.Active.Where(c => c.IsKill))
+            {
+                var dungeon = Dungeons.FirstOrDefault(d => d.Landblock == c.Landblock);
+                if (dungeon == null || dungeon.Monsters.Any(m => m.Wcid == c.TargetWcid))
+                    continue;
+                var was = c.Task;
+                var m = dungeon.Monsters.FirstOrDefault();
+                c.TargetWcid = m?.Wcid ?? 0;
+                c.TargetName = m?.Name;
+                c.Needed = m != null ? Math.Clamp(m.Count, 5, 10) : 0;
+                c.Progress = 0;
+                retargeted = true;
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your contract changed: {was} is now {c.Task}.", ChatMessageType.Broadcast));
+            }
+
+            if (state.Cooldowns.RemoveAll(t => t <= now) > 0 || expired.Count > 0 || retargeted)
                 Save(player, state);
             return state;
         }
@@ -325,7 +346,7 @@ namespace ACE.Server.Managers
         /// /sc: offers your top contract (first on /contract's list) to everyone in your fellowship (JJ 2026-11-14: "so a
         /// buddy and I can plan every night to do our daily together"; one at a time: finish it, then /sc shares the next).
         /// Each fellow gets a yes/no popup saying what the contract is and what it costs them: a free contract slot, or else
-        /// it replaces their newest unstarted contract (no kills, gem never used, dungeon never entered). They get their own
+        /// it replaces their newest contract with no kills yet (since 2026-11-18 even one whose gem was used). They get their own
         /// gem and their own count from 0 (kills already count for every fellow in the dungeon who holds the same contract),
         /// and each holder is paid once when they finish; finishing together starts both slots' 20-hour rest at the same
         /// moment. Rewards are never split through the fellowship, so sharing can't pay anyone for more than their three

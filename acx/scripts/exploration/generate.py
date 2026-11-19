@@ -7,11 +7,13 @@ each dungeon's walkable spot farthest from its entrance. This turns the plan int
                                                 monsters, for the server (Managers/AcxExploration.cs, AcxContracts.cs)
   acx/Content/exploration/10-dungeon-markers.sql the marker weenie (900500) and one marker per dungeon
 Run: python3 acx/scripts/exploration/generate.py ~/acx-data/preview/Pathfinding/marker-plan.json
+     python3 acx/scripts/exploration/generate.py --monsters-only   (refresh only markers.json's monster lists)
 """
 import collections, json, os, statistics, subprocess, sys
 
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-plan = [{k.lower(): v for k, v in d.items()} for d in json.load(open(os.path.expanduser(sys.argv[1])))]
+MONSTERS_ONLY = sys.argv[1] == "--monsters-only"
+plan = [] if MONSTERS_ONLY else [{k.lower(): v for k, v in d.items()} for d in json.load(open(os.path.expanduser(sys.argv[1])))]
 MIN_DISTANCE = 30   # metres: a closer "farthest point" means the dungeon goes on through an inner portal into another landblock
 ok = [d for d in plan if d.get("status") == "ok" and d["distance"] >= MIN_DISTANCE]
 short = sum(1 for d in plan if d.get("status") == "ok" and d["distance"] < MIN_DISTANCE)
@@ -32,6 +34,13 @@ unattackable = {int(r[0]) for r in query("SELECT object_Id FROM weenie_propertie
 generators = collections.defaultdict(list)
 for o, w in query("SELECT object_Id, weenie_Class_Id FROM weenie_properties_generator;"):
     generators[int(o)].append(int(w))
+# 2026-11-18: a generator tied to a game event (GeneratorEvent, string 34) only spawns while that event is on; 452 such
+# events are off (springbabies among them), so their monsters never appear: Shreth Hive's contracts asked for Carrion
+# Shrethlets (JJ's buddy: they only spawn in a certain season). Skip those generators.
+event_off = {int(o) for (o,) in query(
+    "SELECT s.object_Id FROM weenie_properties_string s LEFT JOIN event e ON e.name = s.value WHERE s.type = 34 AND IFNULL(e.state, 0) <> 4;")}
+if MONSTERS_ONLY:
+    ok = json.load(open(os.path.join(out_dir, "markers.json")))
 lbs = ",".join(str(int(d["landblock"], 16)) for d in ok)
 placed = collections.defaultdict(list)
 for w, c in query(f"SELECT weenie_Class_Id, obj_Cell_Id >> 16 FROM landblock_instance WHERE (obj_Cell_Id >> 16) IN ({lbs});"):
@@ -42,6 +51,8 @@ def spawns(wcid, depth=0):
     if not t or depth > 3:
         return []
     out = [wcid] if t[0] == 10 and t[2] > 0 and wcid not in unattackable else []
+    if wcid in event_off:
+        return out
     for g in generators.get(wcid, []):
         out += spawns(g, depth + 1)
     return out
@@ -50,6 +61,17 @@ def monsters(lb, level):
     counts = collections.Counter(m for w in placed[lb] for m in spawns(w))
     picks = [(w, n) for w, n in counts.items() if n >= 5 and level * 0.6 <= weenies[w][2] <= level * 1.6 + 10]
     return [{"wcid": w, "name": weenies[w][1], "count": n} for w, n in sorted(picks, key=lambda x: -x[1])[:4]]
+
+if MONSTERS_ONLY:
+    changed = 0
+    for d in ok:
+        new = monsters(int(d["landblock"], 16), d["level"])
+        if [m["wcid"] for m in new] != [m["wcid"] for m in d["monsters"]]:
+            changed += 1
+        d["monsters"] = new
+    json.dump(ok, open(os.path.join(out_dir, "markers.json"), "w"), indent=1)
+    print(f"monster lists refreshed: {changed} of {len(ok)} dungeons changed, {sum(1 for d in ok if not d['monsters'])} with none (exploration-only)")
+    sys.exit(0)
 
 entrances = {e["landblock"]: e for e in json.load(open(os.path.join(os.path.dirname(os.path.expanduser(sys.argv[1])), "marker-input.json")))}
 dungeons = []
