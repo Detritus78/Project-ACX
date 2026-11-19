@@ -179,16 +179,14 @@ def alpha(m):
 
 
 def floor_order(floor, start):
-    """the floor's spots clockwise around the room, wall by wall, left to right along each, beginning at its spot nearest
-    start (x, y)"""
+    """the floor's spots in one walk around the room, by their angle around the floor's middle, clockwise seen from
+    above (the direction JJ chose: "thats ccw from the way I see it. reverse the direction"), beginning at the spot
+    nearest start (x, y). (Grouping by wall first visited the walls out of order: "It goes from holtburg to sawato down
+    one level. and kryst to lin then back to sanamar", JJ 2026-11-19.)"""
     here = [sl for sl in slots if sl["floor"] == floor]
-    walls = {}
-    for sl in here:
-        walls.setdefault(sl["wall"], []).append(sl)
-    ordered = []
-    for wall in sorted(walls.values(), key=lambda w: -sum(sl["around"] for sl in w) / len(w)):
-        ordered += sorted(wall, key=lambda sl: sl["along"])
-    ordered.reverse()   # JJ: "thats ccw from the way I see it. reverse the direction"
+    mx = sum(sl["x"] for sl in here) / len(here)
+    my = sum(sl["y"] for sl in here) / len(here)
+    ordered = sorted(here, key=lambda sl: -math.atan2(sl["y"] - my, sl["x"] - mx))
     first = min(range(len(ordered)), key=lambda i: (ordered[i]["x"] - start["x"]) ** 2 + (ordered[i]["y"] - start["y"]) ** 2)
     return ordered[first:] + ordered[:first]
 
