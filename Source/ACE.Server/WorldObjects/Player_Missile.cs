@@ -37,8 +37,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="targetGuid">The target guid</param>
         /// <param name="attackHeight">The attack height 1-3</param>
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
+        // Project ACX: the missile attack trace (acx_attack_trace; JJ 2026-11-19: UCM "is very slow to target and shoot at targets")
+        private void AcxTrace(string text)
+        {
+            if (ACE.Server.Managers.PropertyManager.GetBool("acx_attack_trace").Item)
+                log.Info($"[ACXTRACE] {DateTime.UtcNow:HH:mm:ss.fff} {Name}: {text}");
+        }
+
         public void HandleActionTargetedMissileAttack(uint targetGuid, uint attackHeight, float accuracyLevel)
         {
+            AcxTrace($"request target {targetGuid:X8} accuracy {accuracyLevel:0.00} (attacking {Attacking}, current target {(MissileTarget?.IsAlive == true ? MissileTarget.Guid.Full.ToString("X8") : "none")}, busy {IsBusy})");
             if (AcxGhostBlocks()) { OnAttackDone(); return; }   // Project ACX: ghosts don't fight
             //log.Info($"-");
 
@@ -57,6 +65,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsBusy || Teleporting || suicideInProgress)
             {
+                AcxTrace("refused: too busy");
                 SendWeenieError(WeenieError.YoureTooBusy);
                 OnAttackDone();
                 return;
@@ -64,6 +73,7 @@ namespace ACE.Server.WorldObjects
 
             if (IsJumping)
             {
+                AcxTrace("refused: jumping");
                 SendWeenieError(WeenieError.YouCantDoThatWhileInTheAir);
                 OnAttackDone();
                 return;
@@ -104,7 +114,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (Attacking || MissileTarget != null && MissileTarget.IsAlive)
+            {
+                AcxTrace("ignored: an attack is already running");
                 return;
+            }
 
             if (!CanDamage(target))
             {
@@ -166,12 +179,14 @@ namespace ACE.Server.WorldObjects
             var creature = target as Creature;
             if (!IsAlive || IsBusy || MissileTarget == null || creature == null || !creature.IsAlive || suicideInProgress)
             {
+                AcxTrace($"stopped before throw: {(creature == null || !creature.IsAlive ? "target dead" : IsBusy ? "busy" : MissileTarget == null ? "target cleared" : "other")}");
                 OnAttackDone();
                 return;
             }
 
             if (!TargetInRange(target))
             {
+                AcxTrace("stopped: out of range");
                 // this must also be sent to actually display the transient message
                 SendWeenieError(WeenieError.MissileOutOfRange);
 
@@ -216,6 +231,7 @@ namespace ACE.Server.WorldObjects
 
             if (velocity == Vector3.Zero)
             {
+                AcxTrace("stopped: no flight path (out of range)");
                 // pre-check succeeded, but actual velocity calculation failed
                 SendWeenieError(WeenieError.MissileOutOfRange);
 
@@ -225,6 +241,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            AcxTrace($"throw at {target.Name} ({(subsequent ? "repeat" : "first")}), distance {Location.DistanceTo(target.Location):0.0}");
             var launchTime = EnqueueMotionPersist(actionChain, aimLevel, AcxThrowSpeedMod(ammo));   // Project ACX: an Alchemist's bomb (acx_alchemist_throw_speed)
 
             // launch projectile
@@ -306,7 +323,10 @@ namespace ACE.Server.WorldObjects
                     nextAttack.EnqueueChain();
                 }
                 else
+                {
+                    AcxTrace($"repeat ended: {(!creature.IsAlive ? "target dead" : !GetCharacterOption(CharacterOption.AutoRepeatAttacks) ? "auto repeat off" : IsBusy ? "busy" : "cancelled")}");
                     OnAttackDone();
+                }
             });
 
             actionChain.EnqueueChain();
