@@ -462,35 +462,47 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Project ACX: the fellowship level rules (JJ 2026-11-11, bands approved 2026-11-14). Whether characters of these
-        /// levels share XP, and whether evenly or by level (each by the XP to their next level, so the lower one's cut
-        /// shrinks as the gap grows):
-        /// - anyone above acx_fellowship_level_cap (180) counts as 180
-        /// - everyone between fellowship_even_share_level (50) and acx_fellowship_even_share_max_level (126): even, any gap
-        /// - anyone below acx_fellowship_low_level (25): even within 10 levels, no sharing further apart (was by level only
-        ///   until 2026-11-18; JJ, after a level 11 and a level 7 got 75%/25% of every kill: "lets open it up to level 25")
-        /// - otherwise highest to lowest within 10 levels: even; within 20: by level; further apart: no sharing
+        /// Project ACX: the fellowship level rules (JJ 2026-11-19, replacing the 2026-11-14 bands: "breakt it up into 25 levels
+        /// then withing 5 up or down. So 1-25 even split 25-50 even split 50-75 etc.. from 180 lets make the characters within
+        /// 20 levels of each other"; then "within 5 inside a band", "bands to 180, then 20"). Whether characters of these levels
+        /// share XP; a fellowship that shares always shares evenly:
+        /// - levels 1-180 in bands of acx_fellowship_band_size (25): 1-25, 26-50 ... 126-150, and 151-180 (the short 176-180
+        ///   joins the band before it): everyone in the same band and within acx_fellowship_band_gap (5) levels
+        /// - from acx_fellowship_top_level (181): everyone that level or higher, within acx_fellowship_top_gap (20) levels
+        /// - anyone else (two bands, or a band and the top): no sharing
         /// Also decides who may take a shared contract (AcxContracts).
         /// </summary>
         public static (bool share, bool even) AcxShareRule(IEnumerable<int> levels)
         {
-            var effective = levels.Select(AcxEffectiveLevel).ToList();
-            if (effective.Count == 0)
+            var list = levels.ToList();
+            if (list.Count == 0)
                 return (false, false);
 
-            var highest = effective.Max();
-            var lowest = effective.Min();
-            var gap = highest - lowest;
+            var top = (int)PropertyManager.GetLong("acx_fellowship_top_level").Item;
+            var gap = list.Max() - list.Min();
 
-            if (lowest >= PropertyManager.GetLong("fellowship_even_share_level").Item && highest <= PropertyManager.GetLong("acx_fellowship_even_share_max_level").Item)
-                return (true, true);
+            if (list.Min() >= top)
+            {
+                var share = gap <= PropertyManager.GetLong("acx_fellowship_top_gap").Item;
+                return (share, share);
+            }
 
-            if (lowest < PropertyManager.GetLong("acx_fellowship_low_level").Item)
-                return (gap <= 10, gap <= 10);
+            var inBand = list.Max() < top && list.Select(AcxFellowshipBand).Distinct().Count() == 1 && gap <= PropertyManager.GetLong("acx_fellowship_band_gap").Item;
+            return (inBand, inBand);
+        }
 
-            if (gap <= 10)
-                return (true, true);
-            return (gap <= 20, false);
+        /// <summary>
+        /// A level's band below acx_fellowship_top_level: 0 for 1-25, 1 for 26-50 ..., a short last band merged into the one before
+        /// </summary>
+        public static int AcxFellowshipBand(int level)
+        {
+            var size = (int)Math.Max(1, PropertyManager.GetLong("acx_fellowship_band_size").Item);
+            var lastLevel = (int)PropertyManager.GetLong("acx_fellowship_top_level").Item - 1;
+            var band = (Math.Max(1, level) - 1) / size;
+            var lastBand = (lastLevel - 1) / size;
+            if (lastBand > 0 && lastLevel % size != 0 && band >= lastBand)
+                band = lastBand - 1;
+            return band;
         }
 
         public static int AcxEffectiveLevel(int level) => (int)Math.Min(level, PropertyManager.GetLong("acx_fellowship_level_cap").Item);
