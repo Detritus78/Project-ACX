@@ -464,12 +464,14 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Project ACX: the fellowship level rules (JJ 2026-11-19, replacing the 2026-11-14 bands: "breakt it up into 25 levels
         /// then withing 5 up or down. So 1-25 even split 25-50 even split 50-75 etc.. from 180 lets make the characters within
-        /// 20 levels of each other"; then "within 5 inside a band", "bands to 180, then 20"). Whether characters of these levels
-        /// share XP; a fellowship that shares always shares evenly:
-        /// - levels 1-180 in bands of acx_fellowship_band_size (25): 1-25, 26-50 ... 126-150, and 151-180 (the short 176-180
-        ///   joins the band before it): everyone in the same band and within acx_fellowship_band_gap (5) levels
-        /// - from acx_fellowship_top_level (181): everyone that level or higher, within acx_fellowship_top_gap (20) levels
-        /// - anyone else (two bands, or a band and the top): no sharing
+        /// 20 levels of each other"; "if you happen to be 25 you should share with anyone up to 30 but at 31 theres no share";
+        /// a 26 and a 49 share: "yes exactly"). Whether characters of these levels share XP; a fellowship that shares always
+        /// shares evenly:
+        /// - levels 1-180 come in bands of acx_fellowship_band_size (25): 1-25, 26-50 ... 126-150, and 151-180 (the short
+        ///   176-180 joins the band before it); everyone in one band shares, whatever the gap
+        /// - across a band edge, everyone within acx_fellowship_gap (5) levels shares (a 25 with up to a 30)
+        /// - from acx_fellowship_top_level (181), everyone within acx_fellowship_top_gap (20) levels
+        /// - anything else: no sharing
         /// Also decides who may take a shared contract (AcxContracts).
         /// </summary>
         public static (bool share, bool even) AcxShareRule(IEnumerable<int> levels)
@@ -478,17 +480,12 @@ namespace ACE.Server.Entity
             if (list.Count == 0)
                 return (false, false);
 
-            var top = (int)PropertyManager.GetLong("acx_fellowship_top_level").Item;
+            var top = PropertyManager.GetLong("acx_fellowship_top_level").Item;
             var gap = list.Max() - list.Min();
-
-            if (list.Min() >= top)
-            {
-                var share = gap <= PropertyManager.GetLong("acx_fellowship_top_gap").Item;
-                return (share, share);
-            }
-
-            var inBand = list.Max() < top && list.Select(AcxFellowshipBand).Distinct().Count() == 1 && gap <= PropertyManager.GetLong("acx_fellowship_band_gap").Item;
-            return (inBand, inBand);
+            var share = list.Min() >= top
+                ? gap <= PropertyManager.GetLong("acx_fellowship_top_gap").Item
+                : gap <= PropertyManager.GetLong("acx_fellowship_gap").Item || list.Max() < top && list.Select(AcxFellowshipBand).Distinct().Count() == 1;
+            return (share, share);
         }
 
         /// <summary>
