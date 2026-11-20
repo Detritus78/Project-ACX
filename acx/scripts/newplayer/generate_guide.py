@@ -149,7 +149,7 @@ REMEMBER: Pyreals in your pack drop on your corpse when you die. Pyreals in the 
 
 '''Fellowships and T.A.R.
 
-Fellowships share experience evenly between friends close in level. Up to level 180, levels come in groups of 25 (1-25, 26-50, 51-75 and so on, with 151-180 the last), and fellows in the same group within 5 levels of each other share. From level 181, fellows within 20 levels of each other share.
+Fellowships share experience evenly between friends close in level. Up to level 180, levels come in groups of 25 (1-25, 26-50, 51-75 and so on, with 151-180 the last): everyone in the same group shares, and so does anyone within 5 levels across a group's edge (a 25 with up to a 30). Past level 180, fellows within 20 levels share.
 
 T.A.R. (Type, Area, Rest) is there to help us all stop and smell the roses. Hunt the same kind of monster in the same spot, hour after hour, and the rewards slowly fade. Wander, try something new or take a break, and they come right back.
 
