@@ -35,6 +35,13 @@ namespace ACE.Server.Managers
         public const uint FixWcid = 900854;
         public const uint CheckWcid = 900855;
         public const uint TourWcid = 900856;
+        public const uint OlthoiTourWcid = 900857;
+
+        // the Olthoi Tour (gem 900857; JJ 2026-11-21: "lets a gem that ports me around to olthoi dungeons", to try monster
+        // chasing with pathfinding on and off): each use goes to the next olthoi dungeon's entrance, lowest level first, from
+        // Logs/acx-olthoi-tour.json; quest AcxOlthoiTour keeps the place, wrapping around
+        private static readonly string OlthoiTourList = Path.Combine("Logs", "acx-olthoi-tour.json");
+        private const string OlthoiTourQuest = "AcxOlthoiTour";
 
         // the Town Tour (gem 900856; JJ 2026-11-18: "create me a gem that goes to all the towns so I can see them"): each use
         // goes to the next town's Concordia portal (beside its town network ruin), from Logs/acx-town-tour.json
@@ -144,16 +151,20 @@ namespace ACE.Server.Managers
             player.Teleport(new Position(spot.cell, new Vector3(spot.x, spot.y, spot.z), Quaternion.Identity));
         }
 
-        public static void UseTour(Player player)
+        public static void UseTour(Player player) => UseTour(player, TourList, TourQuest, "Town");
+
+        public static void UseOlthoiTour(Player player) => UseTour(player, OlthoiTourList, OlthoiTourQuest, "Olthoi dungeon");
+
+        private static void UseTour(Player player, string list, string quest, string what)
         {
             List<CheckSpot> stops;
-            try { stops = System.Text.Json.JsonSerializer.Deserialize<List<CheckSpot>>(File.ReadAllText(TourList)); }
-            catch (Exception ex) { Chat(player, $"Town Tour: couldn't read {TourList} ({ex.Message})."); return; }
+            try { stops = System.Text.Json.JsonSerializer.Deserialize<List<CheckSpot>>(File.ReadAllText(list)); }
+            catch (Exception ex) { Chat(player, $"{what} tour: couldn't read {list} ({ex.Message})."); return; }
             if (stops.Count == 0) return;
-            var index = player.QuestManager.GetCurrentSolves(TourQuest) % stops.Count;
-            player.QuestManager.Stamp(TourQuest);   // SetQuestCompletions caps an unregistered quest at 0 (GetMaxSolves): it never moved on
+            var index = player.QuestManager.GetCurrentSolves(quest) % stops.Count;
+            player.QuestManager.Stamp(quest);   // SetQuestCompletions caps an unregistered quest at 0 (GetMaxSolves): it never moved on
             var stop = stops[index];
-            Chat(player, $"Town {index + 1} of {stops.Count}: {stop.name}.");
+            Chat(player, $"{what} {index + 1} of {stops.Count}: {stop.name}.");
             player.Teleport(new Position(stop.cell, new Vector3(stop.x, stop.y, stop.z), Quaternion.Identity));
         }
 

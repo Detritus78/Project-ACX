@@ -130,6 +130,7 @@ namespace ACE.Server.WorldObjects
             if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.FixWcid) { ACE.Server.Managers.AcxEntranceTest.UseFix(player); return; }   // Project ACX: Entrance Fixer (Preview)
             if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.CheckWcid) { ACE.Server.Managers.AcxEntranceTest.UseCheck(player); return; }   // Project ACX: Portal Checker (Preview)
             if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.TourWcid) { ACE.Server.Managers.AcxEntranceTest.UseTour(player); return; }   // Project ACX: Town Tour (Preview)
+            if (WeenieClassId == ACE.Server.Managers.AcxEntranceTest.OlthoiTourWcid) { ACE.Server.Managers.AcxEntranceTest.UseOlthoiTour(player); return; }   // Project ACX: Olthoi Tour (Preview)
             if (ACE.Server.Managers.AcxSalvageSack.IsSack(this)) { ACE.Server.Managers.AcxSalvageSack.Open(this, player); return; }   // Project ACX: salvage sack
             if (GetProperty(PropertyBool.AcxConcordiaRecall) ?? false) { player.AcxConcordiaRecall(); return; }   // Project ACX: Eternal Concordia Portal Gem
 

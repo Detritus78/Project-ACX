@@ -64,3 +64,17 @@ INSERT INTO weenie_properties_string (object_Id, type, value) VALUES
     (900856, 1, 'Town Tour'),
     (900856, 14, 'Use it to go to the next town''s Concordia portal.'),
     (900856, 16, 'A test tool: each use goes to the next town''s Concordia portal, all of them in turn.');
+
+-- The Olthoi Tour (900857; JJ 2026-11-21: "lets a gem that ports me around to olthoi dungeons"): each use goes to the
+-- next olthoi dungeon's entrance, lowest level first, from Preview's Logs/acx-olthoi-tour.json.
+DELETE FROM weenie WHERE class_Id = 900857;
+INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT 900857, 'acx-olthoi-tour', type, NOW() FROM weenie WHERE class_Id = 900853;
+INSERT INTO weenie_properties_int (object_Id, type, value) SELECT 900857, type, value FROM weenie_properties_int WHERE object_Id = 900853;
+INSERT INTO weenie_properties_float (object_Id, type, value) SELECT 900857, type, value FROM weenie_properties_float WHERE object_Id = 900853;
+INSERT INTO weenie_properties_bool (object_Id, type, value) SELECT 900857, type, value FROM weenie_properties_bool WHERE object_Id = 900853;
+INSERT INTO weenie_properties_string (object_Id, type, value) SELECT 900857, type, value FROM weenie_properties_string WHERE object_Id = 900853 AND type NOT IN (1, 14, 16);
+INSERT INTO weenie_properties_d_i_d (object_Id, type, value) SELECT 900857, type, value FROM weenie_properties_d_i_d WHERE object_Id = 900853;
+INSERT INTO weenie_properties_string (object_Id, type, value) VALUES
+    (900857, 1, 'Olthoi Tour'),
+    (900857, 14, 'Use it to go to the next olthoi dungeon''s entrance.'),
+    (900857, 16, 'A test tool: each use goes to the next olthoi dungeon, lowest level first.');
