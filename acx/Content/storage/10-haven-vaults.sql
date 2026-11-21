@@ -11,11 +11,12 @@
 --   900700 Vault (retail house storage 9687)      900701 Vault Hook (retail wall hook 9686)
 --   900702 Vault Deed   900703 Vault Rent Writ   900704 Blank Vault Key   900705 Vault Lock   900706 Vault Key (cut by code)
 --   900707 Vault Keeper (retail Adventurer's Haven Cottages Merchant 26696)   900708 Adventurer's Haven portal (retail 2080)
+--   900709 Vault Floor Hook (retail floor hook 11697; placed in front of each vault, concordia/89-vault-floor-hooks.sql)
 -- Re-runnable. Restart the server after applying. A leased vault keeps its saved position: moving one later also needs
 -- its shard biota moved.
 
 DELETE FROM landblock_instance WHERE guid BETWEEN 0x701ACF00 AND 0x701ACFFF OR guid IN (0x7A9B4F20, 0x7DA55F20, 0x77D64F20, 0x733D9F20);
-DELETE FROM weenie WHERE class_Id BETWEEN 900700 AND 900708;
+DELETE FROM weenie WHERE class_Id BETWEEN 900700 AND 900709;
 
 DROP TEMPORARY TABLE IF EXISTS acx_vault_objects;
 CREATE TEMPORARY TABLE acx_vault_objects (class_Id INT UNSIGNED PRIMARY KEY, original INT UNSIGNED, class_Name VARCHAR(100), name VARCHAR(100));
@@ -23,7 +24,8 @@ INSERT INTO acx_vault_objects VALUES
     (900700,  9687, 'acx-vault',        'Vault'),
     (900701,  9686, 'acx-vault-hook',   'Vault Hook'),
     (900707, 26696, 'acx-vault-keeper', 'Vault Keeper'),
-    (900708,  2080, 'acx-haven-portal', 'Adventurer''s Haven');
+    (900708,  2080, 'acx-haven-portal', 'Adventurer''s Haven'),
+    (900709, 11697, 'acx-vault-floor-hook', 'Vault Floor Hook');
 
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT o.class_Id, o.class_Name, w.type, NOW() FROM acx_vault_objects o JOIN weenie w ON w.class_Id = o.original;
 INSERT INTO weenie_properties_int (object_Id, type, value) SELECT o.class_Id, p.type, p.value FROM acx_vault_objects o JOIN weenie_properties_int p ON p.object_Id = o.original;
@@ -46,7 +48,7 @@ UPDATE weenie_properties_string s JOIN acx_vault_objects o ON s.object_Id = o.cl
 -- (retail ItemHolder::CheckHookStatus, as AC:Unreal does it), and vault hooks have no house, so nothing would hang (JJ
 -- 2026-11-14: "its not letting me hang any weapons or anything in my pack"). Who may use the hook is still the vault's
 -- leaseholder and key holders (AcxVaults.CheckHookUse); what hangs is still retail's rule: items made for wall hooks.
-INSERT INTO weenie_properties_i_i_d (object_Id, type, value) VALUES (900701, 32, 1);   -- HouseOwner
+INSERT INTO weenie_properties_i_i_d (object_Id, type, value) VALUES (900701, 32, 1), (900709, 32, 1);   -- HouseOwner
 -- the vault: a main-pack-sized compartment with bag slots (the code also sets both from acx_vault_item_slots/bag_slots)
 UPDATE weenie_properties_int SET value = 102 WHERE object_Id = 900700 AND type = 6;   -- ItemsCapacity
 UPDATE weenie_properties_int SET value = 7 WHERE object_Id = 900700 AND type = 7;     -- ContainersCapacity

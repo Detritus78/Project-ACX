@@ -37,6 +37,7 @@ namespace ACE.Server.Managers
         public const uint VaultWcid = 900700;
         public const uint HookWcid = 900701;
         public const uint KeyWcid = 900706;
+        public const uint FloorHookWcid = 900709;   // in front of each vault (JJ 2026-11-21)
 
         // vaults closer than this share a room; a hook belongs to a vault within HookReach
         private const float HookReach = 4.0f;
@@ -45,7 +46,7 @@ namespace ACE.Server.Managers
 
         public static bool IsVault(WorldObject wo) => wo.WeenieClassId == VaultWcid;
 
-        public static bool IsVaultHook(WorldObject wo) => wo.WeenieClassId == HookWcid;
+        public static bool IsVaultHook(WorldObject wo) => wo.WeenieClassId == HookWcid || wo.WeenieClassId == FloorHookWcid;
 
         public static bool IsTool(WorldObject wo) => wo.WeenieClassId == KeyWcid || (wo.GetProperty(PropertyInt.AcxVaultTool) ?? 0) > 0;
 
