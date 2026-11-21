@@ -46,28 +46,30 @@ namespace ACE.Server.Factories.Tables
 
         // from magloot corpse logs
         // it appears they might have gotten rid of the tier chances
-        // Project ACX: Eternal thrown weapons take 6% of weapon drops, as often as atlatls, and every other type drops
-        // 6% less often (JJ 2026-11-14: "6% works"); retail's chances below are the originals x 0.94
+        // Project ACX: Eternal thrown weapons and the Alchemist's bombs are two types of their own, each as often as a bow,
+        // crossbow or caster (JJ 2026-11-21: "I would like the same opportunity to loot thrown or bombs as everything else";
+        // was 6% for both together, bombs 1 in 8 of it, 0.75% of weapons: 3 bombs in 542 weapons over Nov 18-21). AcxThrown
+        // carries both, split by acx_alchemist_loot_share (0.5); retail's chances below are the originals / 1.14
         private static ChanceTable<TreasureWeaponType> RetailChances = new ChanceTable<TreasureWeaponType>()
         {
-            // melee: 59.2% (retail 63%)
-            // missile: 24.4% with thrown (retail 20%)
-            // two-handed: 9.4% (retail 10%)
-            // caster: 6.6% (retail 7%)
-            ( TreasureWeaponType.Sword,           0.0846f ),   // 0.09
-            ( TreasureWeaponType.Mace,            0.0846f ),   // 0.09
-            ( TreasureWeaponType.Axe,             0.0846f ),   // 0.09
-            ( TreasureWeaponType.Spear,           0.0846f ),   // 0.09
-            ( TreasureWeaponType.Unarmed,         0.0846f ),   // 0.09
-            ( TreasureWeaponType.Staff,           0.0846f ),   // 0.09
-            ( TreasureWeaponType.Dagger,          0.0846f ),   // 0.09
-            ( TreasureWeaponType.Bow,             0.0658f ),   // 0.07
-            ( TreasureWeaponType.Crossbow,        0.0658f ),   // 0.07
-            ( TreasureWeaponType.Atlatl,          0.0564f ),   // 0.06
-            ( TreasureWeaponType.Caster,          0.0658f ),   // 0.07
-            ( TreasureWeaponType.TwoHandedWeapon, 0.094f ),    // 0.10: see TreasureWeaponType for an explanation of why this is here,
+            // melee: 55.2% (retail 63%)
+            // missile: 30.3% with thrown and bombs (retail 20%)
+            // two-handed: 8.8% (retail 10%)
+            // caster: 6.1% (retail 7%)
+            ( TreasureWeaponType.Sword,           0.0789f ),   // 0.09
+            ( TreasureWeaponType.Mace,            0.0789f ),   // 0.09
+            ( TreasureWeaponType.Axe,             0.0789f ),   // 0.09
+            ( TreasureWeaponType.Spear,           0.0789f ),   // 0.09
+            ( TreasureWeaponType.Unarmed,         0.0789f ),   // 0.09
+            ( TreasureWeaponType.Staff,           0.0789f ),   // 0.09
+            ( TreasureWeaponType.Dagger,          0.0789f ),   // 0.09
+            ( TreasureWeaponType.Bow,             0.0614f ),   // 0.07
+            ( TreasureWeaponType.Crossbow,        0.0614f ),   // 0.07
+            ( TreasureWeaponType.Atlatl,          0.0526f ),   // 0.06
+            ( TreasureWeaponType.Caster,          0.0614f ),   // 0.07
+            ( TreasureWeaponType.TwoHandedWeapon, 0.0877f ),   // 0.10: see TreasureWeaponType for an explanation of why this is here,
                                                                // and not deeper in WeaponWcids.cs
-            ( TreasureWeaponType.AcxThrown,       0.06f ),     // Project ACX
+            ( TreasureWeaponType.AcxThrown,       0.1232f ),   // Project ACX: thrown 6.16% + bombs 6.16%
         };
 
         /// <summary>
