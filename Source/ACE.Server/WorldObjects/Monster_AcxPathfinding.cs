@@ -172,7 +172,7 @@ namespace ACE.Server.WorldObjects
             if (target?.Location == null || !target.Location.Indoors || target.Location.Landblock != Location.Landblock)
                 return false;
 
-            if (CurrentLandblock == null || !CurrentLandblock.IsDungeon)
+            if (CurrentLandblock == null || !CurrentLandblock.IsDungeon || AcxPathfindingOffHere())
                 return false;
 
             if (CurrentAttack == CombatType.Missile)
@@ -187,6 +187,27 @@ namespace ACE.Server.WorldObjects
             // melee, or a caster out of spell range: ACE runs straight at the target.
             // (In spell range ACE already rerolls projectile spells that have no line of sight.)
             return targetDist > MaxRange;
+        }
+
+        private static string acxOffLandblocksText;
+        private static HashSet<uint> acxOffLandblocks = new();
+
+        /// <summary>
+        /// acx_pathfinding_off_landblocks: dungeons where monsters chase as in plain ACE
+        /// </summary>
+        private bool AcxPathfindingOffHere()
+        {
+            var text = ACE.Server.Managers.PropertyManager.GetString("acx_pathfinding_off_landblocks").Item ?? "";
+            if (text != acxOffLandblocksText)
+            {
+                var set = new HashSet<uint>();
+                foreach (var part in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    if (uint.TryParse(part.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out var lb))
+                        set.Add(lb);
+                acxOffLandblocks = set;
+                acxOffLandblocksText = text;
+            }
+            return acxOffLandblocks.Contains(Location.Landblock);
         }
 
         private bool AcxHasClearPath(bool ranged)
