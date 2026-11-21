@@ -80,6 +80,33 @@ namespace ACE.Server.WorldObjects
         private static double acxNextPathErrorLogTime;
 
         /// <summary>
+        /// Route counters per monster name, logged every 5 minutes while monsters route (JJ 2026-11-21: "Olthoi
+        /// pathfinding in dungeons is very slow and bad"): started, handed back on a clear path, route ended, stuck
+        /// legs, abandoned after AcxMaxStuckLegs, no useful route (5 s pause), re-plans
+        /// </summary>
+        private enum AcxRouteStat { Started, ClearPath, Ended, StuckLeg, Abandoned, NoRoute, Replan }
+
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, int[]> acxRouteStats = new();
+        private static double acxNextRouteStatsLogTime;
+
+        private void AcxCount(AcxRouteStat stat)
+        {
+            var counts = acxRouteStats.GetOrAdd(Name ?? "?", _ => new int[7]);
+            System.Threading.Interlocked.Increment(ref counts[(int)stat]);
+
+            if (Timers.RunningTime < acxNextRouteStatsLogTime)
+                return;
+            acxNextRouteStatsLogTime = Timers.RunningTime + 300.0;
+
+            foreach (var name in acxRouteStats.Keys)
+            {
+                if (!acxRouteStats.TryRemove(name, out var c))
+                    continue;
+                log.Info($"[Pathfinding] stats 5 min {name}: started {c[0]}, clear path {c[1]}, ended {c[2]}, stuck legs {c[3]}, abandoned {c[4]}, no route {c[5]}, replans {c[6]}");
+            }
+        }
+
+        /// <summary>
         /// TRUE while the monster is following a navmesh route
         /// </summary>
         public bool IsAcxRouting => acxRoute != null;
@@ -194,9 +221,12 @@ namespace ACE.Server.WorldObjects
             var route = Pathfinder.FindRouteAnyWidth(Location, AttackTarget.Location);
             if (!AcxIsUsefulRoute(route))
             {
+                AcxCount(AcxRouteStat.NoRoute);
                 acxNextRouteCheckTime = now + AcxNoRouteBackoff;
                 return false;
             }
+
+            AcxCount(AcxRouteStat.Started);
 
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
@@ -261,6 +291,7 @@ namespace ACE.Server.WorldObjects
                         Console.WriteLine($"{Name} ({Guid}) - AcxRoute: clear path to {AttackTarget.Name}");
 
                     // stop the leg so ACE's chase / attack starts this same tick
+                    AcxCount(AcxRouteStat.ClearPath);
                     AcxEndRoute(true);
                     return false;
                 }
@@ -307,6 +338,7 @@ namespace ACE.Server.WorldObjects
                 if (DebugMove)
                     Console.WriteLine($"{Name} ({Guid}) - AcxRoute: end of route");
 
+                AcxCount(AcxRouteStat.Ended);
                 AcxEndRoute(false);
                 return;
             }
@@ -349,12 +381,14 @@ namespace ACE.Server.WorldObjects
         private void AcxOnLegStuck(double now)
         {
             acxRouteStuckLegs++;
+            AcxCount(AcxRouteStat.StuckLeg);
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - AcxRoute: stuck ({acxRouteStuckLegs}/{AcxMaxStuckLegs})");
 
             if (acxRouteStuckLegs >= AcxMaxStuckLegs)
             {
+                AcxCount(AcxRouteStat.Abandoned);
                 AcxEndRoute(false);
                 acxNextRouteCheckTime = now + AcxStuckBackoff;
                 CancelMoveTo();     // ACE's handling of a failed chase: stop, reset the attack, pick a target
@@ -377,6 +411,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool AcxReplan(double now)
         {
+            AcxCount(AcxRouteStat.Replan);
             var route = Pathfinder.FindRouteAnyWidth(Location, AttackTarget.Location);
             acxRoutePlanTime = now;
             acxRouteGoal = new Position(AttackTarget.Location);
