@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
             if (toBank && payoutCoinAmount > 0)
             {
                 SetProperty(PropertyInt64.AcxBankedPyreals, AcxWealth.GetBalance(this) + payoutCoinAmount);
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Paid {payoutCoinAmount:N0} pyreals into your bank.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Deposited {payoutCoinAmount:N0}py", ChatMessageType.Broadcast));
             }
 
             vendor.MoneyOutflow += payoutCoinAmount;
