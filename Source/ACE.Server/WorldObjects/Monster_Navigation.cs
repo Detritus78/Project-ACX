@@ -249,7 +249,18 @@ namespace ACE.Server.WorldObjects
             }
 
             if (PhysicsObj.MovementManager.MoveToManager.FailProgressCount > 0 && Timers.RunningTime > NextCancelTime)
-                CancelMoveTo();
+            {
+                // Project ACX: olthoi don't stop and wait when they're blocked, they keep shoving toward their target (JJ
+                // 2026-11-21: "they aren't polite they push their way to you", "their goal is to get to you by any means
+                // possible"); everything else stops, stands ready for a second and chases again, as in ACE
+                if (CreatureType == ACE.Entity.Enum.CreatureType.Olthoi || CreatureType == ACE.Entity.Enum.CreatureType.OlthoiLarvae || CreatureType == ACE.Entity.Enum.CreatureType.ParadoxOlthoi)
+                {
+                    PhysicsObj.MovementManager.MoveToManager.FailProgressCount = 0;
+                    NextCancelTime = Timers.RunningTime + 2.0;
+                }
+                else
+                    CancelMoveTo();
+            }
         }
 
         public void UpdatePosition(bool netsend = true)
