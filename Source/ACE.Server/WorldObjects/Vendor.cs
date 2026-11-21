@@ -590,7 +590,9 @@ namespace ACE.Server.WorldObjects
             // verify player has enough currency
             if (AlternateCurrency == null)
             {
-                if (player.CoinValue < totalPrice)
+                // Project ACX: with acx_vendor_bank the bank pays first (Player.FinalizeBuyTransaction)
+                var bank = PropertyManager.GetBool("acx_vendor_bank").Item ? AcxWealth.GetBalance(player) : 0;
+                if (player.CoinValue + bank < totalPrice)
                 {
                     CleanupCreatedItems(defaultItems);
                     return false;

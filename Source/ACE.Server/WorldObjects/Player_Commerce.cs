@@ -62,7 +62,15 @@ namespace ACE.Server.WorldObjects
 
             var currencyWcid = vendor.AlternateCurrency ?? coinStackWcid;
 
-            SpendCurrency(currencyWcid, cost, true);
+            // Project ACX: pyreal purchases come out of the bank first, the pack paying the rest (acx_vendor_bank)
+            var fromBank = currencyWcid == coinStackWcid && PropertyManager.GetBool("acx_vendor_bank").Item ? Math.Min(AcxWealth.GetBalance(this), cost) : 0;
+            if (fromBank > 0)
+            {
+                SetProperty(PropertyInt64.AcxBankedPyreals, AcxWealth.GetBalance(this) - fromBank);
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Paid {fromBank:N0} pyreals from your bank.", ChatMessageType.Broadcast));
+            }
+            if (cost - fromBank > 0)
+                SpendCurrency(currencyWcid, (uint)(cost - fromBank), true);
 
             vendor.MoneyIncome += (int)cost;
 
@@ -187,12 +195,15 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // Project ACX: with acx_vendor_bank the pyreals go into the bank, so pack space and burden don't matter
+            var toBank = PropertyManager.GetBool("acx_vendor_bank").Item;
+
             // verify player has enough pack slots / burden to receive these pyreals
             var itemsToReceive = new ItemsToReceive(this);
 
             itemsToReceive.Add((uint)ACE.Entity.Enum.WeenieClassName.W_COINSTACK_CLASS, payoutCoinAmount);
 
-            if (itemsToReceive.PlayerExceedsLimits)
+            if (!toBank && itemsToReceive.PlayerExceedsLimits)
             {
                 if (itemsToReceive.PlayerExceedsAvailableBurden)
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to sell that!"));
@@ -204,7 +215,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var payoutCoinStacks = CreatePayoutCoinStacks(payoutCoinAmount);
+            var payoutCoinStacks = toBank ? new List<WorldObject>() : CreatePayoutCoinStacks(payoutCoinAmount);
+            if (toBank && payoutCoinAmount > 0)
+            {
+                SetProperty(PropertyInt64.AcxBankedPyreals, AcxWealth.GetBalance(this) + payoutCoinAmount);
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Paid {payoutCoinAmount:N0} pyreals into your bank.", ChatMessageType.Broadcast));
+            }
 
             vendor.MoneyOutflow += payoutCoinAmount;
 
