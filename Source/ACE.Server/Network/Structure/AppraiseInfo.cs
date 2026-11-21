@@ -128,7 +128,19 @@ namespace ACE.Server.Network.Structure
             // information is already on there", then "clear that all out"). An Alchemist's Healing bomb has no damage to show.
             if (WeaponProfile != null && Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(wo.WeenieClassId)
                 && !Factories.Tables.Wcids.AcxBombWcids.IsHealingBomb(wo.WeenieClassId))
+            {
                 PropertiesInt[PropertyInt.AmmoType] = Factories.Tables.Wcids.AcxThrownWcids.AppraisalAmmoType;
+
+                // shown as a launcher, the window leaves out the damage type it prints for a melee weapon, so the
+                // description names it (JJ 2026-11-21: "the damage type should be listed? like slashing? or piercing?")
+                var damageType = wo.W_DamageType;
+                if (damageType != DamageType.Undef)
+                {
+                    var names = string.Join(" and ", System.Enum.GetValues<DamageType>().Where(t => t != DamageType.Undef && (t & (t - 1)) == 0 && damageType.HasFlag(t)).Select(t => t.GetName()).Where(n => n != null));
+                    PropertiesString.TryGetValue(PropertyString.LongDesc, out var desc);
+                    PropertiesString[PropertyString.LongDesc] = $"{names} damage.\n" + (desc ?? "");
+                }
+            }
 
             // TODO: Resolve this issue a better way?
             // Because of the way ACE handles default base values in recipe system (or rather the lack thereof)
