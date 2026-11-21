@@ -465,7 +465,7 @@ INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, or
     (0x76146F30, 900500, 0x6146036E, 62.290, -110.404, -23.855, 1, 0, 0, 0, 0),   -- Matron Hive East (level 185, 289 m in)
     (0x76147F30, 900500, 0x61470152, 216.483, -62.476, 24.150, 1, 0, 0, 0, 0),   -- Mountain Citadel (level 100, 508 m in)
     (0x76148F30, 900500, 0x61480152, 216.311, -55.065, 24.150, 1, 0, 0, 0, 0),   -- Desert Citadel (level 100, 509 m in)
-    (0x76149F30, 900500, 0x614902DE, 146.882, -169.840, -53.850, 1, 0, 0, 0, 0),   -- Crystal Mine (level 15, 661 m in)
+    (0x76149F30, 900500, 0x61490119, 132.000, -170.000, -53.850, 1, 0, 0, 0, 0),   -- Crystal Mine (level 15, 661 m in)
     (0x7614AF30, 900500, 0x614A046E, 29.344, -76.392, -41.810, 1, 0, 0, 0, 0),   -- Lair of the Ancient Queen (level 80, 417 m in)
     (0x76248F30, 900500, 0x624803E8, 84.919, -171.031, -23.850, 1, 0, 0, 0, 0),   -- Renegade Fortress (level 100, 296 m in)
     (0x76346F30, 900500, 0x6346036E, 64.111, -110.716, -23.855, 1, 0, 0, 0, 0),   -- Matron Hive South (level 50, 290 m in)
