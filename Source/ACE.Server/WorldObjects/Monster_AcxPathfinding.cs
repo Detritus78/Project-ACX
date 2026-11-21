@@ -392,7 +392,6 @@ namespace ACE.Server.WorldObjects
             // server: same MoveTo iterator ACE uses for MoveToHome
             var mvp = new MovementParameters();
             mvp.CanWalk = false;
-            mvp.AcxKeepRunning = IsMoving;   // already running: steer onto the next corner without stopping (JJ 2026-11-21: "full sprint ... literally never stop to adjust")
             PhysicsObj.MoveToPosition(new Physics.Common.Position(destination), mvp);
 
             // prevent initial snap (as StartTurn)

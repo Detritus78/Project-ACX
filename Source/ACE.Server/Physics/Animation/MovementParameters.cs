@@ -31,13 +31,6 @@ namespace ACE.Server.Physics.Animation
         public bool StopCompletely;
         public bool DisableJumpDuringLink;
 
-        /// <summary>
-        /// Project ACX: a MoveToPosition that neither stops the mover nor turns it in place first: it runs on and steers
-        /// while running (the iterator's turn-while-moving), for a routing monster's next corner (Monster_AcxPathfinding).
-        /// Not a wire flag; read straight from the parameters MoveToPosition is given.
-        /// </summary>
-        public bool AcxKeepRunning;
-
         public float DistanceToObject;
         public float MinDistance;
         public float DesiredHeading;
