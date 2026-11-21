@@ -71,6 +71,13 @@ namespace ACE.Server.WorldObjects
         private const float AcxHandBackDistance = 5.0f;
         private const double AcxClearPathHold = 1.0;
 
+        /// <summary>
+        /// The next leg starts this close to a corner, so the monster runs on round it instead of stopping on the corner
+        /// and turning in place (JJ 2026-11-21 on Preview: "they are having a hard time with adjustments to their paths.. but
+        /// once they get on a straight line they are faster than before")
+        /// </summary>
+        private const float AcxCornerLookAhead = 1.5f;
+
         private List<Position> acxRoute;
         private int acxRouteIndex;
         private WorldObject acxRouteTarget;
@@ -319,6 +326,15 @@ namespace ACE.Server.WorldObjects
                 {
                     AcxOnLegStuck(now);
                     return true;
+                }
+
+                // nearly on the corner: run on to the next one without stopping
+                if (!acxRouteNudging && acxRouteIndex > 0 && acxRouteIndex < acxRoute.Count
+                    && Location.DistanceTo(acxRoute[acxRouteIndex - 1]) <= AcxCornerLookAhead)
+                {
+                    acxRouteStuckLegs = 0;
+                    AcxStartNextLeg(now);
+                    return acxRoute != null;
                 }
 
                 // the target moved since the route was planned
