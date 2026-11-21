@@ -30,12 +30,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// How often a chasing monster without a route checks whether it needs one
         /// </summary>
-        private const double AcxRouteCheckInterval = 1.0;
+        private const double AcxRouteCheckInterval = 0.5;   // was 1.0 (JJ 2026-11-21: olthoi "very slow and bad")
 
         /// <summary>
         /// Pause before looking for a route again after none was useful (unreachable target, or the way is straight)
         /// </summary>
-        private const double AcxNoRouteBackoff = 5.0;
+        private const double AcxNoRouteBackoff = 2.0;   // was 5.0: each one froze a monster for 5 s
 
         /// <summary>
         /// Pause after a route was abandoned because the monster kept getting stuck
@@ -63,6 +63,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private const int AcxMaxStuckLegs = 3;
 
+        /// <summary>
+        /// A routing monster hands back to ACE's chase only when its target is this close, or has been in clear view for
+        /// AcxClearPathHold seconds. Live's counters (2026-11-21, Olthoi Workers in Crumbling Empyrean Mansion) showed 3 routes
+        /// in 4 handed back at the first glimpse, and the chase lost the target at the next corner: stop-start movement.
+        /// </summary>
+        private const float AcxHandBackDistance = 5.0f;
+        private const double AcxClearPathHold = 1.0;
+
         private List<Position> acxRoute;
         private int acxRouteIndex;
         private WorldObject acxRouteTarget;
@@ -76,6 +84,7 @@ namespace ACE.Server.WorldObjects
         private double acxRoutePlanTime;
         private double acxLegStartTime;
         private double acxLegDeadline;
+        private double acxClearSince = -1;
 
         private static double acxNextPathErrorLogTime;
 
@@ -244,6 +253,7 @@ namespace ACE.Server.WorldObjects
             acxRoutePlanTime = now;
             acxLastRouteTickTime = now;
             acxNextClearPathCheckTime = now + AcxClearPathCheckInterval;
+            acxClearSince = -1;
 
             AcxStartNextLeg(now);
 
@@ -285,7 +295,12 @@ namespace ACE.Server.WorldObjects
             {
                 acxNextClearPathCheckTime = now + AcxClearPathCheckInterval;
 
-                if (AcxHasClearPath(acxRouteRanged))
+                if (!AcxHasClearPath(acxRouteRanged))
+                    acxClearSince = -1;
+                else if (acxClearSince < 0)
+                    acxClearSince = now;
+
+                if (acxClearSince >= 0 && (targetDist <= AcxHandBackDistance || now - acxClearSince >= AcxClearPathHold))
                 {
                     if (DebugMove)
                         Console.WriteLine($"{Name} ({Guid}) - AcxRoute: clear path to {AttackTarget.Name}");
