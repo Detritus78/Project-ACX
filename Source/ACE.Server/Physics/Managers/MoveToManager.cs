@@ -187,7 +187,10 @@ namespace ACE.Server.Physics.Animation
 
             if (PhysicsObj == null) return;
 
-            PhysicsObj.StopCompletely(false);
+            var keepRunning = movementParams.AcxKeepRunning;   // Project ACX: no stop, no turn in place (MovementParameters)
+
+            if (!keepRunning)
+                PhysicsObj.StopCompletely(false);
 
             CurrentTargetPosition = new Position(position);
             SoughtObjectRadius = 0.0f;
@@ -207,7 +210,8 @@ namespace ACE.Server.Physics.Animation
 
             if (command != 0)
             {
-                AddTurnToHeadingNode(PhysicsObj.Position.heading(position));
+                if (!keepRunning)
+                    AddTurnToHeadingNode(PhysicsObj.Position.heading(position));
                 AddMoveToPositionNode();
             }
 
