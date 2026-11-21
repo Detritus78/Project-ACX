@@ -1550,6 +1550,40 @@
   ]
  },
  {
+  "landblock": "006E",
+  "name": "Empyrean Workshop",
+  "level": 125,
+  "distance": 605,
+  "entrance": {
+   "cell": 7210334,
+   "x": 104.056,
+   "y": -44.0326,
+   "z": 0.005
+  },
+  "monsters": [
+   {
+    "wcid": 31827,
+    "name": "Incendiary Knight",
+    "count": 43
+   },
+   {
+    "wcid": 25663,
+    "name": "Void Knight",
+    "count": 30
+   },
+   {
+    "wcid": 31280,
+    "name": "Twisted Shadow",
+    "count": 22
+   },
+   {
+    "wcid": 25665,
+    "name": "Wretched",
+    "count": 15
+   }
+  ]
+ },
+ {
   "landblock": "0073",
   "name": "Black Ferah's Vault",
   "level": 200,
@@ -5120,6 +5154,35 @@
     "wcid": 202,
     "name": "Sandstone Golem",
     "count": 6
+   }
+  ]
+ },
+ {
+  "landblock": "01B7",
+  "name": "Braid Mansion Ruin",
+  "level": 8,
+  "distance": 161,
+  "entrance": {
+   "cell": 28770726,
+   "x": -0.6,
+   "y": -12.77,
+   "z": 0.0
+  },
+  "monsters": [
+   {
+    "wcid": 4249,
+    "name": "Young Mosswart",
+    "count": 14
+   },
+   {
+    "wcid": 12,
+    "name": "Red Phyntos Wasp",
+    "count": 10
+   },
+   {
+    "wcid": 4108,
+    "name": "Gnawer Shreth",
+    "count": 5
    }
   ]
  },
@@ -9209,6 +9272,74 @@
   ]
  },
  {
+  "landblock": "5643",
+  "name": "Gromnie Clan Training Camp",
+  "level": 45,
+  "distance": 1249,
+  "entrance": {
+   "cell": 1447232469,
+   "x": 30.2209,
+   "y": -71.2641,
+   "z": 6.005
+  },
+  "monsters": [
+   {
+    "wcid": 11896,
+    "name": "Tumerok Lieutenant",
+    "count": 35
+   },
+   {
+    "wcid": 11870,
+    "name": "Tumerok Commander",
+    "count": 32
+   },
+   {
+    "wcid": 11876,
+    "name": "Tumerok Standard Bearer",
+    "count": 31
+   },
+   {
+    "wcid": 11899,
+    "name": "Tumerok Major",
+    "count": 16
+   }
+  ]
+ },
+ {
+  "landblock": "5644",
+  "name": "Mask Clan Training Camp",
+  "level": 46,
+  "distance": 1163,
+  "entrance": {
+   "cell": 1447297283,
+   "x": 1.14627,
+   "y": -69.928,
+   "z": -41.995
+  },
+  "monsters": [
+   {
+    "wcid": 11871,
+    "name": "Tumerok Commander",
+    "count": 38
+   },
+   {
+    "wcid": 11896,
+    "name": "Tumerok Lieutenant",
+    "count": 37
+   },
+   {
+    "wcid": 11899,
+    "name": "Tumerok Major",
+    "count": 23
+   },
+   {
+    "wcid": 11887,
+    "name": "Tumerok Controller",
+    "count": 20
+   }
+  ]
+ },
+ {
   "landblock": "5645",
   "name": "Abandoned Armory",
   "level": 80,
@@ -9910,6 +10041,142 @@
     "wcid": 24271,
     "name": "Olthoi Gardener",
     "count": 14
+   }
+  ]
+ },
+ {
+  "landblock": "5777",
+  "name": "Falcon Clan Training Camp",
+  "level": 43,
+  "distance": 1164,
+  "entrance": {
+   "cell": 1467417613,
+   "x": 241.9,
+   "y": 0.190061,
+   "z": 0.005
+  },
+  "monsters": [
+   {
+    "wcid": 11875,
+    "name": "Tumerok Standard Bearer",
+    "count": 47
+   },
+   {
+    "wcid": 11900,
+    "name": "Tumerok Major",
+    "count": 30
+   },
+   {
+    "wcid": 11897,
+    "name": "Tumerok Lieutenant",
+    "count": 30
+   },
+   {
+    "wcid": 11885,
+    "name": "Tumerok Controller",
+    "count": 20
+   }
+  ]
+ },
+ {
+  "landblock": "5778",
+  "name": "Serpent Clan Training Camp",
+  "level": 45,
+  "distance": 804,
+  "entrance": {
+   "cell": 1467482890,
+   "x": 11.1162,
+   "y": -80.074,
+   "z": 6.005
+  },
+  "monsters": [
+   {
+    "wcid": 11900,
+    "name": "Tumerok Major",
+    "count": 29
+   },
+   {
+    "wcid": 11879,
+    "name": "Tumerok Standard Bearer",
+    "count": 29
+   },
+   {
+    "wcid": 11873,
+    "name": "Tumerok Commander",
+    "count": 15
+   },
+   {
+    "wcid": 11889,
+    "name": "Tumerok Controller",
+    "count": 14
+   }
+  ]
+ },
+ {
+  "landblock": "5779",
+  "name": "Shreth Clan Training Camp",
+  "level": 46,
+  "distance": 1291,
+  "entrance": {
+   "cell": 1467548387,
+   "x": 70.0,
+   "y": -90.0,
+   "z": -5.995
+  },
+  "monsters": [
+   {
+    "wcid": 11874,
+    "name": "Tumerok Commander",
+    "count": 36
+   },
+   {
+    "wcid": 11898,
+    "name": "Tumerok Major",
+    "count": 36
+   },
+   {
+    "wcid": 11895,
+    "name": "Tumerok Lieutenant",
+    "count": 33
+   },
+   {
+    "wcid": 11880,
+    "name": "Tumerok Standard Bearer",
+    "count": 30
+   }
+  ]
+ },
+ {
+  "landblock": "577A",
+  "name": "Reedshark Clan Training Camp",
+  "level": 45,
+  "distance": 1157,
+  "entrance": {
+   "cell": 1467614060,
+   "x": 140.0,
+   "y": -200.0,
+   "z": 0.005
+  },
+  "monsters": [
+   {
+    "wcid": 11878,
+    "name": "Tumerok Standard Bearer",
+    "count": 43
+   },
+   {
+    "wcid": 11872,
+    "name": "Tumerok Commander",
+    "count": 39
+   },
+   {
+    "wcid": 11895,
+    "name": "Tumerok Lieutenant",
+    "count": 38
+   },
+   {
+    "wcid": 11888,
+    "name": "Tumerok Controller",
+    "count": 24
    }
   ]
  },
@@ -11502,6 +11769,40 @@
     "wcid": 22520,
     "name": "Tusker Redeemer",
     "count": 39
+   }
+  ]
+ },
+ {
+  "landblock": "5C46",
+  "name": "Tusker Gauntlet",
+  "level": 100,
+  "distance": 347,
+  "entrance": {
+   "cell": 1548091841,
+   "x": 40.088,
+   "y": -126.196,
+   "z": 0.005
+  },
+  "monsters": [
+   {
+    "wcid": 22518,
+    "name": "Devastator",
+    "count": 41
+   },
+   {
+    "wcid": 22606,
+    "name": "Tuskie Gunner",
+    "count": 36
+   },
+   {
+    "wcid": 22053,
+    "name": "Assailer",
+    "count": 25
+   },
+   {
+    "wcid": 22514,
+    "name": "Tusker Sycophant",
+    "count": 16
    }
   ]
  },
