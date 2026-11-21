@@ -12552,6 +12552,25 @@
   ]
  },
  {
+  "landblock": "6679",
+  "name": "Crumbling Empyrean Mansion",
+  "level": 30,
+  "distance": 996,
+  "entrance": {
+   "cell": 1719206517,
+   "x": 13.6,
+   "y": -70.0,
+   "z": 0.005
+  },
+  "monsters": [
+   {
+    "wcid": 3,
+    "name": "Olthoi Worker",
+    "count": 59
+   }
+  ]
+ },
+ {
   "landblock": "667A",
   "name": "Mutilator Tunnels",
   "level": 115,
