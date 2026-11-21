@@ -71,6 +71,8 @@ namespace ACE.Server.WorldObjects
             }
             if (cost - fromBank > 0)
                 SpendCurrency(currencyWcid, (uint)(cost - fromBank), true);
+            if (fromBank > 0)
+                AcxSendClientCoinValue();
 
             vendor.MoneyIncome += (int)cost;
 
@@ -220,6 +222,7 @@ namespace ACE.Server.WorldObjects
             {
                 SetProperty(PropertyInt64.AcxBankedPyreals, AcxWealth.GetBalance(this) + payoutCoinAmount);
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"Deposited {payoutCoinAmount:N0}py", ChatMessageType.Broadcast));
+                AcxSendClientCoinValue();
             }
 
             vendor.MoneyOutflow += payoutCoinAmount;
@@ -363,7 +366,20 @@ namespace ACE.Server.WorldObjects
             CoinValue = coins;
 
             if (sendUpdateMessageIfChanged)
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
+                AcxSendClientCoinValue();
+        }
+
+        /// <summary>
+        /// Project ACX: the coins the client is told about: the pack's, plus the bank's while vendors trade through the bank
+        /// (acx_vendor_bank). The client refuses a purchase it thinks you can't pay for before the server sees it ("You don't
+        /// have enough money", JJ 2026-11-21 at the Pawn Shopkeep), so it has to count the bank. The server's own CoinValue
+        /// stays the pack's.
+        /// </summary>
+        public int AcxClientCoinValue => (int)Math.Min(int.MaxValue, (CoinValue ?? 0) + (PropertyManager.GetBool("acx_vendor_bank").Item ? AcxWealth.GetBalance(this) : 0));
+
+        public void AcxSendClientCoinValue()
+        {
+            Session?.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, AcxClientCoinValue));
         }
 
         private List<WorldObject> SpendCurrency(uint currentWcid, uint amount, bool destroy = false)

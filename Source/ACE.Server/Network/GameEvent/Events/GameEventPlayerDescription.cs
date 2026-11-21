@@ -74,6 +74,10 @@ namespace ACE.Server.Network.GameEvent.Events
 
                 var propertiesInt = new SortedDictionary<PropertyInt, int>(_propertiesInt, PropertyIntComparer);
 
+                // Project ACX: the client checks a purchase against CoinValue itself, so it is told the pack and bank together
+                if (propertiesInt.ContainsKey(PropertyInt.CoinValue))
+                    propertiesInt[PropertyInt.CoinValue] = Session.Player.AcxClientCoinValue;
+
                 foreach (var property in propertiesInt)
                 {
                     Writer.Write((uint)property.Key);

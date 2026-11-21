@@ -268,6 +268,7 @@ namespace ACE.Server.Managers
             if (pyreals > 0)
             {
                 player.SetProperty(PropertyInt64.AcxBankedPyreals, GetBalance(player) + pyreals);
+                (player as Player)?.AcxSendClientCoinValue();   // Project ACX: the client counts the bank (Player.AcxClientCoinValue)
                 UpdateRanks();
                 parts.Add($"{pyreals:N0} pyreals");
             }
@@ -306,6 +307,7 @@ namespace ACE.Server.Managers
                 if (!Hand(player, new List<WorldObject> { notes }))
                     return "You can't carry that. Make some room in your pack.";
                 player.SetProperty(PropertyInt64.AcxBankedPyreals, balance - cost);
+                (player as Player)?.AcxSendClientCoinValue();   // Project ACX: the client counts the bank (Player.AcxClientCoinValue)
                 UpdateRanks();
                 return $"Withdrew {count} {notes.Name}{(count == 1 ? "" : "s")} ({cost:N0} pyreals). {Balance(player)}";
             }
@@ -355,6 +357,7 @@ namespace ACE.Server.Managers
                 if (!Hand(player, items))
                     return "You can't carry that much. Make some room in your pack.";
                 player.SetProperty(PropertyInt64.AcxBankedPyreals, balance - amount);
+                (player as Player)?.AcxSendClientCoinValue();   // Project ACX: the client counts the bank (Player.AcxClientCoinValue)
                 UpdateRanks();
                 return $"Withdrew {amount:N0} pyreals. {Balance(player)}";
             }
@@ -463,7 +466,9 @@ namespace ACE.Server.Managers
                 if (pyreals <= 0 || pyreals > balance)
                     return;
                 player.SetProperty(PropertyInt64.AcxBankedPyreals, balance - pyreals);
+                (player as Player)?.AcxSendClientCoinValue();   // Project ACX: the client counts the bank (Player.AcxClientCoinValue)
                 target.SetProperty(PropertyInt64.AcxBankedPyreals, GetBalance(target) + pyreals);
+                (target as Player)?.AcxSendClientCoinValue();   // Project ACX: the client counts the bank (Player.AcxClientCoinValue)
                 what = $"{pyreals:N0} pyreals";
             }
             else
