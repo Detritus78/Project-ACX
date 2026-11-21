@@ -82,6 +82,15 @@ for d in ok:
                      "monsters": monsters(int(d["landblock"], 16), d["level"])})
 json.dump(dungeons, open(os.path.join(out_dir, "markers.json"), "w"), indent=1)
 
+# markers the plan put past a dungeon's exit portal (the dead end behind it), so walking to them ports you out: moved
+# in front of the portal by hand (cells from ~/Work/ac/tools/havencells `locate`)
+MOVED = {
+    "6149": (0x61490119, 132.0, -170.0, -53.9),   # Crystal Mine: was 7 m behind the exit portal (JJ 2026-11-20)
+}
+for d in ok:
+    if d["landblock"].upper() in MOVED:
+        d["cell"], d["x"], d["y"], d["z"] = MOVED[d["landblock"].upper()]
+
 rows = []
 for d in ok:
     lb = int(d["landblock"], 16)
