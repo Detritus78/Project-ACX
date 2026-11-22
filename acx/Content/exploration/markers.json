@@ -13059,5 +13059,34 @@
     "count": 120
    }
   ]
+ },
+ {
+  "landblock": "0159",
+  "name": "Abandoned Shops",
+  "level": 80,
+  "distance": 231,
+  "entrance": {
+   "cell": 22610323,
+   "x": 180.2,
+   "y": -51.2,
+   "z": 0.0
+  },
+  "monsters": [
+   {
+    "wcid": 7116,
+    "name": "High Mu-miyah",
+    "count": 28
+   },
+   {
+    "wcid": 7117,
+    "name": "Guardian Mu-miyah",
+    "count": 12
+   },
+   {
+    "wcid": 24312,
+    "name": "Reedshark Stalker",
+    "count": 2
+   }
+  ]
  }
 ]

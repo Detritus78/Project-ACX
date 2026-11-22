@@ -490,4 +490,5 @@ INSERT INTO landblock_instance (guid, weenie_Class_Id, obj_Cell_Id, origin_X, or
     (0x701B7F30, 900500, 0x01B701A6, 46.559, -32.154, -23.850, 1, 0, 0, 0, 0),   -- Braid Mansion Ruin (level 8, 161 m in)
     (0x75644F30, 900500, 0x56440103, 58.175, -43.196, -5.945, 1, 0, 0, 0, 0),   -- Mask Clan Training Camp (level 46, 1163 m in)
     (0x75777F30, 900500, 0x5777040D, 151.016, -192.360, 0.150, 1, 0, 0, 0, 0),   -- Falcon Clan Training Camp (level 43, 1164 m in)
-    (0x75C46F30, 900500, 0x5C4601C1, 103.679, -63.970, -23.850, 1, 0, 0, 0, 0);   -- Tusker Gauntlet (level 100, 347 m in)
+    (0x75C46F30, 900500, 0x5C4601C1, 103.679, -63.970, -23.850, 1, 0, 0, 0, 0),   -- Tusker Gauntlet (level 100, 347 m in)
+    (0x70159F30, 900500, 0x01590102, -0.921, -51.172, -11.845, 1, 0, 0, 0, 0);   -- Abandoned Shops (level 80, 231 m in)
