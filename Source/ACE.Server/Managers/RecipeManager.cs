@@ -367,6 +367,28 @@ namespace ACE.Server.Managers
             return (wieldError, activateError);
         }
 
+        /// <summary>
+        /// Project ACX: a failed imbue keeps the weapon unless the setting for its kind is on (CreateDestroyItems)
+        /// </summary>
+        private static bool ImbueFailureKeepsTarget(Recipe recipe, WorldObject target) => recipe.IsImbuing()
+            && !PropertyManager.GetBool(target.IsAcxQuestWeapon ? "acx_quest_imbue_failure_destroys" : "acx_imbue_failure_destroys").Item;
+
+        /// <summary>
+        /// Project ACX: what a failure costs, under the success chance in the craft dialog (JJ 2026-11-23: "lets add that so
+        /// there is no confusion for the player"). From the same rule CreateDestroyItems applies, so it can't disagree with it.
+        /// </summary>
+        private static string FailureNote(Recipe recipe, WorldObject source, WorldObject target)
+        {
+            var targetChance = recipe.FailDestroyTargetChance > 0 && ImbueFailureKeepsTarget(recipe, target) ? 0 : recipe.FailDestroyTargetChance;
+            if (targetChance >= 1)
+                return $"If it fails, your {target.NameWithMaterial} will be destroyed.";
+            if (targetChance > 0)
+                return $"If it fails, your {target.NameWithMaterial} may be destroyed.";
+            if (recipe.FailDestroySourceChance > 0)
+                return $"If it fails, the {source.NameWithMaterial} is used up and your {target.NameWithMaterial} is kept.";
+            return null;
+        }
+
         // Project ACX: successChance is null when the recipe has no difficulty and the dialog is only there for the craft warning
         public static void ShowDialog(Player player, WorldObject source, WorldObject target, Recipe recipe, double? successChance, bool wieldError = false, bool activateError = false)
         {
@@ -390,6 +412,9 @@ namespace ACE.Server.Managers
                     floorMsg += $"\n{numAugs * 5} percent is due to your augmentation.";
 
                 msg = floorMsg;
+
+                if (successChance.Value < 1 && FailureNote(recipe, source, target) is string failureNote)
+                    msg += $"\n{failureNote}";
 
                 if (PropertyManager.GetBool("craft_exact_msg").Item)
                 {
@@ -1111,8 +1136,7 @@ namespace ACE.Server.Managers
             // every weapon since 2026-11-17 (JJ: "The salvage blowing up isn't a bad idea actually ... salvage takes time and
             // investment to make. And always becomes something you have to much of in later games", then "okay imbues only":
             // tinking keeps retail's risk). Imbue recipes add nothing on failure, so the weapon's tinker count doesn't change.
-            if (!success && destroyTarget && recipe.IsImbuing()
-                && !PropertyManager.GetBool(target.IsAcxQuestWeapon ? "acx_quest_imbue_failure_destroys" : "acx_imbue_failure_destroys").Item)
+            if (!success && destroyTarget && ImbueFailureKeepsTarget(recipe, target))
                 destroyTarget = false;
 
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
