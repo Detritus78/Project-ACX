@@ -40,6 +40,8 @@ namespace ACE.Server.Pathfinding
             public int ClosedPolys { get; set; }
             public int Cells { get; set; }
             public int ShutDoorways { get; set; }
+            public int WideLegs { get; set; }
+            public int NarrowLegs { get; set; }
             public int Doors { get; set; }
             public List<float[]> Route { get; set; } = new();
             public List<Hotspot> Hotspots { get; set; } = new();
@@ -58,7 +60,10 @@ namespace ACE.Server.Pathfinding
 
         private static string Plan(ushort landblock, uint startCell, float clearance, bool skipDoors)
         {
-            if (!Pathfinder.TryReadMeshes(landblock, out var mesh, out _) || mesh == null)
+            // routes go on the wide mesh where they can (1.4 m off the walls, so a melee character darting back to the route
+            // doesn't catch a corner; JJ 2026-11-23: "your corners are likely to close to the wall"), on the narrow one where
+            // a passage is too tight for it
+            if (!Pathfinder.TryReadMeshes(landblock, out var mesh, out var wide) || mesh == null)
                 return $"{landblock:X4}: no mesh";
 
             var output = new Output { Landblock = $"{landblock:X4}", Clearance = clearance };
@@ -76,31 +81,8 @@ namespace ACE.Server.Pathfinding
                 output.Hotspots.Add(new Hotspot { Wcid = inst.WeenieClassId, Name = name, Cell = inst.ObjCellId, X = inst.OriginX, Y = inst.OriginY, Z = inst.OriginZ });
             }
 
-            // shut the polygons near them. Recast's frame is (x, height, y)
-            for (var t = 0; t < mesh.GetMaxTiles(); t++)
-            {
-                var tile = mesh.GetTile(t);
-                if (tile?.data?.header == null)
-                    continue;
-                var baseRef = mesh.GetPolyRefBase(tile);
-                for (var p = 0; p < tile.data.header.polyCount; p++)
-                {
-                    var poly = tile.data.polys[p];
-                    var pts = new List<Vector3>();
-                    for (var v = 0; v < poly.vertCount; v++)
-                    {
-                        var i = poly.verts[v] * 3;
-                        pts.Add(new Vector3(tile.data.verts[i], tile.data.verts[i + 2], tile.data.verts[i + 1]));   // back to (x, y, z)
-                    }
-                    var zMin = pts.Min(q => q.Z); var zMax = pts.Max(q => q.Z);
-                    // a hotspot's cylinder stands about 1.5 m tall; a walker is about 2 m. Take 3 m either way to be sure
-                    if (output.Hotspots.Any(h => zMax > h.Z - 3f && zMin < h.Z + 3f && Distance2D(pts, new Vector2(h.X, h.Y)) < clearance))
-                    {
-                        mesh.SetPolyFlags(baseRef | (long)p, 0);   // the default filter passes no polygon with no flags
-                        output.ClosedPolys++;
-                    }
-                }
-            }
+            // shut the polygons near them, on both meshes
+            output.ClosedPolys = CloseNear(mesh, output.Hotspots, clearance) + (wide != null ? CloseNear(wide, output.Hotspots, clearance) : 0);
 
             // the cells and their doorways
             var info = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)landblock << 16 | 0xFFFE);
@@ -166,8 +148,9 @@ namespace ACE.Server.Pathfinding
             {
                 var o = cells[id].Position.Origin;
                 var target = new Position(id, new Vector3(o.X, o.Y, o.Z), Quaternion.Identity);
-                var onMesh = ClosestOpen(mesh, target);
-                if (onMesh == null || Vector2.Distance(new Vector2(onMesh.PositionX, onMesh.PositionY), new Vector2(o.X, o.Y)) > 4f)
+                var onWide = wide != null ? Near(ClosestOpen(wide, target), o) : null;
+                var onMesh = onWide ?? Near(ClosestOpen(mesh, target), o);
+                if (onMesh == null)
                 {
                     output.Unreached.Add($"{id:X8} off the open mesh");
                     continue;
@@ -180,12 +163,19 @@ namespace ACE.Server.Pathfinding
                 }
                 if (route.Any(r => Vector3.Distance(r.Pos, onMesh.Pos) < 6f))
                     continue;   // passed close by already
-                var leg = Pathfinder.FindRoute(mesh, here, onMesh);
+                var leg = onWide != null ? Pathfinder.FindRoute(wide, here, onWide) : null;
                 if (leg == null || leg.Count == 0 || Vector3.Distance(leg[^1].Pos, onMesh.Pos) > 1.5f)
                 {
-                    output.Unreached.Add($"{id:X8} no open way");
-                    continue;
+                    leg = Pathfinder.FindRoute(mesh, here, onMesh);
+                    if (leg == null || leg.Count == 0 || Vector3.Distance(leg[^1].Pos, onMesh.Pos) > 1.5f)
+                    {
+                        output.Unreached.Add($"{id:X8} no open way");
+                        continue;
+                    }
+                    output.NarrowLegs++;
                 }
+                else
+                    output.WideLegs++;
                 route.AddRange(leg.Skip(1));
                 here = leg[^1];
             }
@@ -193,8 +183,43 @@ namespace ACE.Server.Pathfinding
             output.Route = route.Select(r => new[] { r.PositionX, r.PositionY, r.PositionZ }).ToList();
             var path = Path.Combine(Pathfinder.RootDirectory, $"route-{landblock:X4}.json");
             File.WriteAllText(path, JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = true }));
-            return $"{landblock:X4}: {route.Count} points, {output.Hotspots.Count} hotspots, {output.ClosedPolys} polygons shut, {output.Unreached.Count} of {order.Count} cells skipped; written to {path}";
+            return $"{landblock:X4}: {route.Count} points, {output.Hotspots.Count} hotspots, {output.ClosedPolys} polygons shut, {output.WideLegs} wide / {output.NarrowLegs} narrow legs, {output.Unreached.Count} of {order.Count} cells skipped; written to {path}";
         }
+
+
+        /// <summary>shuts every polygon within `clearance` (across) of a hotspot at about its height. Recast's frame is (x, height, y)</summary>
+        private static int CloseNear(DtNavMesh mesh, List<Hotspot> hotspots, float clearance)
+        {
+            var closed = 0;
+            for (var t = 0; t < mesh.GetMaxTiles(); t++)
+            {
+                var tile = mesh.GetTile(t);
+                if (tile?.data?.header == null)
+                    continue;
+                var baseRef = mesh.GetPolyRefBase(tile);
+                for (var p = 0; p < tile.data.header.polyCount; p++)
+                {
+                    var poly = tile.data.polys[p];
+                    var pts = new List<Vector3>();
+                    for (var v = 0; v < poly.vertCount; v++)
+                    {
+                        var i = poly.verts[v] * 3;
+                        pts.Add(new Vector3(tile.data.verts[i], tile.data.verts[i + 2], tile.data.verts[i + 1]));   // back to (x, y, z)
+                    }
+                    var zMin = pts.Min(q => q.Z); var zMax = pts.Max(q => q.Z);
+                    // a hotspot's cylinder stands about 1.5 m tall; a walker is about 2 m. Take 3 m either way to be sure
+                    if (hotspots.Any(h => zMax > h.Z - 3f && zMin < h.Z + 3f && Distance2D(pts, new Vector2(h.X, h.Y)) < clearance))
+                    {
+                        mesh.SetPolyFlags(baseRef | (long)p, 0);   // the default filter passes no polygon with no flags
+                        closed++;
+                    }
+                }
+            }
+
+            return closed;
+        }
+
+        private static Position Near(Position p, System.Numerics.Vector3 o) => p != null && Vector2.Distance(new Vector2(p.PositionX, p.PositionY), new Vector2(o.X, o.Y)) <= 4f ? p : null;
 
         private static Position ClosestOpen(DtNavMesh mesh, Position pos)
         {
