@@ -41,6 +41,7 @@ namespace ACE.Server.Pathfinding
             public int Cells { get; set; }
             public int ShutDoorways { get; set; }
             public int WideLegs { get; set; }
+            public int EasedCorners { get; set; }
             public int NarrowLegs { get; set; }
             public int Doors { get; set; }
             public List<float[]> Route { get; set; } = new();
@@ -180,10 +181,12 @@ namespace ACE.Server.Pathfinding
                 here = leg[^1];
             }
 
+            route = EaseCorners(mesh, route, 2.5f, out var eased);
+            output.EasedCorners = eased;
             output.Route = route.Select(r => new[] { r.PositionX, r.PositionY, r.PositionZ }).ToList();
             var path = Path.Combine(Pathfinder.RootDirectory, $"route-{landblock:X4}.json");
             File.WriteAllText(path, JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = true }));
-            return $"{landblock:X4}: {route.Count} points, {output.Hotspots.Count} hotspots, {output.ClosedPolys} polygons shut, {output.WideLegs} wide / {output.NarrowLegs} narrow legs, {output.Unreached.Count} of {order.Count} cells skipped; written to {path}";
+            return $"{landblock:X4}: {route.Count} points, {output.Hotspots.Count} hotspots, {output.ClosedPolys} polygons shut, {output.WideLegs} wide / {output.NarrowLegs} narrow legs, {output.EasedCorners} corners eased off walls, {output.Unreached.Count} of {order.Count} cells skipped; written to {path}";
         }
 
 
@@ -217,6 +220,60 @@ namespace ACE.Server.Pathfinding
             }
 
             return closed;
+        }
+
+
+        /// <summary>
+        /// Moves each turn of the route out from the walls, to `want` metres where the passage is wide enough and toward its
+        /// middle where it isn't (JJ 2026-11-23, a turn jammed into a corner: "see your turn waypoint"). A path's corners lie
+        /// on the mesh's edge, as tight to the wall as the mesh lets them. A turn only moves if both legs to it stay on the
+        /// open mesh (no shortcut through a wall, or onto the shut ground round a hotspot).
+        /// </summary>
+        private static List<Position> EaseCorners(DtNavMesh mesh, List<Position> route, float want, out int eased)
+        {
+            eased = 0;
+            var query = new DtNavMeshQuery(mesh);
+            var filter = new DtQueryDefaultFilter();
+            var outRoute = new List<Position>(route);
+            for (var i = 1; i < outRoute.Count - 1; i++)
+            {
+                var p = new RcVec3f(outRoute[i].PositionX, outRoute[i].PositionZ, outRoute[i].PositionY);
+                for (var step = 0; step < 8; step++)
+                {
+                    query.FindNearestPoly(p, new RcVec3f(1f, 2f, 1f), filter, out long polyRef, out var onPoly, out _);
+                    if (polyRef == 0)
+                        break;
+                    p = onPoly;
+                    query.FindDistanceToWall(polyRef, p, want, filter, out var dist, out _, out var normal);
+                    if (dist >= want - 0.05f)
+                        break;
+                    var move = (want - dist) * 0.6f;
+                    p = new RcVec3f(p.X + normal.X * move, p.Y, p.Z + normal.Z * move);
+                }
+                var moved = new Position(outRoute[i].Cell, new Vector3(p.X, p.Z, p.Y), Quaternion.Identity);
+                if (Vector3.Distance(moved.Pos, outRoute[i].Pos) < 0.1f)
+                    continue;
+                if (OnMeshAlong(query, filter, outRoute[i - 1].Pos, moved.Pos) && OnMeshAlong(query, filter, moved.Pos, outRoute[i + 1].Pos))
+                {
+                    outRoute[i] = moved;
+                    eased++;
+                }
+            }
+            return outRoute;
+        }
+
+        /// <summary>whether a straight line stays on the open mesh (checked every 0.25 m)</summary>
+        private static bool OnMeshAlong(DtNavMeshQuery query, IDtQueryFilter filter, Vector3 a, Vector3 b)
+        {
+            var n = Math.Max(1, (int)(Vector3.Distance(a, b) / 0.25f));
+            for (var k = 0; k <= n; k++)
+            {
+                var q = Vector3.Lerp(a, b, k / (float)n);
+                query.FindNearestPoly(new RcVec3f(q.X, q.Z, q.Y), new RcVec3f(0.3f, 2f, 0.3f), filter, out long r, out var pt, out _);
+                if (r == 0 || Vector2.Distance(new Vector2(pt.X, pt.Z), new Vector2(q.X, q.Y)) > 0.05f)
+                    return false;
+            }
+            return true;
         }
 
         private static Position Near(Position p, System.Numerics.Vector3 o) => p != null && Vector2.Distance(new Vector2(p.PositionX, p.PositionY), new Vector2(o.X, o.Y)) <= 4f ? p : null;
