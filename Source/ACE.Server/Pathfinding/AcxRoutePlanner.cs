@@ -32,6 +32,9 @@ namespace ACE.Server.Pathfinding
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>how far routes keep from a portal, across</summary>
+        public const float PortalClearance = 4f;
+
         public class Hotspot { public uint Wcid { get; set; } public string Name { get; set; } public uint Cell { get; set; } public float X { get; set; } public float Y { get; set; } public float Z { get; set; } }
         public class Output
         {
@@ -46,6 +49,7 @@ namespace ACE.Server.Pathfinding
             public int Doors { get; set; }
             public List<float[]> Route { get; set; } = new();
             public List<Hotspot> Hotspots { get; set; } = new();
+            public List<Hotspot> Portals { get; set; } = new();
             public List<string> Unreached { get; set; } = new();
         }
 
@@ -76,6 +80,13 @@ namespace ACE.Server.Pathfinding
                 var weenie = DatabaseManager.World.GetCachedWeenie(inst.WeenieClassId);
                 if (weenie?.WeenieType == WeenieType.Door)
                     doors.Add(new Vector3(inst.OriginX, inst.OriginY, inst.OriginZ));
+                // portals too, closer: walking into one takes you out of the dungeon (JJ 2026-11-23: "this runs us right
+                // into a exit portal")
+                if (weenie?.WeenieType == WeenieType.Portal)
+                {
+                    weenie.PropertiesString.TryGetValue(ACE.Entity.Enum.Properties.PropertyString.Name, out var portalName);
+                    output.Portals.Add(new Hotspot { Wcid = inst.WeenieClassId, Name = portalName, Cell = inst.ObjCellId, X = inst.OriginX, Y = inst.OriginY, Z = inst.OriginZ });
+                }
                 if (weenie == null || weenie.WeenieType != WeenieType.HotSpot)
                     continue;
                 weenie.PropertiesString.TryGetValue(ACE.Entity.Enum.Properties.PropertyString.Name, out var name);
@@ -83,7 +94,8 @@ namespace ACE.Server.Pathfinding
             }
 
             // shut the polygons near them, on both meshes
-            output.ClosedPolys = CloseNear(mesh, output.Hotspots, clearance) + (wide != null ? CloseNear(wide, output.Hotspots, clearance) : 0);
+            output.ClosedPolys = CloseNear(mesh, output.Hotspots, clearance) + (wide != null ? CloseNear(wide, output.Hotspots, clearance) : 0)
+                + CloseNear(mesh, output.Portals, PortalClearance) + (wide != null ? CloseNear(wide, output.Portals, PortalClearance) : 0);
 
             // the cells and their doorways
             var info = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)landblock << 16 | 0xFFFE);
