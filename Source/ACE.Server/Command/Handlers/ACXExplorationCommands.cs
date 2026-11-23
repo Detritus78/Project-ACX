@@ -27,13 +27,15 @@ namespace ACE.Server.Command.Handlers
 
         [CommandHandler("acxroute", AccessLevel.Admin, CommandHandlerFlag.None, 2,
             "Plans a walking route through a dungeon's hallways (not the rooms behind doors) that keeps clear of every hotspot, into Pathfinding/route-XXXX.json (Pathfinding/AcxRoutePlanner.cs).",
-            "<start cell hex> [clearance m, default 8] [doors: also go into the rooms behind doors]")]
+            "<start cell hex> [clearance m, default 8] [doors: also go into the rooms behind doors] [cover=N: how near the route must pass each part, default 12]")]
         public static void HandleRoute(Session session, params string[] parameters)
         {
             var cell = System.Convert.ToUInt32(parameters[0], 16);
             var clearance = parameters.Length > 1 && float.TryParse(parameters[1], out var c) ? c : 8f;
             var skipDoors = System.Array.IndexOf(parameters, "doors") < 0;   // hallways only unless asked
-            CommandHandlerHelper.WriteOutputInfo(session, ACE.Server.Pathfinding.AcxRoutePlanner.Start((ushort)(cell >> 16), cell, clearance, skipDoors));
+            var coverArg = System.Array.Find(parameters, a => a.StartsWith("cover="));
+            var cover = coverArg != null && float.TryParse(coverArg.Substring(6), out var cv) ? cv : 12f;
+            CommandHandlerHelper.WriteOutputInfo(session, ACE.Server.Pathfinding.AcxRoutePlanner.Start((ushort)(cell >> 16), cell, clearance, skipDoors, cover));
         }
     }
 }

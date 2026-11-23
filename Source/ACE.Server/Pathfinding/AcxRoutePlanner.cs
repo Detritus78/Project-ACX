@@ -53,8 +53,9 @@ namespace ACE.Server.Pathfinding
             public List<string> Unreached { get; set; } = new();
         }
 
-        public static string Start(ushort landblock, uint startCell, float clearance, bool skipDoors = false)
+        public static string Start(ushort landblock, uint startCell, float clearance, bool skipDoors = false, float cover = 12f)
         {
+            CoverRadius = cover;
             Task.Run(() =>
             {
                 try { log.Info($"[Route] {Plan(landblock, startCell, clearance, skipDoors)}"); }
@@ -157,6 +158,13 @@ namespace ACE.Server.Pathfinding
 
             Position here = null;
             var route = new List<Position>();
+            // a cell counts as covered when the route passes within CoverRadius of it in a straight open line: walking past
+            // a room's doorway pulls its monsters, so the route needn't sweep every room (JJ 2026-11-23: "Theres no reason to
+            // run every inch of a dungeon. You want a main path that covers the dungeon ... If you walk into a room you aggro
+            // the mobs so you dont need to walk the entire room")
+            var trail = new List<Vector3>();
+            var coverQuery = new DtNavMeshQuery(mesh);
+            var coverFilter = new DtQueryDefaultFilter();
             foreach (var id in order)
             {
                 var o = cells[id].Position.Origin;
@@ -172,10 +180,11 @@ namespace ACE.Server.Pathfinding
                 {
                     here = onMesh;
                     route.Add(here);
+                    trail.Add(here.Pos);
                     continue;
                 }
-                if (route.Any(r => Vector3.Distance(r.Pos, onMesh.Pos) < 6f))
-                    continue;   // passed close by already
+                if (Covered(coverQuery, coverFilter, trail, onMesh.Pos))
+                    continue;   // the route already passes in sight of it
                 var leg = onWide != null ? Pathfinder.FindRoute(wide, here, onWide) : null;
                 if (leg == null || leg.Count == 0 || Vector3.Distance(leg[^1].Pos, onMesh.Pos) > 1.5f)
                 {
@@ -189,7 +198,14 @@ namespace ACE.Server.Pathfinding
                 }
                 else
                     output.WideLegs++;
-                route.AddRange(leg.Skip(1));
+                foreach (var next in leg.Skip(1))
+                {
+                    var from = route[^1].Pos;
+                    var n = Math.Max(1, (int)(Vector3.Distance(from, next.Pos) / 2f));
+                    for (var k = 1; k <= n; k++)
+                        trail.Add(Vector3.Lerp(from, next.Pos, k / (float)n));
+                    route.Add(next);
+                }
                 here = leg[^1];
             }
 
@@ -272,6 +288,18 @@ namespace ACE.Server.Pathfinding
                 }
             }
             return outRoute;
+        }
+
+
+        /// <summary>how near (and in a straight open line) the route must pass for a part of the dungeon to count as covered</summary>
+        public static float CoverRadius = 12f;   // deep enough into a room that its monsters reach you before you turn back (JJ: "walk deep enough into a room so that you don't just turn around instantly")
+
+        private static bool Covered(DtNavMeshQuery query, IDtQueryFilter filter, List<Vector3> trail, Vector3 spot)
+        {
+            foreach (var t in trail.Where(t => Math.Abs(t.Z - spot.Z) < 4f && Vector3.Distance(t, spot) < CoverRadius).OrderBy(t => Vector3.Distance(t, spot)).Take(12))
+                if (OnMeshAlong(query, filter, t, spot))
+                    return true;
+            return false;
         }
 
         /// <summary>whether a straight line stays on the open mesh (checked every 0.25 m)</summary>
