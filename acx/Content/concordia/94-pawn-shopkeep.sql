@@ -16,6 +16,10 @@ INSERT INTO weenie_properties_attribute_2nd (object_Id, `type`, `init_Level`, `l
 INSERT INTO weenie_properties_body_part (object_Id, `key`, `d_Type`, `d_Val`, `d_Var`, `base_Armor`, `armor_Vs_Slash`, `armor_Vs_Pierce`, `armor_Vs_Bludgeon`, `armor_Vs_Cold`, `armor_Vs_Fire`, `armor_Vs_Acid`, `armor_Vs_Electric`, `armor_Vs_Nether`, `b_h`, `h_l_f`, `m_l_f`, `l_l_f`, `h_r_f`, `m_r_f`, `l_r_f`, `h_l_b`, `m_l_b`, `l_l_b`, `h_r_b`, `m_r_b`, `l_r_b`)
 SELECT 900909, `key`, `d_Type`, `d_Val`, `d_Var`, `base_Armor`, `armor_Vs_Slash`, `armor_Vs_Pierce`, `armor_Vs_Bludgeon`, `armor_Vs_Cold`, `armor_Vs_Fire`, `armor_Vs_Acid`, `armor_Vs_Electric`, `armor_Vs_Nether`, `b_h`, `h_l_f`, `m_l_f`, `l_l_f`, `h_r_f`, `m_r_f`, `l_r_f`, `h_l_b`, `m_l_b`, `l_l_b`, `h_r_b`, `m_r_b`, `l_r_b` FROM weenie_properties_body_part WHERE object_Id = 12308;
 INSERT INTO weenie_properties_create_list (object_Id, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`) SELECT 900909, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond` FROM weenie_properties_create_list WHERE object_Id = 12308 ORDER BY id;
+-- and the lesser stamina and mana kits (JJ 2026-11-23: "pawnshop keep needs stamina a mana kits lesser")
+INSERT INTO weenie_properties_create_list (object_Id, `destination_Type`, `weenie_Class_Id`, `stack_Size`, `palette`, `shade`, `try_To_Bond`) VALUES
+    (900909, 4, 44711, -1, 0, 0, 0),   -- Lesser Stamina Kit
+    (900909, 4, 44713, -1, 0, 0, 0);   -- Lesser Mana Kit
 
 -- his lines, all but the greeting (vendor_Type 1 = the shop opens); each of his emotes has its own category, vendor type and
 -- probability, which pairs the copies with their actions
