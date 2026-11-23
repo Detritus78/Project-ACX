@@ -153,7 +153,7 @@ namespace ACE.Server.Pathfinding
                 var onMesh = onWide ?? Near(ClosestOpen(mesh, target), o);
                 if (onMesh == null)
                 {
-                    output.Unreached.Add($"{id:X8} off the open mesh");
+                    output.Unreached.Add($"{id:X8} off the open mesh at {o.X:0} {o.Y:0} {o.Z:0}");
                     continue;
                 }
                 if (here == null)
@@ -170,7 +170,7 @@ namespace ACE.Server.Pathfinding
                     leg = Pathfinder.FindRoute(mesh, here, onMesh);
                     if (leg == null || leg.Count == 0 || Vector3.Distance(leg[^1].Pos, onMesh.Pos) > 1.5f)
                     {
-                        output.Unreached.Add($"{id:X8} no open way");
+                        output.Unreached.Add($"{id:X8} no open way at {o.X:0} {o.Y:0} {o.Z:0}");
                         continue;
                     }
                     output.NarrowLegs++;
