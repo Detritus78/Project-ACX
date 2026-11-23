@@ -145,7 +145,14 @@ namespace ACE.Server.WorldObjects.Entity
                 total += InitLevel + Ranks;
 
                 if (creature is Player player)
+                {
                     total += GetAugBonus_Base(player);
+
+                    // Project ACX: Jack of All Trades is part of base skill, as the client shows it (JJ 2026-11-23: Einar's
+                    // window said base Missile 291, the server's wield check 286, so a 290 dart wouldn't wield; "isnt it
+                    // supposed to?"). Current still adds it once, after vitae (GetAugBonus_Current), so buffed skill is unchanged.
+                    total += (uint)(player.AugmentationJackOfAllTrades * 5);
+                }
 
                 return total;
             }
