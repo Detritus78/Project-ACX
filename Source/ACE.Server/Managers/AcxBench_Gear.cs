@@ -870,7 +870,7 @@ namespace ACE.Server.Managers
                 ("Bow", FirstPiercing(TierTable(typeof(BowWcids_Aluvian)))),
                 ("Crossbow", FirstPiercing(TierTable(typeof(CrossbowWcids)))),
                 ("Atlatl", FirstPiercing(TierTable(typeof(AtlatlWcids)))),
-                ("Thrown", FirstPiercing(TierTable(typeof(AcxThrownWcids)))),
+                ("Thrown", FirstPiercing(AcxThrownWcids.TierWcids(tier))),
             };
 
             var sb = new StringBuilder("Level,Tier,Class,Weapon,Wcid,State,Damage,DamageMod,ElementalBonus,Variance,Wield,Workmanship,HitsToKill,AvgHit,SecondsToKill,FailedStrikePct\n");

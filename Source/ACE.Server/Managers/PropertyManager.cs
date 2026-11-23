@@ -498,6 +498,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, Property<bool>> DefaultBooleanProperties =
             DictOf(
+                ("acx_thrown_elements_from_tier1", new Property<bool>(true, "Project ACX: if TRUE, Eternal thrown weapons drop in acid / fire / frost / electric from loot tier 1, as bombs and melee weapons (JJ 2026-11-23); FALSE: as atlatls, plain only through tier 4, mixed at tier 5 (AcxThrownWcids)")),
                 ("account_login_boots_in_use", new Property<bool>(true, "if FALSE, oldest connection to account is not booted when new connection occurs")),
                 ("advanced_combat_pets", new Property<bool>(false, "(non-retail function) If enabled, Combat Pets can cast spells")),
                 ("advocate_fane_auto_bestow", new Property<bool>(false, "If enabled, Advocate Fane will automatically bestow new advocates to advocate_fane_auto_bestow_level")),

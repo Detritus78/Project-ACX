@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Collections.Generic;
 
 using ACE.Common;
@@ -34,7 +35,7 @@ namespace ACE.Server.Factories.Tables.Wcids
     /// Before: the multiplier was scaled to the band on a base of 10 (up to x13 at tier 8, and Blood Drinker with it),
     /// then folded into Damage (2026-11-15 morning: "its the base damage that should reflect the differences"), which
     /// left buffs and tinkering far behind the launchers' (48-66% of an atlatl on /acxgear class).
-    /// Like atlatls: plain only through tier 4, mixed at tier 5, elemental beside the physical ones from tier 6.
+    /// Elemental beside the physical ones from tier 1, as bombs and melee weapons (was: as atlatls, plain only through tier 4).
     /// </summary>
     public static class AcxThrownWcids
     {
@@ -107,21 +108,19 @@ namespace ACE.Server.Factories.Tables.Wcids
             return Settle(table);
         }
 
+        // with acx_thrown_elements_from_tier1 (the default), every tier the same mix, 3 physical of 7 types as atlatls from
+        // tier 6, so the elements drop from tier 1 as bombs' and melee weapons' do (JJ 2026-11-23, Einar needing fire: "I feel
+        // like that should be adjusted", then "go"): an atlatl can be tinkered to an element and a thrown weapon can't. Below
+        // tier 5 an elemental one still rolls as a plain atlatl (no elemental bonus; LootGenerationFactory_Missile), so it is
+        // the plain weapon with another damage type, as low-tier bombs are. Off: as atlatls, plain only through tier 4 and
+        // 51% plain at tier 5.
+        public static bool ElementsFromTier1 => Managers.PropertyManager.GetBool("acx_thrown_elements_from_tier1").Item;
+
+        private static readonly ChanceTable<WeenieClassName> AllTiers_Chances = Mixed(3.0f / 7);
         private static readonly ChanceTable<WeenieClassName> T1_T4_Chances = Plain();
         private static readonly ChanceTable<WeenieClassName> T5_Chances = Mixed(0.51f);        // atlatls: 51% plain at tier 5
-        private static readonly ChanceTable<WeenieClassName> T6_T8_Chances = Mixed(3.0f / 7);   // atlatls: 3 physical of 7 types
 
-        private static readonly List<ChanceTable<WeenieClassName>> thrownTiers = new List<ChanceTable<WeenieClassName>>()
-        {
-            T1_T4_Chances,
-            T1_T4_Chances,
-            T1_T4_Chances,
-            T1_T4_Chances,
-            T5_Chances,
-            T6_T8_Chances,
-            T6_T8_Chances,
-            T6_T8_Chances,
-        };
+        private static ChanceTable<WeenieClassName> TierTable(int tier) => ElementsFromTier1 || tier >= 6 ? AllTiers_Chances : tier == 5 ? T5_Chances : T1_T4_Chances;
 
         // the tier's atlatl dart, the ammunition a thrown weapon carries built in: Atlatl Dart 12 (tiers 1-2), Prismatic 28 (3-4),
         // Deadly Prismatic 52 (5-8): what an atlatl is really thrown with at the tier's levels (JJ 2026-11-16: "Most people don't
@@ -136,13 +135,16 @@ namespace ACE.Server.Factories.Tables.Wcids
         // calibration of the weapon's own damage by tier (1 = the dart's), against the atlatl of the tier on /acxgear class
         private static readonly double[] OwnDamageScale = { 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 };
 
+        /// <summary>the thrown weapons loot of a tier can drop (the bench)</summary>
+        public static IEnumerable<uint> TierWcids(int tier) => TierTable(tier).Select(e => (uint)e.result);
+
         public static WeenieClassName Roll(int tier)
         {
             // Project ACX: the Alchemist's bombs drop as one more family of the thrown pool (AcxBombWcids)
             if (AcxBombWcids.Enabled && ThreadSafeRandom.Next(0.0f, 1.0f) < Managers.PropertyManager.GetDouble("acx_alchemist_loot_share").Item)
                 return (WeenieClassName)AcxBombWcids.Roll(tier);
 
-            return thrownTiers[tier - 1].Roll();
+            return TierTable(tier).Roll();
         }
 
         public static bool TryGetValue(WeenieClassName wcid, out TreasureWeaponType weaponType)

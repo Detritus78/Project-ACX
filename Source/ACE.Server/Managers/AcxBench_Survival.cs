@@ -738,14 +738,14 @@ namespace ACE.Server.Managers
                     gear.Casters.Add(caster);
 
             // the atlatls of the tier (one per damage type, as the bows) and the Eternal thrown weapons that drop at it (every family's plain
-            // version, and from tier 5 its acid / fire / frost / electric ones; AcxThrownWcids), for the comparison builds
+            // version and its acid / fire / frost / electric ones; before 2026-11-23 those only from tier 5; AcxThrownWcids), for the comparison builds
             var atlatlTiers = (List<Factories.Entity.ChanceTable<WeenieClassName>>)typeof(AtlatlWcids).GetFields(BindingFlags.NonPublic | BindingFlags.Static)
                 .First(f => f.FieldType == typeof(List<Factories.Entity.ChanceTable<WeenieClassName>>)).GetValue(null);
             foreach (var group in atlatlTiers[tier - 1].Select(e => (uint)e.result).Distinct()
                 .GroupBy(w => (DamageType)(DatabaseManager.World.GetCachedWeenie(w)?.GetProperty(PropertyInt.DamageType) ?? 0)))
                 if (RollWeaponFull(group.First(), tier) is WorldObject atlatl)
                     gear.Atlatls.Add(atlatl);
-            for (var wcid = 900810u; wcid <= (tier >= 5 ? 900844u : 900816u); wcid++)
+            for (var wcid = 900810u; wcid <= (AcxThrownWcids.ElementsFromTier1 || tier >= 5 ? 900844u : 900816u); wcid++)
                 if (RollWeaponFull(wcid, tier) is WorldObject thrown)
                     gear.Thrown.Add(thrown);
 

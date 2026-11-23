@@ -205,10 +205,18 @@ namespace ACE.Server.Managers
 
             void AddMissile(string family, Type table, string cls = "Missile")
             {
-                var tiers = table.GetFields(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(f => f.FieldType == typeof(List<ChanceTable<WeenieClassName>>));
-                if (tiers == null)
-                    return;
-                foreach (var (wcid, _) in ((List<ChanceTable<WeenieClassName>>)tiers.GetValue(null))[tier - 1])
+                // the thrown table picks by acx_thrown_elements_from_tier1, so it is asked, not read
+                IEnumerable<WeenieClassName> wcids;
+                if (table == typeof(AcxThrownWcids))
+                    wcids = AcxThrownWcids.TierWcids(tier).Select(w => (WeenieClassName)w);
+                else
+                {
+                    var tiers = table.GetFields(BindingFlags.NonPublic | BindingFlags.Static).FirstOrDefault(f => f.FieldType == typeof(List<ChanceTable<WeenieClassName>>));
+                    if (tiers == null)
+                        return;
+                    wcids = ((List<ChanceTable<WeenieClassName>>)tiers.GetValue(null))[tier - 1].Select(e => e.result);
+                }
+                foreach (var wcid in wcids.Distinct())
                 {
                     if (!list.Any(e => e.Wcid == (uint)wcid))
                         list.Add(new Entry { Class = cls, Family = $"{family}: {wcid}", FamilyIndex = 0, Wcid = (uint)wcid, Skill = Skill.MissileWeapons });
