@@ -39,32 +39,37 @@ namespace ACE.Server.Pathfinding
             public float Clearance { get; set; }
             public int ClosedPolys { get; set; }
             public int Cells { get; set; }
+            public int ShutDoorways { get; set; }
+            public int Doors { get; set; }
             public List<float[]> Route { get; set; } = new();
             public List<Hotspot> Hotspots { get; set; } = new();
             public List<string> Unreached { get; set; } = new();
         }
 
-        public static string Start(ushort landblock, uint startCell, float clearance)
+        public static string Start(ushort landblock, uint startCell, float clearance, bool skipDoors = false)
         {
             Task.Run(() =>
             {
-                try { log.Info($"[Route] {Plan(landblock, startCell, clearance)}"); }
+                try { log.Info($"[Route] {Plan(landblock, startCell, clearance, skipDoors)}"); }
                 catch (Exception e) { log.Error($"[Route] {landblock:X4} failed: {e}"); }
             });
-            return $"Planning a route through {landblock:X4} from {startCell:X8}, {clearance} m from hotspots. Result goes to the server log.";
+            return $"Planning a route through {landblock:X4} from {startCell:X8}, {clearance} m from hotspots{(skipDoors ? ", not through doors" : "")}. Result goes to the server log.";
         }
 
-        private static string Plan(ushort landblock, uint startCell, float clearance)
+        private static string Plan(ushort landblock, uint startCell, float clearance, bool skipDoors)
         {
             if (!Pathfinder.TryReadMeshes(landblock, out var mesh, out _) || mesh == null)
                 return $"{landblock:X4}: no mesh";
 
             var output = new Output { Landblock = $"{landblock:X4}", Clearance = clearance };
 
-            // the hotspots (acid, fire and the like)
+            // the hotspots (acid, fire and the like), and the doors
+            var doors = new List<Vector3>();
             foreach (var inst in DatabaseManager.World.GetCachedInstancesByLandblock(landblock))
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(inst.WeenieClassId);
+                if (weenie?.WeenieType == WeenieType.Door)
+                    doors.Add(new Vector3(inst.OriginX, inst.OriginY, inst.OriginZ));
                 if (weenie == null || weenie.WeenieType != WeenieType.HotSpot)
                     continue;
                 weenie.PropertiesString.TryGetValue(ACE.Entity.Enum.Properties.PropertyString.Name, out var name);
@@ -106,6 +111,35 @@ namespace ACE.Server.Pathfinding
                 try { cells[id] = DatManager.CellDat.ReadFromDat<EnvCell>(id); } catch { }
             }
             output.Cells = cells.Count;
+            output.Doors = doors.Count;
+
+            // with skipDoors, a doorway with a door in it (within 1.5 m of its middle across; a door stands on the floor, the middle is higher) is a wall: the route stays in the halls
+            // and leaves the side rooms behind doors alone (JJ: "theres no reason to open all those little doors. They are
+            // coves where spawns happen then they run out after the player")
+            var shut = new HashSet<(uint, uint)>();
+            if (skipDoors)
+            {
+                foreach (var (id, cell) in cells)
+                {
+                    var env = DatManager.PortalDat.ReadFromDat<ACE.DatLoader.FileTypes.Environment>(0x0D000000 | cell.EnvironmentId);
+                    if (env == null || !env.Cells.TryGetValue(cell.CellStructure, out var cs))
+                        continue;
+                    foreach (var portal in cell.CellPortals)
+                    {
+                        if (!cs.Polygons.TryGetValue(portal.PolygonId, out var poly))
+                            continue;
+                        var mid = Vector3.Zero;
+                        foreach (var v in poly.VertexIds) mid += cs.VertexArray.Vertices[(ushort)v].Origin;
+                        mid = Vector3.Transform(mid / poly.VertexIds.Count, cell.Position.Orientation) + cell.Position.Origin;
+                        if (doors.Any(d => Vector2.Distance(new Vector2(d.X, d.Y), new Vector2(mid.X, mid.Y)) < 1.5f && Math.Abs(d.Z - mid.Z) < 4f))
+                        {
+                            var other = (uint)landblock << 16 | portal.OtherCellId;
+                            shut.Add((id, other)); shut.Add((other, id));
+                        }
+                    }
+                }
+                output.ShutDoorways = shut.Count / 2;
+            }
 
             // depth first from the start cell
             var order = new List<uint>();
@@ -119,7 +153,11 @@ namespace ACE.Server.Pathfinding
                     continue;
                 order.Add(id);
                 foreach (var portal in cell.CellPortals.AsEnumerable().Reverse())
-                    stack.Push((uint)landblock << 16 | portal.OtherCellId);
+                {
+                    var other = (uint)landblock << 16 | portal.OtherCellId;
+                    if (!shut.Contains((id, other)))
+                        stack.Push(other);
+                }
             }
 
             Position here = null;
