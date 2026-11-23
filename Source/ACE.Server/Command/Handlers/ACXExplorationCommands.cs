@@ -24,5 +24,15 @@ namespace ACE.Server.Command.Handlers
             var samples = parameters.Length > 0 && int.TryParse(parameters[0], out var n) ? n : 300;
             CommandHandlerHelper.WriteOutputInfo(session, AcxExploration.StartPlan(samples));
         }
+
+        [CommandHandler("acxroute", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Plans a walking route through a whole dungeon that keeps clear of every hotspot, into Pathfinding/route-XXXX.json (Pathfinding/AcxRoutePlanner.cs).",
+            "<start cell hex> [clearance m, default 8]")]
+        public static void HandleRoute(Session session, params string[] parameters)
+        {
+            var cell = System.Convert.ToUInt32(parameters[0], 16);
+            var clearance = parameters.Length > 1 && float.TryParse(parameters[1], out var c) ? c : 8f;
+            CommandHandlerHelper.WriteOutputInfo(session, ACE.Server.Pathfinding.AcxRoutePlanner.Start((ushort)(cell >> 16), cell, clearance));
+        }
     }
 }

@@ -1,0 +1,187 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+using ACE.Database;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using ACE.Entity.Enum;
+using ACE.Entity;
+
+using DotRecast.Core.Numerics;
+using DotRecast.Detour;
+
+using log4net;
+
+namespace ACE.Server.Pathfinding
+{
+    /// <summary>
+    /// Project ACX (2026-11-22): a walking route through a whole dungeon for UCM, that never comes near a hotspot (JJ, for
+    /// Matron Hive South: "avoid ANY acid. Don't cross it don't touch it"). Admin console only; a planning tool, nothing in
+    /// game uses it. On its own copy of the landblock's narrow mesh it shuts every polygon that comes within `clearance`
+    /// metres (across) of a hotspot whose height overlaps it, then walks the dungeon's cells in depth-first order from the
+    /// start cell, routing to each cell's middle on what is left. Cells already passed within 6 m are skipped. Writes
+    /// Pathfinding/route-XXXX.json: the route's corners, the hotspots, and what was skipped. Claude's ucm_route.py checks it
+    /// against the hotspots again and turns it into a UCM routes profile.
+    /// </summary>
+    public static class AcxRoutePlanner
+    {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public class Hotspot { public uint Wcid { get; set; } public string Name { get; set; } public uint Cell { get; set; } public float X { get; set; } public float Y { get; set; } public float Z { get; set; } }
+        public class Output
+        {
+            public string Landblock { get; set; }
+            public float Clearance { get; set; }
+            public int ClosedPolys { get; set; }
+            public int Cells { get; set; }
+            public List<float[]> Route { get; set; } = new();
+            public List<Hotspot> Hotspots { get; set; } = new();
+            public List<string> Unreached { get; set; } = new();
+        }
+
+        public static string Start(ushort landblock, uint startCell, float clearance)
+        {
+            Task.Run(() =>
+            {
+                try { log.Info($"[Route] {Plan(landblock, startCell, clearance)}"); }
+                catch (Exception e) { log.Error($"[Route] {landblock:X4} failed: {e}"); }
+            });
+            return $"Planning a route through {landblock:X4} from {startCell:X8}, {clearance} m from hotspots. Result goes to the server log.";
+        }
+
+        private static string Plan(ushort landblock, uint startCell, float clearance)
+        {
+            if (!Pathfinder.TryReadMeshes(landblock, out var mesh, out _) || mesh == null)
+                return $"{landblock:X4}: no mesh";
+
+            var output = new Output { Landblock = $"{landblock:X4}", Clearance = clearance };
+
+            // the hotspots (acid, fire and the like)
+            foreach (var inst in DatabaseManager.World.GetCachedInstancesByLandblock(landblock))
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(inst.WeenieClassId);
+                if (weenie == null || weenie.WeenieType != WeenieType.HotSpot)
+                    continue;
+                weenie.PropertiesString.TryGetValue(ACE.Entity.Enum.Properties.PropertyString.Name, out var name);
+                output.Hotspots.Add(new Hotspot { Wcid = inst.WeenieClassId, Name = name, Cell = inst.ObjCellId, X = inst.OriginX, Y = inst.OriginY, Z = inst.OriginZ });
+            }
+
+            // shut the polygons near them. Recast's frame is (x, height, y)
+            for (var t = 0; t < mesh.GetMaxTiles(); t++)
+            {
+                var tile = mesh.GetTile(t);
+                if (tile?.data?.header == null)
+                    continue;
+                var baseRef = mesh.GetPolyRefBase(tile);
+                for (var p = 0; p < tile.data.header.polyCount; p++)
+                {
+                    var poly = tile.data.polys[p];
+                    var pts = new List<Vector3>();
+                    for (var v = 0; v < poly.vertCount; v++)
+                    {
+                        var i = poly.verts[v] * 3;
+                        pts.Add(new Vector3(tile.data.verts[i], tile.data.verts[i + 2], tile.data.verts[i + 1]));   // back to (x, y, z)
+                    }
+                    var zMin = pts.Min(q => q.Z); var zMax = pts.Max(q => q.Z);
+                    // a hotspot's cylinder stands about 1.5 m tall; a walker is about 2 m. Take 3 m either way to be sure
+                    if (output.Hotspots.Any(h => zMax > h.Z - 3f && zMin < h.Z + 3f && Distance2D(pts, new Vector2(h.X, h.Y)) < clearance))
+                    {
+                        mesh.SetPolyFlags(baseRef | (long)p, 0);   // the default filter passes no polygon with no flags
+                        output.ClosedPolys++;
+                    }
+                }
+            }
+
+            // the cells and their doorways
+            var info = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)landblock << 16 | 0xFFFE);
+            var cells = new Dictionary<uint, EnvCell>();
+            for (var i = 0u; i < info.NumCells; i++)
+            {
+                var id = (uint)landblock << 16 | (0x100 + i);
+                try { cells[id] = DatManager.CellDat.ReadFromDat<EnvCell>(id); } catch { }
+            }
+            output.Cells = cells.Count;
+
+            // depth first from the start cell
+            var order = new List<uint>();
+            var seen = new HashSet<uint>();
+            var stack = new Stack<uint>();
+            stack.Push(startCell);
+            while (stack.Count > 0)
+            {
+                var id = stack.Pop();
+                if (!seen.Add(id) || !cells.TryGetValue(id, out var cell))
+                    continue;
+                order.Add(id);
+                foreach (var portal in cell.CellPortals.AsEnumerable().Reverse())
+                    stack.Push((uint)landblock << 16 | portal.OtherCellId);
+            }
+
+            Position here = null;
+            var route = new List<Position>();
+            foreach (var id in order)
+            {
+                var o = cells[id].Position.Origin;
+                var target = new Position(id, new Vector3(o.X, o.Y, o.Z), Quaternion.Identity);
+                var onMesh = ClosestOpen(mesh, target);
+                if (onMesh == null || Vector2.Distance(new Vector2(onMesh.PositionX, onMesh.PositionY), new Vector2(o.X, o.Y)) > 4f)
+                {
+                    output.Unreached.Add($"{id:X8} off the open mesh");
+                    continue;
+                }
+                if (here == null)
+                {
+                    here = onMesh;
+                    route.Add(here);
+                    continue;
+                }
+                if (route.Any(r => Vector3.Distance(r.Pos, onMesh.Pos) < 6f))
+                    continue;   // passed close by already
+                var leg = Pathfinder.FindRoute(mesh, here, onMesh);
+                if (leg == null || leg.Count == 0 || Vector3.Distance(leg[^1].Pos, onMesh.Pos) > 1.5f)
+                {
+                    output.Unreached.Add($"{id:X8} no open way");
+                    continue;
+                }
+                route.AddRange(leg.Skip(1));
+                here = leg[^1];
+            }
+
+            output.Route = route.Select(r => new[] { r.PositionX, r.PositionY, r.PositionZ }).ToList();
+            var path = Path.Combine(Pathfinder.RootDirectory, $"route-{landblock:X4}.json");
+            File.WriteAllText(path, JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = true }));
+            return $"{landblock:X4}: {route.Count} points, {output.Hotspots.Count} hotspots, {output.ClosedPolys} polygons shut, {output.Unreached.Count} of {order.Count} cells skipped; written to {path}";
+        }
+
+        private static Position ClosestOpen(DtNavMesh mesh, Position pos)
+        {
+            var query = new DtNavMeshQuery(mesh);
+            var status = query.FindNearestPoly(new RcVec3f(pos.PositionX, pos.PositionZ, pos.PositionY), new RcVec3f(4f, 6f, 4f), new DtQueryDefaultFilter(), out long polyRef, out var pt, out _);
+            if (status.Failed() || polyRef == 0)
+                return null;
+            return new Position(pos.Cell, new Vector3(pt.X, pt.Z, pt.Y), Quaternion.Identity);
+        }
+
+        /// <summary>how far a point is from a polygon, across (0 inside)</summary>
+        private static float Distance2D(List<Vector3> poly, Vector2 p)
+        {
+            var inside = false;
+            var best = float.MaxValue;
+            for (int i = 0, j = poly.Count - 1; i < poly.Count; j = i++)
+            {
+                var a = new Vector2(poly[i].X, poly[i].Y); var b = new Vector2(poly[j].X, poly[j].Y);
+                if ((a.Y > p.Y) != (b.Y > p.Y) && p.X < (b.X - a.X) * (p.Y - a.Y) / (b.Y - a.Y) + a.X)
+                    inside = !inside;
+                var ab = b - a;
+                var t = ab.LengthSquared() > 0 ? Math.Clamp(Vector2.Dot(p - a, ab) / ab.LengthSquared(), 0f, 1f) : 0f;
+                best = Math.Min(best, Vector2.Distance(p, a + ab * t));
+            }
+            return inside ? 0f : best;
+        }
+    }
+}
