@@ -14,7 +14,7 @@ namespace ACE.Server.Command.Handlers
     /// </summary>
     public static class ACXBankCommands
     {
-        private const string Help = "(nothing: balance) | d[eposit] a[ll] | d n[otes] | d <amount> | d <currency> [count] | w[ithdraw] <amount> | w all | w n[ote] <MMD|MM|MD|M|D|C|...> [count] | w <currency> [count] | t[ransfer] <amount> <name> | t n <size> [count] <name> | t <currency> [count] <name>";
+        private const string Help = "/b (balance) | /b d a (bank everything) | /b w <amount> | /b w n <MMD|MM|MD|M|D|C> | /b t all <name> (send everything) | /b t <amount> <name> | /b t marks <count|all> <name>. A first name is enough.";
 
         [CommandHandler("bank", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
             "Your bank, anywhere: pyreals (trade notes go in as pyreals and come out as any note size), ACX Marks and every other currency. What you have banked in pyreals sets your wealth rank. Short form: /b.",
