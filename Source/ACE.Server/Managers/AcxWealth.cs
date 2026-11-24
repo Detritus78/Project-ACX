@@ -96,6 +96,13 @@ namespace ACE.Server.Managers
         private static HashSet<uint> currencies;
 
         /// <summary>
+        /// Project ACX: vendor-payment items that aren't money, so the bank doesn't take them (JJ 2026-11-24: "remove olthoi
+        /// gland ... pitted slag ... small olthoi venom sac ... writ of apology.. Those should not be bankable"): Mutated
+        /// Olthoi Gland, Pitted Slag, Small Olthoi Venom Sac, Writ of Apology. Any already banked can still be withdrawn.
+        /// </summary>
+        private static readonly HashSet<uint> NotBankable = new HashSet<uint> { 43747, 43491, 36376, 37559 };
+
+        /// <summary>
         /// The currencies besides pyreals the bank holds: the ACX Mark and every stackable item a vendor takes as payment
         /// (stipends, Mhoire coins, A'nekshay tokens...). Trade notes are pyreals; one-off turn-ins (a Dark Tusker Paw) aren't money.
         /// </summary>
@@ -114,7 +121,8 @@ namespace ACE.Server.Managers
                     foreach (var wcid in wcids)
                     {
                         var weenie = ACE.Database.DatabaseManager.World.GetCachedWeenie(wcid);
-                        if (weenie != null && weenie.GetItemType() != ItemType.PromissoryNote && (weenie.GetProperty(PropertyInt.MaxStackSize) ?? 1) >= 10)
+                        if (weenie != null && weenie.GetItemType() != ItemType.PromissoryNote && (weenie.GetProperty(PropertyInt.MaxStackSize) ?? 1) >= 10
+                            && !NotBankable.Contains(wcid))
                             set.Add(wcid);
                     }
                 }
