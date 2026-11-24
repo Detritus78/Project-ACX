@@ -171,5 +171,44 @@ namespace ACE.Server.Command.Handlers
 
             CommandHandlerHelper.WriteOutputInfo(session, $"{player.Name}: {parts[1].Trim()} +{added} (now {player.GetProperty(aug.prop) ?? 0}){(aug.attr != null ? $", {aug.attr} innate {player.Attributes[aug.attr.Value].StartingValue}, innate family {player.AugmentationInnateFamily}/10" : "")}.");
         }
+
+        /// <summary>
+        /// Project ACX: put an item in a logged-in character's pack from the console (JJ 2026-11-24: Brokk's Empowered Empyrean
+        /// Robe, normally from the Saving Asheron raid, "Lets do #2"). Attuned and bonded as the item's own data says.
+        /// </summary>
+        [CommandHandler("acxgiveitem", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Creates an item in a logged-in character's pack.",
+            "<character name>, <wcid>[, count]")]
+        public static void HandleGiveItem(Session session, params string[] parameters)
+        {
+            var parts = string.Join(" ", parameters).Split(',');
+            if (parts.Length < 2 || !uint.TryParse(parts[1].Trim(), out var wcid))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: acxgiveitem <character name>, <wcid>[, count]");
+                return;
+            }
+            var player = PlayerManager.GetOnlinePlayer(parts[0].Trim());
+            if (player == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{parts[0].Trim()} isn't logged in.");
+                return;
+            }
+            var item = ACE.Server.Factories.WorldObjectFactory.CreateNewWorldObject(wcid);
+            if (item == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"There's no item {wcid}.");
+                return;
+            }
+            if (parts.Length > 2 && int.TryParse(parts[2].Trim(), out var count) && count > 1 && (item.MaxStackSize ?? 1) > 1)
+                item.SetStackSize(System.Math.Min(count, item.MaxStackSize ?? 1));
+
+            if (!player.TryCreateInInventoryWithNetworking(item))
+            {
+                item.Destroy();
+                CommandHandlerHelper.WriteOutputInfo(session, $"{player.Name} has no room for {item.Name}.");
+                return;
+            }
+            CommandHandlerHelper.WriteOutputInfo(session, $"Gave {player.Name} {item.Name}.");
+        }
     }
 }
