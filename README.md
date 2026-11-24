@@ -14,7 +14,6 @@ Copy a plugin's folder (e.g. `mudsort`) into AC:Unreal's `Saved/ClientPlugins/In
 |---|---|---|---|
 | [MudSort](mudsort) | 1.1.0 | A remake of Mudzereli's MudSort for Decal: sorts a pack by any property (damage, burden, value, type, name...) into a side pack, or hands the items to a player or NPC. Same sort strings (`OC,MX-,NM`). | Works into your own side packs; see its README for what the API holds back |
 | [Auto Sell](autosell) | 0.3.1 | Sells what's in your packs to the open vendor by your own sell list and exceptions; a UCM loot profile or `.utl` file's Keep rules protect items. Imbued, inscribed and tinkered items are skipped. | Working |
-| [Pack Mover](packmover) | 0.1.0 | A test tool: moves the weapons from one pack to another, the main pack included, and reports which moves the client or server refused. | A probe of the API, not a finished tool |
 
 ## The plugin API limit we keep hitting
 
