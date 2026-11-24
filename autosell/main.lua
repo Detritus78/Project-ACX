@@ -47,6 +47,12 @@ local plan          -- {i, cursor = {rule, scan}, sell = {}, keep = {}, skipped 
 local job           -- {queue, next, sent, sold, failed, vendor}
 local message = ""
 local will_names = {}    -- the Will sell buttons' names, by button number
+-- names skipped for this sale only (JJ 2026-11-24: "click an item and it just removes it from that instance of selling ...
+-- I don't want to sale all my ghost essences yet"); cleared when the sale finishes or the vendor window changes
+local skip_names = {}
+local unskip_names = {}  -- the Skipped this sale buttons' names, by button number
+local last_vendor
+local CLICK_MODES = {"Remove from this sale", "Keep always (Exception)"}
 local log = {}
 
 local function note(text)
@@ -109,6 +115,31 @@ local function matches(r, item)
     return false
 end
 
+-- the Sell page's "Only sell" box (JJ 2026-11-24, replacing the Sell list tab): blank sells everything; otherwise only items
+-- whose name contains one of its comma-separated words ("Essence", "Essence, Scarab")
+local function trim(t)
+    local a, b = 1, #t
+    while a <= b and string.sub(t, a, a) == " " do a = a + 1 end
+    while b >= a and string.sub(t, b, b) == " " do b = b - 1 end
+    return string.sub(t, a, b)
+end
+
+local function only_sell(item)
+    local text = st.only or ""
+    local any, start = false, 1
+    while start <= #text + 1 do
+        local comma = string.findplain(text, ",", start)
+        local word = trim(string.sub(text, start, comma and (comma - 1) or #text))
+        if word ~= "" then
+            any = true
+            if contains(item.name, word) then return true end
+        end
+        if not comma then break end
+        start = comma + 1
+    end
+    return not any
+end
+
 local function first_match(rules, item)
     for _, r in ipairs(rules) do if r.on and matches(r, item) then return r end end
     return nil
@@ -145,9 +176,10 @@ local function begin_scan(s, then_sell)
         elseif open and item.can_sell == false then
             elsewhere[#elsewhere + 1] = {name = item.name}
         else
-            if first_match(st.sell, item) then
+            if only_sell(item) then
                 local r = first_match(st.keep, item)
-                if r then keep[#keep + 1] = {name = item.name, why = describe(r)}
+                if skip_names[item.name] then keep[#keep + 1] = {name = item.name, why = "skipped this sale"}
+                elseif r then keep[#keep + 1] = {name = item.name, why = describe(r)}
                 else todo[#todo + 1] = item end
             end
         end
@@ -228,6 +260,7 @@ local function sell_step(s)
     if job.next > #job.queue and #job.sent == 0 then
         note("Done: " .. job.sold .. " sold, " .. job.failed .. " not.")
         plan, job = nil, nil
+        skip_names = {}
     end
     return nil
 end
@@ -253,6 +286,10 @@ local function handle(s, e, dirty)
         elseif string.sub(tail, 1, 4) == "_on_" then
             local n = tonumber(string.sub(tail, 5))
             if rules[n] then rules[n].on = e.value == true or e.value == "true"; return true end
+        elseif id == "m_click_mode" then
+            st.click_mode = e.value; return true
+        elseif id == "m_only" then
+            st.only = e.value; return true
         elseif id == "profile_pick" then
             st.profile = e.value; load_profile(e.value); return true
         end
@@ -263,15 +300,28 @@ local function handle(s, e, dirty)
         -- a Will sell entry: keep every item of that name from now on (an exception), and take them out of this sale
         local name = will_names[tonumber(string.sub(id, 3)) or 0]
         if not name then return dirty end
-        st.keep[#st.keep + 1] = {kind = "Name is", text = name, on = true}
+        local always = st.click_mode == CLICK_MODES[2]
+        if always then st.keep[#st.keep + 1] = {kind = "Name is", text = name, on = true}
+        else skip_names[name] = true end
         local rest = {}
         for _, f in ipairs(plan.sell) do
-            if f.name == name then plan.keep[#plan.keep + 1] = {name = f.name, why = "Name is " .. name}
+            if f.name == name then plan.keep[#plan.keep + 1] = {name = f.name, why = always and ("Name is " .. name) or "skipped this sale"}
             else rest[#rest + 1] = f end
         end
         plan.sell = rest
-        message = "Kept from now on: " .. name
+        message = always and ("Kept from now on: " .. name) or ("Skipped for this sale: " .. name)
         return true
+    end
+    if id == "b_unskip" or (string.sub(id, 1, 2) == "u_" and not job) then
+        if id == "b_unskip" then skip_names = {}; message = "All put back; scanning again..."
+        else
+            local name = unskip_names[tonumber(string.sub(id, 3)) or 0]
+            if not name then return dirty end
+            skip_names[name] = nil
+            message = "Put back: " .. name .. "; scanning again..."
+        end
+        if plan and not job then begin_scan(s, false) end
+        return dirty
     end
     if id == "b_scan" then if not job then begin_scan(s, false); message = "Scanning..." end
     elseif id == "b_sell" then
@@ -317,22 +367,15 @@ local function rule_page(side, title, help)
     local function text(id, t) return {id = id, type = "text", text = t} end
     local p = string.sub(side, 1, 1)
     local children = {text(p .. "_help", help)}
-    -- every rule in one text block, picked from one dropdown: a few controls however long the list (the window holds 256)
-    local lines, options = {}, {}
+    -- one row per rule with an X to remove it (JJ 2026-11-24: "just add a clickable X to remove something")
     for n, r in ipairs(st[side]) do
-        local label = n .. ". " .. describe(r) .. (r.on and "" or "  (off)")
-        lines[n], options[n] = label, label
-    end
-    children[#children + 1] = text(p .. "_list", #lines > 0 and table.concat(lines, "\n") or "(no rules)")
-    if #options > 0 then
-        local d = draft[side]
-        if not d.pick or not st[side][d.pick] then d.pick = 1 end
-        children[#children + 1] = {id = p .. "_pick", type = "select", text = "Rule", value = options[d.pick], options = options}
-        children[#children + 1] = {id = p .. "_edit", type = "row", children = {
-            {id = p .. "_toggle", type = "button", text = st[side][d.pick].on and "Turn off" or "Turn on"},
-            {id = p .. "_remove", type = "button", text = "Remove"},
+        if n > 80 then children[#children + 1] = text(p .. "_more", "... and " .. (#st[side] - 80) .. " more"); break end
+        children[#children + 1] = {id = p .. "_row_" .. n, type = "row", children = {
+            text(p .. "_t_" .. n, describe(r) .. (r.on and "" or "  (off)")),
+            {id = p .. "_rm_" .. n, type = "button", text = "X", tooltip = "Remove", auto_width = true},
         }}
     end
+    if #st[side] == 0 then children[#children + 1] = text(p .. "_none", "(none)") end
     local d = draft[side]
     children[#children + 1] = {id = p .. "_kind", type = "select", text = "New rule", value = d.kind, options = KINDS}
     if d.kind == "Item type" then
@@ -370,7 +413,8 @@ local function will_buttons()
         if i > 60 then out[#out + 1] = {id = "m_will_more", type = "text", text = "... and " .. (#order - 60) .. " more"}; break end
         will_names[i] = name
         out[#out + 1] = {id = "w_" .. i, type = "button", text = name .. (count[name] > 1 and ("  x" .. count[name]) or ""),
-            tooltip = "Click to keep: adds \"Name is " .. name .. "\" to Exceptions", enabled = job == nil}
+            tooltip = (st.click_mode == CLICK_MODES[2]) and ("Select to keep: adds \"Name is " .. name .. "\" to Exceptions")
+                or ("Select to remove " .. name .. " from this sale"), enabled = job == nil}
     end
     return out
 end
@@ -384,25 +428,35 @@ local function ui(s)
     elseif plan then
         local pays = 0
         for _, f in ipairs(plan.sell) do pays = pays + (f.pays or 0) end
-        status = #plan.sell .. " to sell" .. (pays > 0 and (" for about " .. pays .. " pyreals") or "") .. ", " .. #plan.keep ..
-            " kept, " .. #plan.skipped .. " skipped" .. (#plan.elsewhere > 0 and (", " .. #plan.elsewhere .. " not bought here") or "")
-    else status = "Click Scan to preview, or Sell." end
+        status = #plan.sell .. " to sell" .. (pays > 0 and (" for about " .. pays .. " pyreals") or "")
+    else status = "Scan to preview, or Sell." end
+    -- the items clicked away this sale, each a button that puts it back
+    unskip_names = {}
+    local skipped = {}
+    for name in pairs(skip_names) do skipped[#skipped + 1] = name end
+    table.sort(skipped)
+    local skip_children = {}
+    for i, name in ipairs(skipped) do
+        if i > 40 then break end
+        unskip_names[i] = name
+        skip_children[#skip_children + 1] = {id = "u_" .. i, type = "button", text = name, tooltip = "Select to put it back in this sale", enabled = job == nil}
+    end
+    if #skipped > 0 then skip_children[#skip_children + 1] = {id = "b_unskip", type = "button", text = "Put all back", enabled = job == nil} end
     local sell_page = {id = "page_main", type = "column", text = "Sell", children = {
         text("m_vendor", "Vendor: " .. (open and (s.vendor_name or "open") or "(none open)")),
-        text("m_profile", "Profile: " .. (st.profile or "(none)")),
+        {id = "m_only", type = "input", text = "Only sell", value = st.only or "", live = true,
+            tooltip = "Blank sells everything. Or words from the name, comma separated: Essence, Scarab"},
         {id = "m_btns", type = "row", children = {
             {id = "b_scan", type = "button", text = "Scan", enabled = job == nil},
             {id = "b_sell", type = "button", text = job and "Stop" or "Sell"},
         }},
         text("m_status", status),
         text("m_msg", message ~= "" and message or " "),
-        {id = "m_will", type = "section", text = "Will sell (click one to keep it)", expanded = true, children = will_buttons()},
-        {id = "m_kept", type = "section", text = "Kept", expanded = false, children = {
-            text("m_kept_t", plan and list_text(plan.keep, 40) or "(scan first)")}},
-        {id = "m_else", type = "section", text = "This vendor doesn't buy", expanded = false, children = {
-            text("m_else_t", plan and list_text(plan.elsewhere, 40) or (open and "(scan first)" or "(open a vendor and scan)"))}},
-        {id = "m_skip", type = "section", text = "Skipped", expanded = false, children = {
-            text("m_skip_t", plan and list_text(plan.skipped, 40) or "(scan first)")}},
+        {id = "m_click_mode", type = "select", text = "Selecting an item", value = (st.click_mode == CLICK_MODES[2]) and CLICK_MODES[2] or CLICK_MODES[1], options = CLICK_MODES},
+        {id = "m_will", type = "section", text = (st.click_mode == CLICK_MODES[2]) and "Will sell (select an item to keep it always)"
+            or "Will sell (select an item to remove it from this sale)", expanded = true, children = will_buttons()},
+        #skipped > 0 and {id = "m_skipped", type = "section", text = "Removed from this sale (select to put back)", expanded = true, children = skip_children}
+            or text("m_skipped_none", " "),
         text("m_log", #log > 0 and table.concat(log, "\n") or " "),
     }}
     local options = {"(none)"}
@@ -412,17 +466,14 @@ local function ui(s)
     for _, o in ipairs(options) do if o == st.profile then listed = true end end
     if st.profile and not listed then options[#options + 1] = st.profile end
     local profile_page = {id = "page_profile", type = "column", text = "Profile", children = {
-        text("p_help", "Optional. Pick a UCM loot profile (the same file UCM loots by, read again at every scan) or a .utl " ..
-            "from the import folder. Its first matching rule decides: Sell lets the item go, any other action (Keep, " ..
-            "Salvage...) keeps it. Your Exceptions still win."),
+        text("p_help", "Uses your loot profile to decide what's sold. Your Exceptions take priority."),
         {id = "profile_refresh", type = "button", text = "Refresh list"},
         {id = "profile_pick", type = "select", text = "Profile", value = st.profile or "(none)", options = options},
         text("p_note", profile_note ~= "" and profile_note or " "),
     }}
     return {{id = "tab", type = "tabs", children = {
         sell_page,
-        rule_page("sell", "Sell list", "What may be sold. An item must match one of these. \"Everything\" sells all but the exceptions."),
-        rule_page("keep", "Exceptions", "Never sold, whatever the Sell list says. Always kept as well: equipped, retained, packs, pyreals, and gear (weapons, armor, clothing, jewelry) not assessed yet."),
+        rule_page("keep", "Exceptions", "Loot never sold. Also always kept: equipped and retained items, unassessed items, and anything your loot profile keeps."),
         profile_page,
     }}}
 end
@@ -438,6 +489,10 @@ return function(s, p)
         load_profile(st.profile)
     end
     local dirty = false
+    if s.vendor ~= last_vendor then
+        if not job then skip_names = {} end
+        last_vendor = s.vendor
+    end
     for _, e in ipairs(s.events or {}) do
         if e.type == "result" then
             if e.id == "list" and e.ok then
@@ -489,6 +544,6 @@ return function(s, p)
     end
     out.status = job and ("Selling " .. (job.sold + job.failed) .. "/" .. #job.queue) or "Ready"
     out.ui = ui(s)
-    if dirty then out.state = {sell = st.sell, keep = st.keep, profile = st.profile} end
+    if dirty then out.state = {sell = st.sell, keep = st.keep, profile = st.profile, click_mode = st.click_mode, only = st.only} end
     return out
 end

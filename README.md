@@ -13,7 +13,7 @@ Copy a plugin's folder (e.g. `mudsort`) into AC:Unreal's `Saved/ClientPlugins/In
 | Plugin | Version | What it does | Status |
 |---|---|---|---|
 | [MudSort](mudsort) | 1.1.0 | A remake of Mudzereli's MudSort for Decal: sorts a pack by any property (damage, burden, value, type, name...) into a side pack, or hands the items to a player or NPC. Same sort strings (`OC,MX-,NM`). | Works into your own side packs; see its README for what the API holds back |
-| [Auto Sell](autosell) | 0.3.1 | Sells what's in your packs to the open vendor by your own sell list and exceptions; a UCM loot profile or `.utl` file's Keep rules protect items. Imbued, inscribed and tinkered items are skipped. | Working |
+| [Auto Sell](autosell) | 0.5.4 | Sells your packs to the open vendor with a preview: an "Only sell" filter (`Essence`), select an item to hold it back for this sale or keep it always, Exceptions with an X to remove, and an optional UCM loot profile whose Keep rules protect items. | Working |
 
 ## The plugin API limit we keep hitting
 
