@@ -12,14 +12,4 @@ Copy a plugin's folder (e.g. `mudsort`) into AC:Unreal's `Saved/ClientPlugins/In
 
 | Plugin | Version | What it does | Status |
 |---|---|---|---|
-| [MudSort](mudsort) | 1.1.0 | A remake of Mudzereli's MudSort for Decal: sorts a pack by any property (damage, burden, value, type, name...) into a side pack, or hands the items to a player or NPC. Same sort strings (`OC,MX-,NM`). | Works into your own side packs; see its README for what the API holds back |
 | [Auto Sell](autosell) | 0.5.4 | Sells your packs to the open vendor with a preview: an "Only sell" filter (`Essence`), select an item to hold it back for this sale or keep it always, Exceptions with an X to remove, and an optional UCM loot profile whose Keep rules protect items. | Working |
-
-## The plugin API limit we keep hitting
-
-Plugins move items with the `store_item` action. `ACEPluginAutomation.cpp` (around line 1528) only allows it when the item
-is already in your own inventory and the target is one of your own side packs (`C->IsOwnedInventoryItem(Bag)`), and it
-always places the item at the front (`SendPutItemInContainer(Id, Bag.Guid, 0)`). So a plugin can't move items into or out
-of chests or house storage, can't target the main pack, and can't pick a slot. Opening `store_item` to an open external
-container and the main pack would let MudSort move items between storage and your packs, and would make "drag a pack
-onto an item slot to empty it" possible as a plugin.
