@@ -1,0 +1,24 @@
+{
+  "api": 2,
+  "mode": "automation",
+  "id": "packmover",
+  "name": "Pack Mover",
+  "short_name": "MOVE",
+  "version": "1.1.1",
+  "description": "Moves items of one type (jewelry, gems, salvage, armor, essences...) from a pack, or the main pack, into a side pack.",
+  "presentation": {
+    "title": "Pack Mover",
+    "controls": "start_stop",
+    "start_label": "Open Pack Mover",
+    "stop_label": "Close Pack Mover",
+    "settings": false,
+    "status": true
+  },
+  "permissions": [
+    "inventory",
+    "data",
+    "ui",
+    "state"
+  ],
+  "settings": []
+}
