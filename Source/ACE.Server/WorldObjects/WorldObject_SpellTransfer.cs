@@ -91,6 +91,8 @@ namespace ACE.Server.WorldObjects
                     return true;   // Project ACX: two transfers on an untinkerable quest or named weapon (WorldObject_AcxQuestWeapon)
                 else if (IsAcxExplorerGear)
                     return true;   // Project ACX: two transfers on Explorer Society armor, clothing and jewelry (WorldObject_AcxExplorerGear)
+                else if (IsAcxQuestArmor)
+                    return true;   // Project ACX: two transfers on untinkerable quest armor and clothing (WorldObject_AcxQuestArmor)
                 else
                     return ItemWorkmanship > 0 && (ItemType & (ItemType.WeaponOrCaster | ItemType.Vestements | ItemType.Jewelry)) != 0;
             }
@@ -108,6 +110,9 @@ namespace ACE.Server.WorldObjects
 
                 if (IsAcxExplorerGear)
                     return AcxExplorerGearTransfers;
+
+                if (IsAcxQuestArmor)
+                    return AcxQuestArmorTransfers;
 
                 var baseSlots = (int)Math.Floor((ItemWorkmanship ?? 0) / 2f);
                 if (IsRobe)

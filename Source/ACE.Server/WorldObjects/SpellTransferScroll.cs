@@ -439,7 +439,7 @@ namespace ACE.Server.WorldObjects
             InjectSpellData data = new InjectSpellData();
             data.Target = target;
 
-            if (data.Target.Workmanship == null && data.Target.ExtraSpellsMaxOverride == null && !data.Target.IsAcxQuestWeapon && !data.Target.IsAcxExplorerGear)
+            if (data.Target.Workmanship == null && data.Target.ExtraSpellsMaxOverride == null && !data.Target.IsAcxQuestWeapon && !data.Target.IsAcxExplorerGear && !data.Target.IsAcxQuestArmor)
             {
                 data.Result = InjectSpellResult.YouDoNotPassCraftingRequirements;
                 return data;
