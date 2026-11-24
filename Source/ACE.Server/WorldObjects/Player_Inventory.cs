@@ -984,6 +984,9 @@ namespace ACE.Server.WorldObjects
             if (AcxMarks.TryTakeFromCorpse(this, itemGuid))   // Project ACX: one ACX Mark each from an elite's corpse
                 return;
 
+            if (AcxTryEmptyPackIntoVault(itemGuid, containerGuid, placement))   // Project ACX: a pack dropped on a vault's pack empties into it
+                return;
+
             if (!HandleActionPutItemInContainer_Verify(itemGuid, containerGuid, placement,
                 out Container itemRootOwner, out WorldObject item, out Container containerRootOwner, out Container container, out bool itemWasEquipped))
             {
