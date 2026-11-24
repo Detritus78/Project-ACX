@@ -5,8 +5,8 @@ stays.
 
 ## Install
 
-Copy this `autosell` folder into `Saved/ClientPlugins/Installed`, open **Plugins**, press **Refresh**, enable **Auto Sell**
-and allow its permissions.
+Copy this `autosell` folder into `Saved/ClientPlugins/Installed`, open **Plugins**, press **Refresh** and enable **Auto Sell**
+(enabling grants the permissions listed in its `plugin.json`: inventory, loot, data, ui, state, profiles).
 
 ## Use
 
