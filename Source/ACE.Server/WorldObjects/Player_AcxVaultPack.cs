@@ -1,65 +1,58 @@
+using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Entity.Enum;
+using ACE.Entity;
 using ACE.Server.Managers;
-using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
         /// <summary>
-        /// Project ACX: emptying a pack into a vault (JJ 2026-11-24: "if I drag it onto a empty pack slot it places the entire
-        /// pack in the slot but if I drag it into a object slot like a stored item it just empties the pack so far as there is
-        /// room. If there isnt room it fills what it can and the rest stays in the bag"). A pack (or Salvage Barrel) from your
-        /// inventory dropped onto a pack inside a vault empties into that pack: every item that fits and that the pack takes
-        /// (a Salvage Barrel only takes salvage) moves; attuned items and the rest stay in your pack, which stays with you.
-        /// Dropped on the vault itself the pack goes in whole, as before (pending: the client's placement for a drop on the
-        /// vault's item grid, logged here, to empty there too).
+        /// Project ACX: /vault dump empties the selected pack into the open vault (JJ 2026-11-24: drag a pack onto the vault's
+        /// items to empty it, "If there isnt room it fills what it can and the rest stays in the bag"; AC:Unreal refuses any
+        /// pack dropped on an item list or another pack, "cannot place container in item list", so a command instead, "yes
+        /// temporary"). Only the pack selected (last appraised) in your own inventory, only into the vault you have open.
+        /// Salvage goes to a Salvage Barrel in the vault first; everything else to the vault's main grid, then its packs. What
+        /// doesn't fit, or can't go in (attuned items, packs), stays in your pack.
         /// </summary>
-        private bool AcxTryEmptyPackIntoVault(uint itemGuid, uint containerGuid, int placement)
+        public string AcxVaultDump()
         {
-            if (FindObject(itemGuid, SearchLocations.MyInventory) is not ACE.Server.WorldObjects.Container pack || pack.Inventory.Count == 0)
-                return false;
+            var vault = CurrentLandblock?.GetObject(LastOpenedContainerId) as ACE.Server.WorldObjects.Container;
+            if (vault == null || !AcxVaults.IsVault(vault))
+                return "Open a vault first.";
 
-            var target = FindObject(containerGuid, SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var targetRoot, out _) as ACE.Server.WorldObjects.Container;
-            var vault = targetRoot ?? target;
-            if (target == null || vault == null || !AcxVaults.IsVault(vault) || vault.Guid != LastOpenedContainerId)
-                return false;   // only into the vault you have open
+            var selected = RequestedAppraisalTarget is uint id ? FindObject(id, SearchLocations.MyInventory) : null;
+            if (selected is not ACE.Server.WorldObjects.Container pack || selected == this)
+                return "Select one of your packs first (click it), then /vault dump.";
+            if (pack.Inventory.Count == 0)
+                return $"Your {pack.Name} is empty.";
 
-            log.Info($"[VAULTPACK] {Name} dropped {pack.Name} on {(target == vault ? "the vault" : target.Name)} ({vault.Name}), placement {placement}");
-
-            if (target == vault)
-                return false;   // the whole pack goes into a bag slot
-
-            if (IsBusy || Teleporting)
+            // where an item may go, in order: Salvage Barrels for salvage, then the vault, then the vault's packs
+            List<Container> Places(WorldObject item)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YoureTooBusy));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-                return true;
+                var packs = vault.Inventory.Values.OfType<Container>().ToList();
+                return packs.Where(p => IsPouch(p) && p.AcxAccepts(item))
+                    .Append(vault)
+                    .Concat(packs.Where(p => !IsPouch(p) && p.AcxAccepts(item)))
+                    .ToList();
             }
+
+            static bool IsPouch(Container c) => (c.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.AcxPouchItemTypes) ?? 0) != 0;
+            bool HasRoom(Container c) => c.Inventory.Values.Count(i => i is not ACE.Server.WorldObjects.Container) < (c.ItemCapacity ?? 0);
 
             var moved = 0;
             var left = 0;
             foreach (var item in pack.Inventory.Values.OrderBy(i => i.PlacementPosition ?? 0).ToList())
             {
-                var full = target.Inventory.Count(i => i.Value is not ACE.Server.WorldObjects.Container) >= (target.ItemCapacity ?? 0);
-                if (full || item is ACE.Server.WorldObjects.Container || item.IsAttunedOrContainsAttuned || !target.AcxAccepts(item))
-                {
-                    left++;
-                    continue;
-                }
-                if (DoHandleActionPutItemInContainer(item, this, false, target, vault, 0))
+                var place = item is ACE.Server.WorldObjects.Container || item.IsAttunedOrContainsAttuned ? null : Places(item).FirstOrDefault(HasRoom);
+                if (place != null && DoHandleActionPutItemInContainer(item, this, false, place, vault, 0))
                     moved++;
                 else
                     left++;
             }
 
-            // the pack itself never moves
-            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
-            Session.Network.EnqueueSend(new GameMessageSystemChat(left == 0 ? $"Moved {moved} items into {target.Name}." : $"Moved {moved} items into {target.Name}; {left} didn't fit or can't go in.", ChatMessageType.Broadcast));
-            return true;
+            return left == 0 ? $"Moved {moved} items into {vault.Name}." : $"Moved {moved} items into {vault.Name}; {left} didn't fit or can't go in.";
         }
     }
 }
