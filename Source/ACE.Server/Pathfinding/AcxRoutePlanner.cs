@@ -53,18 +53,18 @@ namespace ACE.Server.Pathfinding
             public List<string> Unreached { get; set; } = new();
         }
 
-        public static string Start(ushort landblock, uint startCell, float clearance, bool skipDoors = false, float cover = 12f)
+        public static string Start(ushort landblock, uint startCell, float clearance, bool skipDoors = false, float cover = 12f, Position from = null, Position to = null)
         {
             CoverRadius = cover;
             Task.Run(() =>
             {
-                try { log.Info($"[Route] {Plan(landblock, startCell, clearance, skipDoors)}"); }
+                try { log.Info($"[Route] {Plan(landblock, startCell, clearance, skipDoors, from, to)}"); }
                 catch (Exception e) { log.Error($"[Route] {landblock:X4} failed: {e}"); }
             });
             return $"Planning a route through {landblock:X4} from {startCell:X8}, {clearance} m from hotspots{(skipDoors ? ", not through doors" : "")}. Result goes to the server log.";
         }
 
-        private static string Plan(ushort landblock, uint startCell, float clearance, bool skipDoors)
+        private static string Plan(ushort landblock, uint startCell, float clearance, bool skipDoors, Position fromSpot = null, Position toSpot = null)
         {
             // routes go on the wide mesh where they can (1.4 m off the walls, so a melee character darting back to the route
             // doesn't catch a corner; JJ 2026-11-23: "your corners are likely to close to the wall"), on the narrow one where
@@ -97,6 +97,33 @@ namespace ACE.Server.Pathfinding
             // shut the polygons near them, on both meshes
             output.ClosedPolys = CloseNear(mesh, output.Hotspots, clearance) + (wide != null ? CloseNear(wide, output.Hotspots, clearance) : 0)
                 + CloseNear(mesh, output.Portals, PortalClearance) + (wide != null ? CloseNear(wide, output.Portals, PortalClearance) : 0);
+
+            // Project ACX: a straight run from one spot to another, the shortest open way (JJ 2026-11-24, Tusker Abode: "just
+            // navigates the main big hall not the small halls. It should go from the drop point all the way to the jump down
+            // part stop and turn around"); UCM's reverse_route walks it back
+            if (fromSpot != null && toSpot != null)
+            {
+                var a = ClosestOpen(wide ?? mesh, fromSpot) ?? ClosestOpen(mesh, fromSpot);
+                var b = ClosestOpen(wide ?? mesh, toSpot) ?? ClosestOpen(mesh, toSpot);
+                if (a == null || b == null)
+                    return $"{landblock:X4}: start or end is off the open mesh";
+                var line = wide != null ? Pathfinder.FindRoute(wide, a, b) : null;
+                if (line == null || line.Count == 0 || Vector3.Distance(line[^1].Pos, b.Pos) > 1.5f)
+                {
+                    line = Pathfinder.FindRoute(mesh, a, b);
+                    if (line == null || line.Count == 0 || Vector3.Distance(line[^1].Pos, b.Pos) > 1.5f)
+                        return $"{landblock:X4}: no open way from start to end";
+                    output.NarrowLegs++;
+                }
+                else
+                    output.WideLegs++;
+                line = EaseCorners(mesh, line, 2.5f, out var easedLine);
+                output.EasedCorners = easedLine;
+                output.Route = line.Select(r => new[] { r.PositionX, r.PositionY, r.PositionZ }).ToList();
+                var linePath = Path.Combine(Pathfinder.RootDirectory, $"route-{landblock:X4}.json");
+                File.WriteAllText(linePath, JsonSerializer.Serialize(output, new JsonSerializerOptions { WriteIndented = true }));
+                return $"{landblock:X4}: {line.Count} points from start to end, {output.ClosedPolys} polygons shut; written to {linePath}";
+            }
 
             // the cells and their doorways
             var info = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)landblock << 16 | 0xFFFE);
