@@ -1,0 +1,19 @@
+{
+  "api": 2,
+  "mode": "automation",
+  "id": "autosell",
+  "name": "Auto Sell",
+  "short_name": "SELL",
+  "version": "0.3.1",
+  "description": "Sells what's in your packs to the open vendor, by your own sell list and exceptions, plus an optional loot profile (UCM's own or a .utl) whose Keep rules protect items.",
+  "presentation": {
+    "title": "Auto Sell",
+    "controls": "start_stop",
+    "start_label": "Start Auto Sell",
+    "stop_label": "Stop Auto Sell",
+    "settings": false,
+    "status": true
+  },
+  "permissions": ["inventory", "loot", "data", "ui", "state", "profiles"],
+  "settings": []
+}

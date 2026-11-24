@@ -1,0 +1,19 @@
+{
+  "api": 2,
+  "mode": "automation",
+  "id": "mudsort",
+  "name": "MudSort",
+  "short_name": "SORT",
+  "version": "1.1.0",
+  "description": "MudSort's sorting window for AC:Unreal: sorts the items of a pack by any property (damage, burden, value, type, name ...) into a side pack, or hands them to a player or NPC. A port of Mudzereli's MudSort for Decal, with its sort strings.",
+  "presentation": {
+    "title": "MudSort",
+    "controls": "start_stop",
+    "start_label": "Open MudSort",
+    "stop_label": "Close MudSort",
+    "settings": false,
+    "status": true
+  },
+  "permissions": ["inventory", "data", "ui", "state"],
+  "settings": []
+}
