@@ -120,6 +120,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void OnVaultCreated(Storage vault)
         {
+            // the leaseholder in the name from the start (the saved name is "Vault 3-B", or "Vault 3-B Owner" once saved since)
+            var words = (vault.Name ?? "").Split(' ');
+            if (words.Length >= 2 && words[0] == "Vault")
+            {
+                var owner = Leaseholder(vault) != null ? vault.GetProperty(PropertyString.AcxVaultOwnerName) : null;
+                var label = $"{words[0]} {words[1]}";
+                vault.Name = string.IsNullOrEmpty(owner) ? label : $"{label} {owner}";
+            }
+
             // named once its landblock has loaded the other vaults
             var chain = new ActionChain();
             chain.AddDelaySeconds(3);
@@ -423,7 +432,7 @@ namespace ACE.Server.Managers
         {
             var lines = AllVaults(landblock).Select(v => Owner(v) == null
                 ? $"{VaultName(v)}: free ({v.ItemCapacity}+{v.ContainerCapacity} slots), {(v as Container)?.Inventory.Count ?? 0} items"
-                : $"{VaultName(v)}: {v.GetProperty(PropertyString.AcxVaultOwnerName)} (account {Owner(v)}), paid through {Date(PaidUntil(v))}{(Lapsed(v) ? " LAPSED (free)" : PaidUntil(v) < Now ? " OVERDUE" : "")}, {(v as Container)?.Inventory.Count ?? 0} items").ToList();
+                : $"{VaultName(v)}: {v.GetProperty(PropertyString.AcxVaultOwnerName)} (account {Owner(v)}), paid through {Date(PaidUntil(v))}{(Lapsed(v) ? " LAPSED (free)" : PaidUntil(v) < Now ? " OVERDUE" : "")}, {(v as Container)?.Inventory.Count ?? 0} items, shown as \"{v.Name}\"").ToList();
             return lines.Count == 0 ? "No vaults found (the vault landblock may still be loading; try again)." : string.Join("\n", lines);
         }
 
