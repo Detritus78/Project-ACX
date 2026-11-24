@@ -408,6 +408,30 @@ namespace ACE.Server.Managers
             uint currency = 0;
             string[] nameWords;
 
+            // Project ACX: /b t all <name> sends the whole bank, pyreals and every currency (JJ 2026-11-24, moving everything
+            // to another character: "the commands aren't working. We need to simplify the instructions..")
+            if (args.Length >= 2 && args[0].Equals("all", StringComparison.OrdinalIgnoreCase))
+            {
+                var allTarget = FindTarget(string.Join(' ', args[1..]).Trim(), out var notFound);
+                if (allTarget == null)
+                    return notFound;
+                if (allTarget.Guid == player.Guid)
+                    return "That's you.";
+                var balance = GetBalance(player);
+                var currencies = GetCurrencies(player).Where(c => c.Value > 0).ToList();
+                if (balance <= 0 && currencies.Count == 0)
+                    return "Your bank is empty.";
+                var list = string.Join(", ", (balance > 0 ? new[] { $"{balance:N0} pyreals" } : new string[0]).Concat(currencies.Select(c => $"{c.Value:N0} {CurrencyName(c.Key, c.Value)}")));
+                player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(player.Guid, () =>
+                {
+                    if (GetBalance(player) > 0)
+                        DoTransfer(player, allTarget, GetBalance(player), 0, 0);
+                    foreach (var c in GetCurrencies(player).Where(c => c.Value > 0).ToList())
+                        DoTransfer(player, allTarget, 0, c.Key, c.Value);
+                }), $"Send your whole bank to {allTarget.Name}: {list}? This can't be undone.");
+                return $"Confirm sending your whole bank to {allTarget.Name}.";
+            }
+
             if (args.Length >= 3 && IsWord(args[0].ToLowerInvariant(), "n", "note", "notes"))
             {
                 var size = NoteSizes.FirstOrDefault(n => n.Roman.Equals(args[1], StringComparison.OrdinalIgnoreCase) || (TryAmount(args[1], out var v) && v == n.Value));
@@ -422,6 +446,13 @@ namespace ACE.Server.Managers
                 pyreals = p;
                 nameWords = args[2..];
             }
+            // Project ACX: "/b t 10 marks <name>" (count first) works as well as "/b t marks 10 <name>" (JJ 2026-11-24)
+            else if (args.Length >= 3 && TryAmount(args[0], out var countFirst) && FindCurrency(args[1], GetCurrencies(player).Keys, out _) is uint currencyAfter)
+            {
+                currency = currencyAfter;
+                count = countFirst;
+                nameWords = args[2..];
+            }
             else if (args.Length >= 2 && TryAmount(args[0], out var amount))
             {
                 pyreals = amount;
@@ -431,10 +462,14 @@ namespace ACE.Server.Managers
             {
                 var found = FindCurrency(args[0], GetCurrencies(player).Keys, out var ambiguous);
                 if (found == null)
-                    return ambiguous != null ? $"Which one: {string.Join(", ", ambiguous.Select(w => CurrencyName(w, 2)))}?" : $"You have no {args[0]} banked. {TransferUsage}";
+                    return ambiguous != null ? $"Which one: {string.Join(", ", ambiguous.Select(w => CurrencyName(w, 2)))}?" : $"You have no {args[0]} banked (/b d {args[0]} banks them from your pack first). {TransferUsage}";
                 currency = found.Value;
-                count = args.Length >= 3 && TryAmount(args[1], out var c) ? c : 1;
-                nameWords = args[(args.Length >= 3 && TryAmount(args[1], out _) ? 2 : 1)..];
+                // a count, or "all"; none means 1
+                var all = args.Length >= 3 && args[1].Equals("all", StringComparison.OrdinalIgnoreCase);
+                long c = 0;
+                var counted = args.Length >= 3 && TryAmount(args[1], out c);
+                count = all ? GetCurrencies(player).GetValueOrDefault(currency) : counted ? c : 1;
+                nameWords = args[(all || counted ? 2 : 1)..];
             }
             else
                 return TransferUsage;
@@ -442,9 +477,9 @@ namespace ACE.Server.Managers
             var name = string.Join(' ', nameWords).Trim();
             if (name.Length == 0)
                 return TransferUsage;
-            var target = PlayerManager.FindByName(name);
+            var target = FindTarget(name, out var missing);
             if (target == null)
-                return $"There's no character called {name}.";
+                return missing;
             if (target.Guid == player.Guid)
                 return "That's you.";
 
@@ -495,7 +530,30 @@ namespace ACE.Server.Managers
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Sent {what} to {target.Name}'s bank. {Balance(player)}", ChatMessageType.Broadcast));
         }
 
-        public const string TransferUsage = "Transfer: /b t <amount> <name> (pyreals), /b t n <MMD|D|C|...> [count] <name>, /b t marks [count] <name> (or any banked currency).";
+        public const string TransferUsage = "Send to another character's bank: /b t all <name> (everything), /b t <amount> <name> (pyreals), /b t marks <count> <name> (any currency). A first name is enough.";
+
+        /// <summary>
+        /// Project ACX: the character a transfer goes to: the full name, or a first name or start of a name that only one
+        /// character has (JJ 2026-11-24: "Gunnar" for Gunnar Hamarr)
+        /// </summary>
+        private static IPlayer FindTarget(string name, out string notFound)
+        {
+            notFound = null;
+            if (name.Length == 0)
+            {
+                notFound = TransferUsage;
+                return null;
+            }
+            var exact = PlayerManager.FindByName(name);
+            if (exact != null)
+                return exact;
+            var matches = PlayerManager.GetAllPlayers().Where(p => !p.IsDeleted && !p.IsPendingDeletion && p.Name != null
+                && p.Name.TrimStart('+').StartsWith(name, StringComparison.OrdinalIgnoreCase)).ToList();
+            if (matches.Count == 1)
+                return matches[0];
+            notFound = matches.Count == 0 ? $"There's no character called {name}." : $"Which one: {string.Join(", ", matches.Select(p => p.Name))}?";
+            return null;
+        }
 
         /// <summary>
         /// Puts all the items in the player's pack, or none of them
