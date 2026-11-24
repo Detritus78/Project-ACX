@@ -672,6 +672,7 @@ namespace ACE.Entity.Enum.Properties
         AcxEliteWard                             = 30018,
         AcxSalvageSack                           = 30019,
         AcxAuraScript2Count                      = 30020,
+        AcxSpellCount                            = 30021,   // Project ACX: sent in appraisals only (AppraiseInfo), never stored: the item's spell count, for loot rules
     }
 
     public static class PropertyIntExtensions

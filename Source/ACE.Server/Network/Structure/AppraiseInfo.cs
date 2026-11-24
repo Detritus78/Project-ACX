@@ -73,6 +73,12 @@ namespace ACE.Server.Network.Structure
             BuildProperties(wo);
             BuildSpells(wo);
 
+            // Project ACX: how many spells the item has, sent with its properties so loot rules can ask for "exactly one spell"
+            // (UCM's spell condition only counts "at least"; JJ 2026-11-24: single-spell jewelry and underclothes to extract
+            // from, since extraction takes a random spell). Not stored on the item.
+            if (SpellBook.Count > 0 && wo is not Creature)
+                PropertiesInt[PropertyInt.AcxSpellCount] = SpellBook.Count;
+
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
