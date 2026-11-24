@@ -185,6 +185,20 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        /// <summary>
+        /// Project ACX: whether a banked currency may be sent to another character (JJ 2026-11-24: "Gear markers and stipends
+        /// are attuned and bonded. They cannot be transferred ... ACX is the exception"). Attuned currencies (stipends, gear
+        /// markers, Mhoire coins, trade tokens, Colosseum and Gauntlet coins, Writs of Apology...) stay with the character
+        /// that earned them; they can still be banked and withdrawn. The ACX Mark is the one tradeable currency.
+        /// </summary>
+        public static bool IsTransferable(uint wcid)
+        {
+            if (wcid == AcxMarks.Wcid)
+                return true;
+            var weenie = ACE.Database.DatabaseManager.World.GetCachedWeenie(wcid);
+            return weenie != null && (weenie.GetProperty(PropertyInt.Attuned) ?? 0) == 0;
+        }
+
         private static bool IsWord(string word, params string[] forms) => forms.Contains(word);
 
         /// <summary>
@@ -418,17 +432,17 @@ namespace ACE.Server.Managers
                 if (allTarget.Guid == player.Guid)
                     return "That's you.";
                 var balance = GetBalance(player);
-                var currencies = GetCurrencies(player).Where(c => c.Value > 0).ToList();
+                var currencies = GetCurrencies(player).Where(c => c.Value > 0 && IsTransferable(c.Key)).ToList();
                 if (balance <= 0 && currencies.Count == 0)
-                    return "Your bank is empty.";
+                    return "You have nothing in your bank you can send (attuned currencies stay with you).";
                 var list = string.Join(", ", (balance > 0 ? new[] { $"{balance:N0} pyreals" } : new string[0]).Concat(currencies.Select(c => $"{c.Value:N0} {CurrencyName(c.Key, c.Value)}")));
                 player.ConfirmationManager.EnqueueSend(new Confirmation_Custom(player.Guid, () =>
                 {
                     if (GetBalance(player) > 0)
                         DoTransfer(player, allTarget, GetBalance(player), 0, 0);
-                    foreach (var c in GetCurrencies(player).Where(c => c.Value > 0).ToList())
+                    foreach (var c in GetCurrencies(player).Where(c => c.Value > 0 && IsTransferable(c.Key)).ToList())
                         DoTransfer(player, allTarget, 0, c.Key, c.Value);
-                }), $"Send your whole bank to {allTarget.Name}: {list}? This can't be undone.");
+                }), $"Send your whole bank to {allTarget.Name}: {list}? Attuned currencies stay with you. This can't be undone.");
                 return $"Confirm sending your whole bank to {allTarget.Name}.";
             }
 
@@ -473,6 +487,9 @@ namespace ACE.Server.Managers
             }
             else
                 return TransferUsage;
+
+            if (currency != 0 && !IsTransferable(currency))
+                return $"{CurrencyName(currency, 2)} are attuned: they stay with you.";
 
             var name = string.Join(' ', nameWords).Trim();
             if (name.Length == 0)
