@@ -5,7 +5,7 @@ not server-specific: they work on any server AC:Unreal connects to. Work in prog
 
 ## Install
 
-Copy a plugin's folder (e.g. `mudsort`) into AC:Unreal's `Saved/ClientPlugins/Installed`, open **Plugins**, press
+Copy a plugin's folder (e.g. `autosell`) into AC:Unreal's `Saved/ClientPlugins/Installed`, open **Plugins**, press
 **Refresh**, enable it and allow the permissions it asks for.
 
 ## The plugins
