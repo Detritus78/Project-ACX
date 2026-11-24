@@ -96,5 +96,80 @@ namespace ACE.Server.Command.Handlers
             player.SendMessage($"Your {entry.skill} is now specialized.");
             CommandHandlerHelper.WriteOutputInfo(session, $"{player.Name}'s {entry.skill} specialized for {cost} credits; {player.AvailableSkillCredits} left.");
         }
+
+        // the free augmentations for a tradesman: (property, most levels, attribute for an innate aug)
+        private static readonly Dictionary<string, (PropertyInt prop, int max, PropertyAttribute? attr)> GrantableAugs = new Dictionary<string, (PropertyInt, int, PropertyAttribute?)>
+        {
+            ["joat"] = (PropertyInt.AugmentationJackOfAllTrades, 1, null),           // Jack of All Trades: +5 all skills
+            ["charmedsmith"] = (PropertyInt.AugmentationBonusImbueChance, 1, null),  // Charmed Smith: +5% imbue chance
+            ["world"] = (PropertyInt.LumAugAllSkills, 10, null),                     // Aura of the World: +1 all skills per level
+            ["spec"] = (PropertyInt.LumAugSkilledSpec, 5, null),                     // Aura of Specialization: +2 specialized skills per level
+            ["craft"] = (PropertyInt.LumAugSkilledCraft, 5, null),                   // Aura of the Craftsman: +1 crafting rolls per level
+            ["str"] = (PropertyInt.AugmentationInnateStrength, 10, PropertyAttribute.Strength),
+            ["end"] = (PropertyInt.AugmentationInnateEndurance, 10, PropertyAttribute.Endurance),
+            ["coord"] = (PropertyInt.AugmentationInnateCoordination, 10, PropertyAttribute.Coordination),
+            ["quick"] = (PropertyInt.AugmentationInnateQuickness, 10, PropertyAttribute.Quickness),
+            ["focus"] = (PropertyInt.AugmentationInnateFocus, 10, PropertyAttribute.Focus),
+            ["self"] = (PropertyInt.AugmentationInnateSelf, 10, PropertyAttribute.Self),
+        };
+
+        /// <summary>
+        /// Project ACX: grant augmentations free (JJ 2026-11-24, for Brokk the tinker, who levels on passup and will never
+        /// reach luminance: "lets make an assumption and get him the no cost augs to increase the tinker skills", then the
+        /// attribute augs, not Ciandra's Fortune). Sets the property to the given level (most: the retail cap). An innate
+        /// attribute aug works as the gem does: +5 innate per level, capped at 100, counted in the innate family (10 at most).
+        /// </summary>
+        [CommandHandler("acxgrantaug", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Grants a logged-in character an augmentation free, up to the given count (default its cap).",
+            "<character name>, <joat | charmedsmith | world | spec | craft | str | end | coord | quick | focus | self>[, count]")]
+        public static void HandleGrantAug(Session session, params string[] parameters)
+        {
+            var parts = string.Join(" ", parameters).Split(',');
+            if (parts.Length < 2 || !GrantableAugs.TryGetValue(parts[1].Trim().ToLower(), out var aug))
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Usage: acxgrantaug <character name>, <joat | charmedsmith | world | spec | craft | str | end | coord | quick | focus | self>[, count]");
+                return;
+            }
+
+            var player = PlayerManager.GetOnlinePlayer(parts[0].Trim());
+            if (player == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"{parts[0].Trim()} isn't logged in.");
+                return;
+            }
+
+            var target = parts.Length > 2 && int.TryParse(parts[2].Trim(), out var n) ? System.Math.Min(n, aug.max) : aug.max;
+            var current = player.GetProperty(aug.prop) ?? 0;
+            var added = 0;
+
+            if (aug.attr == null)
+            {
+                if (target > current)
+                {
+                    player.SetProperty(aug.prop, target);
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, aug.prop, target));
+                    added = target - current;
+                }
+            }
+            else
+            {
+                var attribute = player.Attributes[aug.attr.Value];
+                while (current + added < target && player.AugmentationInnateFamily < 10 && attribute.StartingValue < 100)
+                {
+                    attribute.StartingValue += System.Math.Min(5, 100 - attribute.StartingValue);
+                    player.AugmentationInnateFamily++;
+                    added++;
+                }
+                if (added > 0)
+                {
+                    player.SetProperty(aug.prop, current + added);
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, aug.prop, current + added));
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AugmentationInnateFamily, player.AugmentationInnateFamily));
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateAttribute(player, attribute));
+                }
+            }
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"{player.Name}: {parts[1].Trim()} +{added} (now {player.GetProperty(aug.prop) ?? 0}){(aug.attr != null ? $", {aug.attr} innate {player.Attributes[aug.attr.Value].StartingValue}, innate family {player.AugmentationInnateFamily}/10" : "")}.");
+        }
     }
 }
