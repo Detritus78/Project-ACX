@@ -29,7 +29,7 @@ namespace ACE.Server.Managers
     /// Portal Gem to its entrance, kept until the contract ends, so far dungeons (and dying in them) cost no travel;
     /// finishing pays on the spot (experience, pyreals and a full bag of salvage, scaled to the dungeon).
     /// A contract and its gem run out 24 hours after they're handed out.
-    /// /contract lists yours; /contract drop gives one up; /sc shares your top one with your fellowship (see Share).
+    /// /contract lists yours; /contract drop gives one up; /sc [number] shares one with your fellowship, the top one by default (see Share).
     /// The dungeons come from Content/exploration/markers.json.
     /// </summary>
     public static class AcxContracts
@@ -353,12 +353,17 @@ namespace ACE.Server.Managers
         /// slots allow. Messages are one short chat line each, no banner (JJ): "Contract offered.", then "Contract accepted."
         /// or "Contract rejected." per fellow; a fellow with no free slot gets "No free slots available..." instead of the popup.
         /// </summary>
-        public static void Share(Player player)
+        public static void Share(Player player, int number = 1)
         {
             var state = Load(player);
             if (state.Active.Count == 0)
             {
                 player.SendMessage("You have no contract to share.");
+                return;
+            }
+            if (number < 1 || number > state.Active.Count)
+            {
+                player.SendMessage($"You have no contract {number}. /contract lists yours.");
                 return;
             }
             if (player.Fellowship == null)
@@ -367,7 +372,7 @@ namespace ACE.Server.Managers
                 return;
             }
 
-            var contract = state.Active[0];
+            var contract = state.Active[number - 1];
             var sharer = player.Guid.Full;
             var offered = false;
             foreach (var fellow in player.Fellowship.GetFellowshipMembers().Values.Where(p => p != player))

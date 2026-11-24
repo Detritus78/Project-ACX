@@ -37,16 +37,16 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /contract (yours), /contract drop <number>, /sc shares your top one with your fellowship. Talk to a Town Crier to fill your free contract slots.");
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /contract (yours), /contract drop <number>, /sc [number] shares one with your fellowship. Talk to a Town Crier to fill your free contract slots.");
         }
 
         // Project ACX: "share contract" (JJ asked for /cs, but AC:Unreal keeps /cs for Society chat, so it never reaches the server)
         [CommandHandler("sc", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
-            "Share your top contract (first on /contract's list) with your fellowship: each fellow gets a yes/no popup, and taking it uses one of their contracts for the day.",
-            "")]
+            "Share a contract with your fellowship (the number from /contract's list, the top one if left out): each fellow gets a yes/no popup, and taking it uses one of their contracts for the day.",
+            "[number]")]
         public static void HandleShareContract(Session session, params string[] parameters)
         {
-            AcxContracts.Share(session.Player);
+            AcxContracts.Share(session.Player, parameters.Length > 0 && int.TryParse(parameters[0], out var n) ? n : 1);
         }
     }
 }
