@@ -4,7 +4,7 @@
   "id": "autosell",
   "name": "Auto Sell",
   "short_name": "SELL",
-  "version": "0.5.4",
+  "version": "0.6.0",
   "description": "Sells what's in your packs to the open vendor, by your own sell list and exceptions, plus an optional loot profile (UCM's own or a .utl) whose Keep rules protect items.",
   "presentation": {
     "title": "Auto Sell",

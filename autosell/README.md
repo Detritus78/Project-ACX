@@ -15,7 +15,8 @@ Open a vendor, then open Auto Sell.
 
 - **Only sell**: leave blank to sell everything, or type words from item names to sell only those: `Essence`, or
   `Essence, Scarab`.
-- **Scan** previews the sale: **Will sell** lists everything that would go, with an estimate of the pyreals.
+- **Scan** previews the sale: **Will sell** lists everything that would go, with an estimate of the pyreals. Gear the
+  client hasn't appraised yet is appraised first (about one item a second).
 - **Selecting an item** in Will sell does one of two things, your choice:
   - **Remove from this sale** (default): it's held back for this sale only and shows under **Removed from this sale**,
     where selecting it puts it back. Removals clear when the sale ends or you close the vendor.
@@ -28,8 +29,8 @@ what's on your character.
 **Exceptions tab**
 
 Items that are never sold, with an **X** to remove one. Add rules by name, type and more, or **Add selected item**.
-Always kept as well: equipped and retained items, and items that haven't been assessed yet (weapons, armor, clothing
-and jewelry are assessed before they can sell; imbued, tinkered, inscribed, set and rare items are kept by default).
+Always kept as well: equipped and retained items, and gear that couldn't be appraised. Imbued, tinkered, inscribed, set
+and rare items are kept by default.
 
 **Profile tab**
 

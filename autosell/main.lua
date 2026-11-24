@@ -50,6 +50,7 @@ local will_names = {}    -- the Will sell buttons' names, by button number
 -- names skipped for this sale only (JJ 2026-11-24: "click an item and it just removes it from that instance of selling ...
 -- I don't want to sale all my ghost essences yet"); cleared when the sale finishes or the vendor window changes
 local skip_names = {}
+local appraise_tried = {}   -- items asked for in this scan (one that never answers isn't asked again)
 local unskip_names = {}  -- the Skipped this sale buttons' names, by button number
 local last_vendor
 local CLICK_MODES = {"Remove from this sale", "Keep always (Exception)"}
@@ -164,7 +165,7 @@ end
 local function begin_scan(s, then_sell)
     local packs = {}
     for _, bag in ipairs(s.packs or {}) do packs[bag.id] = true end
-    local todo, skipped, keep, elsewhere = {}, {}, {}, {}
+    local todo, skipped, keep, elsewhere, unassessed = {}, {}, {}, {}, {}
     local open = s.vendor and s.vendor ~= 0   -- can_sell (this vendor buys it, and it can be traded) only means something then
     for _, item in ipairs(s.inventory or {}) do
         local why
@@ -172,7 +173,9 @@ local function begin_scan(s, then_sell)
         elseif packs[item.id] or has_bits(item.type, 0x200) then why = nil
         elseif item.wcid == 273 or has_bits(item.type, 0x40) then why = nil
         elseif item.retained then why = "retained"
-        elseif not item.identified and has_bits(item.type, GEAR) then why = "not assessed"
+        elseif not item.identified and has_bits(item.type, GEAR) then
+            why = "not assessed"
+            if only_sell(item) then unassessed[#unassessed + 1] = item.id end
         elseif open and item.can_sell == false then
             elsewhere[#elsewhere + 1] = {name = item.name}
         else
@@ -185,7 +188,13 @@ local function begin_scan(s, then_sell)
         end
         if why then skipped[#skipped + 1] = {name = item.name, why = why} end
     end
-    plan = {i = 1, todo = todo, sell = {}, keep = keep, skipped = skipped, elsewhere = elsewhere, then_sell = then_sell, vendor = s.vendor}
+    plan = {i = 1, todo = todo, sell = {}, keep = keep, skipped = skipped, elsewhere = elsewhere, then_sell = then_sell, vendor = s.vendor,
+        unassessed = #unassessed}
+    -- gear the client hasn't appraised yet: appraise it first (about one a second), then scan again (JJ 2026-11-24: a
+    -- jeweler's bracelet never showed up because it hadn't been assessed). Each item is asked for once per scan.
+    local ask = {}
+    for _, id in ipairs(unassessed) do if not appraise_tried[id] then ask[#ask + 1] = id end end
+    if #ask > 0 then plan.identify = {ids = ask, next = 1} end
     -- UCM's profile may have been edited since it was loaded: read it again and wait for it
     if is_ucm(st.profile) then plan.waiting = true; load_profile(st.profile) end
 end
@@ -220,6 +229,32 @@ local function continue_scan(s)
         plan.i = plan.i + 1
     end
     return true
+end
+
+-- the appraisal pass of a scan: one request at a time, up to 4 s each, then the scan runs again with what's known
+local function identify_step(s)
+    local job_i = plan.identify
+    local items = {}
+    for _, item in ipairs(s.inventory or {}) do items[item.id] = item end
+    while job_i.next <= #job_i.ids do
+        local id = job_i.ids[job_i.next]
+        local item = items[id]
+        if not item or item.identified then
+            job_i.next, job_i.pending = job_i.next + 1, nil
+        elseif job_i.pending == id and (s.time or 0) < job_i.until_time then
+            return nil
+        elseif job_i.pending == id then
+            job_i.next, job_i.pending = job_i.next + 1, nil
+        else
+            job_i.pending, job_i.until_time = id, (s.time or 0) + 4
+            appraise_tried[id] = true
+            return {action = "identify", item = id}
+        end
+    end
+    local then_sell = plan.then_sell
+    plan = nil
+    begin_scan(s, then_sell)
+    return nil
 end
 
 local function start_selling(s)
@@ -323,11 +358,11 @@ local function handle(s, e, dirty)
         if plan and not job then begin_scan(s, false) end
         return dirty
     end
-    if id == "b_scan" then if not job then begin_scan(s, false); message = "Scanning..." end
+    if id == "b_scan" then if not job then appraise_tried = {}; begin_scan(s, false); message = "Scanning..." end
     elseif id == "b_sell" then
         if job then note("Stopped: " .. job.sold .. " sold."); plan, job = nil, nil
         elseif not s.vendor or s.vendor == 0 then message = "Open a vendor first."
-        else begin_scan(s, true); message = "Scanning..." end
+        else appraise_tried = {}; begin_scan(s, true); message = "Scanning..." end
     elseif id == "profile_refresh" then
         requests[#requests + 1] = {id = "list", service = "import", operation = "list"}
         requests[#requests + 1] = {id = "ucmlist", service = "profiles", operation = "list", group = "Loot"}
@@ -424,11 +459,13 @@ local function ui(s)
     local open = s.vendor and s.vendor ~= 0
     local status
     if job then status = "Selling " .. (job.sold + job.failed) .. "/" .. #job.queue
+    elseif plan and plan.identify then status = "Appraising " .. math.min(plan.identify.next, #plan.identify.ids) .. "/" .. #plan.identify.ids
     elseif plan and not plan.done then status = "Scanning " .. plan.i .. "/" .. #plan.todo
     elseif plan then
         local pays = 0
         for _, f in ipairs(plan.sell) do pays = pays + (f.pays or 0) end
         status = #plan.sell .. " to sell" .. (pays > 0 and (" for about " .. pays .. " pyreals") or "")
+            .. ((plan.unassessed or 0) > 0 and (" · " .. plan.unassessed .. " not assessed (couldn't appraise)") or "")
     else status = "Scan to preview, or Sell." end
     -- the items clicked away this sale, each a button that puts it back
     unskip_names = {}
@@ -530,7 +567,9 @@ return function(s, p)
     end
 
     local out = {}
-    if plan and not job and not plan.done then
+    if plan and plan.identify and not job then
+        if s.ready ~= false then out = identify_step(s) or {} end
+    elseif plan and not job and not plan.done then
         if continue_scan(s) then
             plan.done = true
             message = ""
