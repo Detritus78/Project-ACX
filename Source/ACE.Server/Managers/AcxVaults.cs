@@ -79,10 +79,16 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void RefreshNames(Landblock landblock)
         {
-            foreach (var (guid, name) in Names(landblock))
+            foreach (var (guid, label) in Names(landblock))
             {
                 var vault = landblock.GetObject(guid);
-                if (vault == null || vault.Name == name)
+                if (vault == null)
+                    continue;
+                // Project ACX: a leased vault shows its leaseholder (JJ 2026-11-24: "when you click on a vault you see a name of
+                // the owner? i.e. vault 3-B Brokk"); messages still say just "Vault 3-B" (VaultName)
+                var owner = Leaseholder(vault) != null ? vault.GetProperty(PropertyString.AcxVaultOwnerName) : null;
+                var name = string.IsNullOrEmpty(owner) ? label : $"{label} {owner}";
+                if (vault.Name == name)
                     continue;
                 vault.Name = name;
                 vault.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(vault, PropertyString.Name, name));
@@ -272,6 +278,7 @@ namespace ACE.Server.Managers
             vault.SetProperty(PropertyInt64.AcxVaultPaidUntil, Now + days * 86400);
             vault.SetProperty(PropertyInt.AcxVaultLockCode, ThreadSafeRandom.Next(1, int.MaxValue - 1));
             vault.SaveBiotaToDatabase();
+            RefreshNames(vault.CurrentLandblock);
 
             return ($"You lease {name}, paid through {Date(PaidUntil(vault))}. It opens for every character on your account and for anyone carrying one of its keys. Blank Vault Keys from the Vault Keeper become keys when used on it.", true);
         }
@@ -347,6 +354,8 @@ namespace ACE.Server.Managers
             vault.RemoveProperty(PropertyInt64.AcxVaultPaidUntil);
             vault.RemoveProperty(PropertyInt.AcxVaultLockCode);
             vault.SaveBiotaToDatabase();
+            if (vault.CurrentLandblock != null)
+                RefreshNames(vault.CurrentLandblock);
         }
 
         /// <summary>
