@@ -6,7 +6,7 @@ not server-specific: they work on any server AC:Unreal connects to. Work in prog
 ## Install
 
 Copy a plugin's folder (e.g. `autosell`) into AC:Unreal's `Saved/ClientPlugins/Installed`, open **Plugins**, press
-**Refresh** and enable it. Enabling grants the permissions listed in its `plugin.json`; there is no prompt.
+**Refresh** and enable it.
 
 ## The plugins
 
