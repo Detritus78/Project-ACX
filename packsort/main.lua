@@ -464,7 +464,7 @@ end
 local DEFAULTS = {source=0, source_name="", dest=0, dest_name="", kind="Jewelry",
     sort_string="OC,MX-,DB-,ED-,NM", oc_filter="None", oc_custom="", insert=0,
     saved1="OC,EP,MT,AL-,MX-", saved2="AL-,MX-", saved3="BR-", reverse=false, notify=true, identify_open=false,
-    list_filter="Commonly Used Keys"}
+    list_filter="Commonly Used Keys", picks=""}
 
 local st, dirty
 local give_target                   -- {id, name}: a player or NPC as destination, this session only
@@ -503,6 +503,47 @@ local function set_from_selection(s, which)
         return
     end
     message = "Select a pack, your character, or an open chest or vault (or a pack in it) first."
+end
+
+-- 2.1.0 (JJ 2026-11-25: "only give red letters to my other character", "be able to add the item via a button click"):
+-- picked item kinds, by weenie class, kept as "wcid|name;wcid|name". With any picked, Move takes only those kinds.
+local function pick_list()
+    local list, rest = {}, st.picks or ""
+    while rest ~= "" do
+        local cut = string.findplain(rest, ";")
+        local entry = cut and rest:sub(1, cut - 1) or rest
+        rest = cut and rest:sub(cut + 1) or ""
+        local bar = string.findplain(entry, "|")
+        if bar then list[#list + 1] = {wcid=tonumber(entry:sub(1, bar - 1)), name=entry:sub(bar + 1)} end
+    end
+    return list
+end
+
+local function add_pick(s)
+    local sel = s.selection
+    local item
+    if sel and sel.id then for _, it in ipairs(all_items(s)) do if it.id == sel.id then item = it end end end
+    if not item or not item.wcid then message = "Select an item in your pack first, then click Add Selected Item."; return end
+    local list = pick_list()
+    for _, p in ipairs(list) do if p.wcid == item.wcid then message = (item.name or "That item") .. " is already on the list."; return end end
+    local name = ""   -- ";" and "|" separate the stored list
+    for i = 1, #(item.name or "?") do
+        local c = (item.name or "?"):sub(i, i)
+        if c ~= ";" and c ~= "|" then name = name .. c end
+    end
+    local parts = {}
+    for _, p in ipairs(list) do parts[#parts + 1] = p.wcid .. "|" .. p.name end
+    parts[#parts + 1] = item.wcid .. "|" .. name
+    set("picks", table.concat(parts, ";"))
+    message = "Added " .. name .. "."
+end
+
+local function picks_text()
+    local list = pick_list()
+    if #list == 0 then return "Only: (nothing picked: every item of the type)" end
+    local names = {}
+    for _, p in ipairs(list) do names[#names + 1] = p.name end
+    return "Only: " .. table.concat(names, ", ")
 end
 
 local function where(s, which)
@@ -556,11 +597,17 @@ local function start_move(s)
     if problem then return nil, problem end
     if not give_target and st.source == st.dest then return nil, "Source and destination are the same pack." end
     local kind = kind_of(st.kind)
+    local picked = {}
+    for _, p in ipairs(pick_list()) do if p.wcid then picked[p.wcid] = true end end
+    local any_picked = next(picked) ~= nil
     local queue = {}
     for _, item in ipairs(all_items(s)) do
-        if item.container == st.source and not item.equipped and is_kind(item, kind) then queue[#queue + 1] = item.id end
+        if item.container == st.source and not item.equipped
+            and ((any_picked and picked[item.wcid]) or (not any_picked and is_kind(item, kind))) then queue[#queue + 1] = item.id end
     end
-    if #queue == 0 then return nil, "No " .. st.kind:lower() .. " in " .. st.source_name .. "." end
+    if #queue == 0 then
+        return nil, "No " .. (any_picked and "picked items" or st.kind:lower()) .. " in " .. st.source_name .. "."
+    end
     if not give_target and free_slots(s, st.dest) == 0 then return nil, st.dest_name .. " is full." end
     return {what="move", stage="move", queue=queue, next=1, done=0, failed=0, streak=0, total=#queue, sent={},
         pipelined=not give_target, give=give_target, dest=st.dest, fail_seen=failure_key(s), note=""}
@@ -812,6 +859,10 @@ end
 local function move_tab(s)
     local children = places(s, "m")
     children[#children + 1] = {id="m_kind", type="select", text="Type", value=st.kind, options=TYPE_NAMES}
+    children[#children + 1] = {id="m_r_pick", type="row", children={
+        button("m_pick", "Add Selected Item", "Select an item in your pack, then click: Move takes only the kinds you add", job == nil),
+        button("m_pick_clear", "Clear", "Back to every item of the Type", job == nil and st.picks ~= "")}}
+    children[#children + 1] = {id="m_picks", text=picks_text()}
     children[#children + 1] = button("m_go", job and "Stop" or "Move", nil, job == nil or job.what == "move")
     children[#children + 1] = {id="m_msg", text=progress_text()}
     children[#children + 1] = {id="m_log", text=#log > 0 and table.concat(log, "\n") or " "}
@@ -949,6 +1000,8 @@ return function(s, p)
             elseif starts_with(id, "o_saved") then set("saved" .. id:sub(8), tostring(e.value or "")) end
         elseif e.type == "click" then
             if id == "m_src" or id == "s_src" then set_from_selection(s, "source")
+            elseif id == "m_pick" then add_pick(s)
+            elseif id == "m_pick_clear" then set("picks", ""); message = "Picked items cleared."
             elseif id == "m_dst" or id == "s_dst" then set_from_selection(s, "dest")
             elseif id == "m_go" then if job then cancel = true else start_what = "move" end
             elseif id == "s_activate" then if job then cancel = true else start_what = "sort" end

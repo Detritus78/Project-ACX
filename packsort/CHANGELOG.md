@@ -1,5 +1,10 @@
 # PackSort changelog
 
+## 2.1.0
+- Move tab: **Add Selected Item** picks exact item kinds (select one in your pack, click). With any picked, Move
+  takes only those, whatever the Type, so you can give just your Red Letters to another character. **Clear** goes
+  back to the Type.
+
 ## 2.0.2
 - One Open/Close button instead of two side by side. The window's X just hides it; PackSort stops by itself
   when UCM or another automation plugin starts.

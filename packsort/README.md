@@ -29,6 +29,10 @@ Pick a **Type** and click **Move**: Jewelry, Gems, Salvage, Armor, Clothing, Wea
 Summoning essences, Spell components, Mana stones, Food, Keys, Scrolls and books, Trade notes, Alchemy, Fletching,
 Cooking, Misc, Useless, or Everything. It stops when the destination is full ("Moved 18; Pack 3 is full, 4 stayed.").
 
+**Add Selected Item** narrows it to exact item kinds: select an item in your pack (a Red Letter, say) and click it; add
+as many kinds as you like. With any picked, Move takes only those, whatever the Type. With a player as the destination,
+only those items are given. **Clear** goes back to the Type.
+
 ## Sort tab
 
 - **Sort String**: MudSort codes, comma separated; a `-` after a code means highest first. **Copy** and **Paste** move it
