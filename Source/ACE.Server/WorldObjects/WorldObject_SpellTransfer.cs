@@ -85,6 +85,8 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
+                if (ACE.Server.Entity.Cloak.IsCloak(this))
+                    return false;   // Project ACX: no spell transfers onto cloaks, and no "Extra Spells Count" line (JJ: "the 0/2 should just dissapear")
                 if (ExtraSpellsMaxOverride.HasValue && ExtraSpellsMaxOverride > 0)
                     return true;
                 else if (IsAcxQuestWeapon)
@@ -102,6 +104,11 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
+                // Project ACX (2026-11-24, JJ: "we need to remove spells from cloaks", block transfers): cloaks have their
+                // own set and proc; spell transfers onto them are refused ("cannot receive spell tranfers")
+                if (ACE.Server.Entity.Cloak.IsCloak(this))
+                    return 0;
+
                 if (ExtraSpellsMaxOverride.HasValue)
                     return Math.Max(ExtraSpellsMaxOverride.Value, 0);
 
