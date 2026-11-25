@@ -1,5 +1,9 @@
 # PackSort changelog
 
+## 2.0.2
+- One Open/Close button instead of two side by side. The window's X just hides it; PackSort stops by itself
+  when UCM or another automation plugin starts.
+
 ## 2.0.1
 - Build tab: hover a code for its full name (OC shows Object Class), the Key letter for its kind, and the column
   header for what each column does.
