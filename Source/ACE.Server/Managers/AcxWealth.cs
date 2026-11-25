@@ -186,6 +186,19 @@ namespace ACE.Server.Managers
                 return words.Any(w => w.StartsWith(word)) || weenie.GetName().ToLowerInvariant().StartsWith(word);
             }).Distinct().ToList();
 
+            // Project ACX: a whole-word match wins over a prefix ("marks" is the ACX Mark, not an Ornate Gear Marker too;
+            // JJ 2026-11-25: /b w marks kept asking which one)
+            if (matches.Count > 1)
+            {
+                var whole = matches.Where(wcid =>
+                {
+                    var weenie = ACE.Database.DatabaseManager.World.GetCachedWeenie(wcid);
+                    return $"{weenie.GetName()} {weenie.GetPluralName()}".ToLowerInvariant().Split(' ', '\'', '-').Any(w => w.TrimEnd('s') == word);
+                }).ToList();
+                if (whole.Count == 1)
+                    return whole[0];
+            }
+
             if (matches.Count == 1)
                 return matches[0];
             if (matches.Count > 1)

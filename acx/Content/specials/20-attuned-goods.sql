@@ -8,7 +8,7 @@
 --   900884         Limitless Lockpick                      400
 --   900885         Rune of Lifestone Recall                 50
 --   900886         Rune of Portal Recall                    75
--- (JJ's prices from the Mark Trader Prices sheet.) ACX's own goods are attuned in place: the Eternal Concordia Portal Gem
+-- (JJ's prices from the Mark Trader Prices sheet; kits, charge, lockpick and runes cut 2026-11-25.) ACX's own goods are attuned in place: the Eternal Concordia Portal Gem
 -- and the Primary / Secondary Portal Recall runes (900860-900862), Eternal Arrow / Quarrel / Atlatl Dart (900863-900865),
 -- the Gold Phials (900712-900720) and the ACX slayer stones (900870-900879). None is bonded.
 -- Still tradable for now: the Eternal Pack, the Salvage Barrel, the Foolproof gems, retail's slayer and skull gems, the
@@ -17,13 +17,13 @@
 DROP TEMPORARY TABLE IF EXISTS acx_attuned_copy;
 CREATE TEMPORARY TABLE acx_attuned_copy (class_Id INT UNSIGNED PRIMARY KEY, original INT UNSIGNED, class_Name VARCHAR(100), price INT);
 INSERT INTO acx_attuned_copy VALUES
-    (900880, 30247, 'acx-mark-eternal-health-kit', 100),
-    (900881, 30248, 'acx-mark-eternal-mana-kit', 100),
-    (900882, 30249, 'acx-mark-eternal-stamina-kit', 100),
-    (900883, 30254, 'acx-mark-eternal-mana-charge', 300),
-    (900884, 30253, 'acx-mark-limitless-lockpick', 400),
-    (900885, 30151, 'acx-mark-rune-lifestone-recall', 50),
-    (900886, 30165, 'acx-mark-rune-portal-recall', 75);
+    (900880, 30247, 'acx-mark-eternal-health-kit', 25),
+    (900881, 30248, 'acx-mark-eternal-mana-kit', 25),
+    (900882, 30249, 'acx-mark-eternal-stamina-kit', 25),
+    (900883, 30254, 'acx-mark-eternal-mana-charge', 60),
+    (900884, 30253, 'acx-mark-limitless-lockpick', 60),
+    (900885, 30151, 'acx-mark-rune-lifestone-recall', 15),
+    (900886, 30165, 'acx-mark-rune-portal-recall', 15);
 
 DELETE FROM weenie WHERE class_Id BETWEEN 900880 AND 900886;
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) SELECT o.class_Id, o.class_Name, w.type, NOW() FROM acx_attuned_copy o JOIN weenie w ON w.class_Id = o.original;

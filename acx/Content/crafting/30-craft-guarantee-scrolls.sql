@@ -9,7 +9,8 @@
 -- to be bought. The scroll itself still works if an admin makes one.
 -- Scroll of Sure Tinkering (900640) isn't sold either (JJ 2026-11-17: "lets take sure tinking out for now"): 10 minutes of
 -- risk-free tinkering for 1 MMD took the gamble out of a 10-tink weapon. Nor is Sure Fletching (900644; JJ: "remove sure
--- fletching..", nobody would use it). Sure Alchemy and Sure Cooking stay on sale.
+-- fletching..", nobody would use it). Sure Alchemy and Sure Cooking stay on sale, 100,000 each since 2026-11-25 (JJ agreed: the
+-- economy log showed about 8,000 pyreals an hour at loot value 0.1).
 -- Re-runnable. Restart the server after applying.
 
 DELETE FROM weenie WHERE class_Id BETWEEN 900640 AND 900644;
@@ -25,8 +26,8 @@ INSERT INTO weenie (class_Id, class_Name, type, last_Modified) VALUES
 INSERT INTO weenie_properties_int (object_Id, type, value) VALUES
     (900640, 1, 128), (900640, 5, 30), (900640, 9, 0), (900640, 16, 8), (900640, 19, 250000), (900640, 93, 1044), (900640, 30012, 1),
     (900641, 1, 128), (900641, 5, 30), (900641, 9, 0), (900641, 16, 8), (900641, 19, 250000), (900641, 93, 1044), (900641, 30012, 2),
-    (900642, 1, 128), (900642, 5, 30), (900642, 9, 0), (900642, 16, 8), (900642, 19, 250000), (900642, 93, 1044), (900642, 30012, 3),
-    (900643, 1, 128), (900643, 5, 30), (900643, 9, 0), (900643, 16, 8), (900643, 19, 250000), (900643, 93, 1044), (900643, 30012, 4),
+    (900642, 1, 128), (900642, 5, 30), (900642, 9, 0), (900642, 16, 8), (900642, 19, 100000), (900642, 93, 1044), (900642, 30012, 3),
+    (900643, 1, 128), (900643, 5, 30), (900643, 9, 0), (900643, 16, 8), (900643, 19, 100000), (900643, 93, 1044), (900643, 30012, 4),
     (900644, 1, 128), (900644, 5, 30), (900644, 9, 0), (900644, 16, 8), (900644, 19, 250000), (900644, 93, 1044), (900644, 30012, 5);   -- misc, burden 30, use from the pack, value 250,000, AcxCraftGuarantee
 
 INSERT INTO weenie_properties_bool (object_Id, type, value) VALUES

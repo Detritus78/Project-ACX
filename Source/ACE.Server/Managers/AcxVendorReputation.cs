@@ -15,7 +15,8 @@ namespace ACE.Server.Managers
     /// <summary>
     /// Project ACX: vendor reputation (JJ 2026-11-12). What vendors charge never changes. What they pay for items starts at
     /// 50% of value everywhere and rises with a character's reputation in that town, built from the pyreals they've traded
-    /// (bought plus sold) with the town's vendors: 60% at 100,000, 70% at 1 million, 80% at 10 million, 90% at 100 million.
+    /// (bought plus sold) with the town's vendors: 60% at 50,000, 70% at 250,000, 80% at 1 million, 90% at 5 million
+    /// (since 2026-11-25, JJ: "go with your steps"; was 100k/1M/10M/100M, out of reach at the economy log's rates).
     /// It always stays below what vendors charge, so buying and selling back loses money. Trade notes stay outside it.
     /// Vendors in Concordia (the Pawn Shopkeep in the gambling hall) pay a flat acx_concordia_buy_rate, under every town's
     /// starting 50%, and trade there builds no reputation: a buyer for big spenders whose bags fill up, not the place to sell
@@ -27,7 +28,7 @@ namespace ACE.Server.Managers
     {
         private static readonly (long Traded, double Rate)[] Tiers =
         {
-            (100_000_000, 0.9), (10_000_000, 0.8), (1_000_000, 0.7), (100_000, 0.6), (0, 0.5)
+            (5_000_000, 0.9), (1_000_000, 0.8), (250_000, 0.7), (50_000, 0.6), (0, 0.5)
         };
 
         private const int TownRange = 6;   // landblocks
