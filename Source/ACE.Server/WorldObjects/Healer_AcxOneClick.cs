@@ -18,8 +18,10 @@ namespace ACE.Server.WorldObjects
         {
             if (PropertyManager.GetBool("acx_one_click_heal").Item)
             {
+                // the target flags are the high word (GetTargetFlags shifts them down, so masking with it cleared the wrong
+                // bits and kits kept their targeting cursor: fixed 2026-11-25, JJ: "I have not seen one click healing work yet")
                 if (ItemUseable is Usable usable && usable.GetTargetFlags() != Usable.Undef)
-                    ItemUseable = usable & ~usable.GetTargetFlags();
+                    ItemUseable = (Usable)((uint)usable & 0xFFFFu);
             }
             else
             {
