@@ -42,7 +42,8 @@ Source and destination can be the same pack: that sorts it in place.
 ## Build tab
 
 Builds the sort string by clicking: **Up**/**Dn** reorder, **Rem** removes, **Lo**/**Hi** flips the order, **Add** adds a
-key. The filter shows commonly used keys, all keys, or one kind.
+key. The filter shows commonly used keys, all keys, or one kind. Hover a code for its full name (`OC` shows Object Class), the Key letter for its kind
+(S string, L long, D double, B boolean, C custom), and the column header for what each column does.
 
 ## Options tab
 
@@ -69,4 +70,5 @@ pack, or `player`, `pack <n>`, `storage`, `storage pack <n>`), `set flags <sort 
   same speed the first time.
 - Equipped items, packs, foci and pyreals never move.
 - The "buffed" sort keys use the item's own numbers; buffs aren't worked out.
-- UCM pauses while PackSort is open.
+- Opening PackSort stops UCM (AC:Unreal runs one automation plugin at a time); start UCM again when you're done, which
+  also stops PackSort. The window's X only hides it.
