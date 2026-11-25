@@ -111,5 +111,6 @@ namespace ACE.Entity.Enum.Properties
         AcxCampRegistry                = 30012,
         AcxVaultOwnerName              = 30013,
         AcxBankedCurrencies            = 30014,
+        AcxVaultGuests                 = 30015,
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -11,11 +12,13 @@ namespace ACE.Server.Command.Handlers
     public static class ACXVaultCommands
     {
         [CommandHandler("vault", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
-            "Shows your account's vaults, or gives one up (like abandoning a house; what's inside stays for the next leaseholder).",
-            "[abandon [name, e.g. 3-C]]")]
+            "Shows your account's vaults, gives one up (like abandoning a house; what's inside stays for the next leaseholder), or lets other characters open them without a key.",
+            "[abandon [name, e.g. 3-C] | storage [add <name> | remove <name> | clear]]")]
         public static void HandleVault(Session session, params string[] parameters)
         {
-            if (parameters.Length > 0 && parameters[0] == "abandon")
+            if (parameters.Length > 0 && parameters[0] == "storage")
+                CommandHandlerHelper.WriteOutputInfo(session, AcxVaults.Storage(session.Player, parameters.Skip(1).ToArray()));
+            else if (parameters.Length > 0 && parameters[0] == "abandon")
                 AcxVaults.Abandon(session.Player, parameters.Length > 1 ? parameters[1] : null);
             else
                 CommandHandlerHelper.WriteOutputInfo(session, AcxVaults.Status(session.Player));

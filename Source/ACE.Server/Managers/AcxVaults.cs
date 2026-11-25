@@ -149,9 +149,65 @@ namespace ACE.Server.Managers
 
             if (owner == null)
                 return $"{name} is free. Buy a Vault Deed from the Vault Keeper and use it on the vault to lease it.";
-            if (owner == player.Account.AccountId || HasKey(player, vault))
+            if (owner == player.Account.AccountId || HasKey(player, vault) || Guests(vault).Contains(player.Guid.Full))
                 return null;
             return $"{name} is locked.";
+        }
+
+        /// <summary>
+        /// Project ACX: /vault storage (JJ 2026-11-25: "we could also go back to the old way. and do it via command @vault
+        /// storage add <character name>", retail's @house storage add): characters the leaseholder lets open the vault without
+        /// a key, kept on the vault as character guids (AcxVaultGuests, "id;id"). Cleared when the lease ends.
+        /// </summary>
+        private static List<uint> Guests(WorldObject vault) =>
+            (vault.GetProperty(PropertyString.AcxVaultGuests) ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => uint.TryParse(s, out var g) ? g : 0).Where(g => g != 0).ToList();
+
+        private static void SetGuests(WorldObject vault, List<uint> guests)
+        {
+            if (guests.Count == 0)
+                vault.RemoveProperty(PropertyString.AcxVaultGuests);
+            else
+                vault.SetProperty(PropertyString.AcxVaultGuests, string.Join(";", guests.Distinct()));
+            vault.SaveBiotaToDatabase();
+        }
+
+        /// <summary>
+        /// /vault storage [add|remove <name> | clear]: who else may open every vault the player's account leases
+        /// </summary>
+        public static string Storage(Player player, string[] args)
+        {
+            var mine = AllVaults(VaultLandblock).Where(v => Leaseholder(v) == player.Account.AccountId).ToList();
+            if (mine.Count == 0)
+                return "Your account doesn't lease a vault.";
+            var verb = args.Length > 0 ? args[0].ToLowerInvariant() : "";
+            var name = string.Join(" ", args.Skip(1)).Trim();
+
+            if (verb == "add" || verb == "remove")
+            {
+                var who = AcxWealth.FindCharacter(name, out var notFound);
+                if (who == null)
+                    return notFound == null || name.Length == 0 ? $"Usage: /vault storage {verb} <character name>" : notFound;
+                if (who.Account?.AccountId == player.Account.AccountId)
+                    return $"{who.Name} is on your account, so your vaults already open for them.";
+                foreach (var vault in mine)
+                {
+                    var guests = Guests(vault);
+                    if (verb == "add") guests.Add(who.Guid.Full); else guests.Remove(who.Guid.Full);
+                    SetGuests(vault, guests);
+                }
+                var vaults = string.Join(", ", mine.Select(ShortName));
+                return verb == "add" ? $"{who.Name} can now open your vault{(mine.Count == 1 ? "" : "s")} ({vaults}) without a key." : $"{who.Name} can no longer open your vault{(mine.Count == 1 ? "" : "s")} ({vaults}) without a key.";
+            }
+            if (verb == "clear")
+            {
+                foreach (var vault in mine) SetGuests(vault, new List<uint>());
+                return "Nobody else can open your vaults now, except with a key.";
+            }
+
+            var names = mine.SelectMany(Guests).Distinct().Select(g => PlayerManager.FindByGuid(g)?.Name).Where(n => n != null).OrderBy(n => n).ToList();
+            return (names.Count == 0 ? "Only your own characters (and anyone with a key) can open your vaults." : $"Also allowed in your vaults: {string.Join(", ", names)}.")
+                + " /vault storage add <name> lets a character in, /vault storage remove <name> takes them off, /vault storage clear removes everyone.";
         }
 
         private static bool HasKey(Player player, WorldObject vault)
@@ -362,6 +418,7 @@ namespace ACE.Server.Managers
             vault.RemoveProperty(PropertyString.AcxVaultOwnerName);
             vault.RemoveProperty(PropertyInt64.AcxVaultPaidUntil);
             vault.RemoveProperty(PropertyInt.AcxVaultLockCode);
+            vault.RemoveProperty(PropertyString.AcxVaultGuests);   // /vault storage list goes with the lease
             vault.SaveBiotaToDatabase();
             if (vault.CurrentLandblock != null)
                 RefreshNames(vault.CurrentLandblock);

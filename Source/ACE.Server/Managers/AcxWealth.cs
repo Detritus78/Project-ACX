@@ -574,6 +574,8 @@ namespace ACE.Server.Managers
         /// Project ACX: the character a transfer goes to: the full name, or a first name or start of a name that only one
         /// character has (JJ 2026-11-24: "Gunnar" for Gunnar Hamarr)
         /// </summary>
+        public static IPlayer FindCharacter(string name, out string notFound) => FindTarget(name, out notFound);   // also /vault storage
+
         private static IPlayer FindTarget(string name, out string notFound)
         {
             notFound = null;
