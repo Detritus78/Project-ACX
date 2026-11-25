@@ -173,7 +173,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// /vault storage [add|remove <name> | clear]: who else may open every vault the player's account leases
+        /// /vault storage [add|remove <full name> | clear]: who else may open every vault the player's account leases
         /// </summary>
         public static string Storage(Player player, string[] args)
         {
@@ -185,9 +185,12 @@ namespace ACE.Server.Managers
 
             if (verb == "add" || verb == "remove")
             {
-                var who = AcxWealth.FindCharacter(name, out var notFound);
-                if (who == null)
-                    return notFound == null || name.Length == 0 ? $"Usage: /vault storage {verb} <character name>" : notFound;
+                // the full character name (JJ 2026-11-25: "not a first name it needs to be the full player character name")
+                if (name.Length == 0)
+                    return $"Usage: /vault storage {verb} <full character name>";
+                var who = PlayerManager.FindByName(name);
+                if (who == null || who.IsDeleted || who.IsPendingDeletion)
+                    return $"There's no character called {name}. Use their full name.";
                 if (who.Account?.AccountId == player.Account.AccountId)
                     return $"{who.Name} is on your account, so your vaults already open for them.";
                 foreach (var vault in mine)
