@@ -11,13 +11,11 @@ namespace ACE.Server.Command.Handlers
     public static class ACXVaultCommands
     {
         [CommandHandler("vault", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0,
-            "Shows your account's vaults, gives one up (like abandoning a house; what's inside stays for the next leaseholder), or empties the pack you have selected into the vault you have open.",
-            "[abandon [name, e.g. 3-C] | dump]")]
+            "Shows your account's vaults, or gives one up (like abandoning a house; what's inside stays for the next leaseholder).",
+            "[abandon [name, e.g. 3-C]]")]
         public static void HandleVault(Session session, params string[] parameters)
         {
-            if (parameters.Length > 0 && parameters[0] == "dump")
-                CommandHandlerHelper.WriteOutputInfo(session, session.Player.AcxVaultDump());   // Project ACX: empty the selected pack into the open vault
-            else if (parameters.Length > 0 && parameters[0] == "abandon")
+            if (parameters.Length > 0 && parameters[0] == "abandon")
                 AcxVaults.Abandon(session.Player, parameters.Length > 1 ? parameters[1] : null);
             else
                 CommandHandlerHelper.WriteOutputInfo(session, AcxVaults.Status(session.Player));
