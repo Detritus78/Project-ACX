@@ -1,5 +1,8 @@
 # Auto Sell changelog
 
+## 0.6.1
+- Its own toolbar icon (a gold pyreal on green).
+
 ## 0.6.0
 - **Scan appraises unassessed gear itself.** Weapons, armor, clothing and jewelry the client hasn't appraised yet used to be
   skipped silently; Scan now appraises them first (about one a second), then lists them.

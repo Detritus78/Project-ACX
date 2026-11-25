@@ -1,0 +1,25 @@
+{
+  "api": 2,
+  "mode": "automation",
+  "id": "packsort",
+  "name": "PackSort",
+  "short_name": "SORT",
+  "version": "2.0.1",
+  "description": "Moves items by type, or sorts them by any property with MudSort's sort strings, between your packs, your main pack and an open chest or vault, or hands them to a player or NPC.",
+  "presentation": {
+    "title": "PackSort",
+    "icon": "packsort.png",
+    "controls": "start_stop",
+    "start_label": "Open PackSort",
+    "stop_label": "Close PackSort",
+    "settings": false,
+    "status": true
+  },
+  "permissions": [
+    "inventory",
+    "data",
+    "ui",
+    "state"
+  ],
+  "settings": []
+}
