@@ -1,26 +1,30 @@
 -- Project ACX: revive scrolls I, II and III (Managers/AcxRevive.cs, WorldObjects/Player_AcxGhost.cs).
 -- Used on the corpse of someone waiting beside it as a ghost. I: instant, back with 1 health. II: 10 s kneeling cast,
 -- back with half. III: 20 s cast, back with full vitals. Each gives back that death's vitae.
--- Plain generic items (the look of retail's Scroll of Dark Rain, 12022) carrying AcxReviveTier (int 30009); each tier
+-- Stackable items (up to 100; the look of retail's Scroll of Dark Rain, 12022) carrying AcxReviveTier (int 30009); each tier
 -- has its own coloured icon background. Sold by Life Magic scriveners in Ayan Baqur, Fort Tethana, Candeth Keep,
 -- Wai Jhou and Arwic (added in code, AcxRevive.ShopItems); the copy a player buys resells for 1 pyreal.
--- Prices are placeholders for the balance pass.
+-- Value x the scriveners' SellPrice 50 = 5,000 / 20,000 / 50,000 pyreals (placeholders for the balance pass).
 --   900600-900602  Revive Scroll I-III
 -- Re-runnable. Restart the server after applying.
 
 DELETE FROM weenie WHERE class_Id BETWEEN 900600 AND 900602;
 
 INSERT INTO weenie (class_Id, class_Name, type, last_Modified) VALUES
-    (900600, 'acx-revive-scroll-1', 1, NOW()),
-    (900601, 'acx-revive-scroll-2', 1, NOW()),
-    (900602, 'acx-revive-scroll-3', 1, NOW());
+    (900600, 'acx-revive-scroll-1', 51, NOW()),   -- Stackable
+    (900601, 'acx-revive-scroll-2', 51, NOW()),
+    (900602, 'acx-revive-scroll-3', 51, NOW());
 
 INSERT INTO weenie_properties_int (object_Id, type, value)
-SELECT w.id, p.type, CASE p.type WHEN 19 THEN w.price WHEN 30009 THEN w.tier ELSE p.value END
-FROM (SELECT 900600 id, 1 tier, 5000 price UNION ALL SELECT 900601, 2, 20000 UNION ALL SELECT 900602, 3, 50000) w
+SELECT w.id, p.type, CASE p.type WHEN 19 THEN w.price WHEN 15 THEN w.price WHEN 30009 THEN w.tier ELSE p.value END
+FROM (SELECT 900600 id, 1 tier, 100 price UNION ALL SELECT 900601, 2, 400 UNION ALL SELECT 900602, 3, 1000) w
 CROSS JOIN (SELECT 1 type, 128 value          -- ItemType: misc
   UNION ALL SELECT 5, 30                      -- EncumbranceVal
   UNION ALL SELECT 9, 0                       -- ValidLocations
+  UNION ALL SELECT 11, 100                    -- MaxStackSize
+  UNION ALL SELECT 12, 1                      -- StackSize
+  UNION ALL SELECT 13, 30                     -- StackUnitEncumbrance
+  UNION ALL SELECT 15, 0                      -- StackUnitValue (per tier)
   UNION ALL SELECT 16, 2097160                -- ItemUseable: SourceContainedTargetRemote (from the pack, on something in the world)
   UNION ALL SELECT 19, 0                      -- Value (per tier)
   UNION ALL SELECT 93, 1044                   -- PhysicsState
