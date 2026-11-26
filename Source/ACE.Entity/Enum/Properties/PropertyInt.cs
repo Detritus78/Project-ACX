@@ -673,6 +673,7 @@ namespace ACE.Entity.Enum.Properties
         AcxSalvageSack                           = 30019,
         AcxAuraScript2Count                      = 30020,
         AcxSpellCount                            = 30021,   // Project ACX: sent in appraisals only (AppraiseInfo), never stored: the item's spell count, for loot rules
+        AcxPaletteTemplate                       = 30022,   // Project ACX: sent in appraisals only (AppraiseInfo), never stored: the item's PaletteTemplate (its loot colour, e.g. Covenant veins), for loot rules
     }
 
     public static class PropertyIntExtensions

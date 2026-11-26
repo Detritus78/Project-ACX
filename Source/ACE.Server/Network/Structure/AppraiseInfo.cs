@@ -79,6 +79,11 @@ namespace ACE.Server.Network.Structure
             if (SpellBook.Count > 0 && wo is not Creature)
                 PropertiesInt[PropertyInt.AcxSpellCount] = SpellBook.Count;
 
+            // Project ACX: the item's colour template, so loot rules can match armor colours (JJ 2026-11-26: Covenant sets need
+            // matching veins, which keep their loot colour through dyeing). Only for things worn, which carry a ClothingBase.
+            if (wo.PaletteTemplate is int palette && palette > 0 && wo.ClothingBase != null && wo is not Creature)
+                PropertiesInt[PropertyInt.AcxPaletteTemplate] = palette;
+
             // Help us make sure the item identify properly
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
