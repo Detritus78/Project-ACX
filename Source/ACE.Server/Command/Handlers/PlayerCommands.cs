@@ -33,6 +33,31 @@ namespace ACE.Server.Command.Handlers
         }
 
         // quest info (uses GDLe formatting to match plugin expectations)
+        // Project ACX: ported from Thwargle's ACE (AC:Unreal 2026.11.27.168), on by default like /myquests (JJ 2026-11-27)
+        [CommandHandler("myquest", AccessLevel.Player, CommandHandlerFlag.RequiresWorld,
+            "Check your recorded completions for one quest flag", "<questflag>")]
+        public static void HandleMyQuest(Session session, params string[] parameters)
+        {
+            var reply = GetQuestLookupReply(session.Player.QuestManager, PropertyManager.GetBool("quest_lookup_enabled").Item, parameters);
+            session.Network.EnqueueSend(new GameMessageSystemChat(reply, ChatMessageType.Broadcast));
+        }
+
+        internal static string GetQuestLookupReply(QuestManager quests, bool enabled, string[] parameters)
+        {
+            if (!enabled)
+                return "The command \"myquest\" is not currently enabled on this server.";
+
+            if (parameters.Length != 1 || string.IsNullOrWhiteSpace(parameters[0]))
+                return "Usage: /myquest <questflag>";
+
+            var flag = parameters[0].Trim();
+            var quest = quests.GetQuest(flag);
+            if (quest == null || quest.NumTimesCompleted <= 0)
+                return $"No completions recorded for {flag}.";
+
+            return $"{quest.QuestName} completed {quest.NumTimesCompleted} {(quest.NumTimesCompleted == 1 ? "time" : "times")}.";
+        }
+
         [CommandHandler("myquests", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, "Shows your quest log")]
         public static void HandleQuests(Session session, params string[] parameters)
         {
