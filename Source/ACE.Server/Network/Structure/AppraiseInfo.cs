@@ -137,6 +137,11 @@ namespace ACE.Server.Network.Structure
             // public description stays a thrown weapon's (a shield in the other hand, no ammunition asked for). No usage
             // line: the name and description say the rest, and the details go on the ACX wiki (JJ 2026-11-16: "all of that
             // information is already on there", then "clear that all out"). An Alchemist's Healing bomb has no damage to show.
+            // Project ACX: our own lines go at the top of the description, one per line, then a blank line before the
+            // item's description (JJ 2026-11-27: "at the top of the description with a line break then any other write ins
+            // we have to do with a line break before the description")
+            var acxLines = new List<string>();
+
             if (WeaponProfile != null && Factories.Tables.Wcids.AcxThrownWcids.IsEternalThrown(wo.WeenieClassId)
                 && !Factories.Tables.Wcids.AcxBombWcids.IsHealingBomb(wo.WeenieClassId))
             {
@@ -148,9 +153,20 @@ namespace ACE.Server.Network.Structure
                 if (damageType != DamageType.Undef)
                 {
                     var names = string.Join(" and ", System.Enum.GetValues<DamageType>().Where(t => t != DamageType.Undef && (t & (t - 1)) == 0 && damageType.HasFlag(t)).Select(t => t.GetName()).Where(n => n != null));
-                    PropertiesString.TryGetValue(PropertyString.LongDesc, out var desc);
-                    PropertiesString[PropertyString.LongDesc] = $"Damage type: {names}\n" + (desc ?? "");
+                    acxLines.Add($"Damage type: {names}");
                 }
+            }
+
+            // Project ACX: say when a melee weapon strikes two or three times per attack (JJ 2026-11-27: "why doesnt it say
+            // multi-strike on the weapon?"; other servers listed it). The window's Properties line is built by the client,
+            // so it goes first among our lines at the top of the description.
+            if (WeaponProfile != null && wo is MeleeWeapon && wo.W_AttackType.IsMultiStrike())
+                acxLines.Insert(0, $"Multi-strike: {((wo.W_AttackType & AttackType.TripleStrike) != 0 ? "triple" : "double")}");
+
+            if (acxLines.Count > 0)
+            {
+                PropertiesString.TryGetValue(PropertyString.LongDesc, out var desc);
+                PropertiesString[PropertyString.LongDesc] = string.Join("\n", acxLines) + (string.IsNullOrEmpty(desc) ? "" : "\n\n" + desc);
             }
 
             // TODO: Resolve this issue a better way?

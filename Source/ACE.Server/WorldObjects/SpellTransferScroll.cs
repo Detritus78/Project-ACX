@@ -51,6 +51,17 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
+        /// <summary>Project ACX: the first word of a transfer scroll's name</summary>
+        public static string SchoolWord(MagicSchool school) => school switch
+        {
+            MagicSchool.ItemEnchantment => "Item",
+            MagicSchool.CreatureEnchantment => "Creature",
+            MagicSchool.LifeMagic => "Life",
+            MagicSchool.WarMagic => "War",
+            MagicSchool.VoidMagic => "Void",
+            _ => "Spell",
+        };
+
         public static void BroadcastSpellTransfer(Player player, string spellName, WorldObject target, double chance = 1.0f, bool success = true)
         {
             // send local broadcast
@@ -292,7 +303,10 @@ namespace ACE.Server.WorldObjects
 
                         var newScroll = WorldObjectFactory.CreateNewWorldObject(TransferScrollWcid);
                         newScroll.SpellDID = (uint)spellToExtractId;
-                        newScroll.Name += spellName;
+                        // Project ACX: the school leads the name, "Item Transfer Scroll: Acid Bane VI", so PackSort's Name
+                        // contains can move one school's scrolls (JJ 2026-11-27). Old ones renamed by
+                        // acx/shard-migrations/2026-11-27-transfer-scroll-school-names.sql
+                        newScroll.Name = $"{SchoolWord(spell.School)} Transfer Scroll: {spellName}";
 
                         // use the icon of the matching spell scroll, if there is one
                         var spellScrollWeenie = DatabaseManager.World.GetScrollWeenie((uint)spellToExtractId);
